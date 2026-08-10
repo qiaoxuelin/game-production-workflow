@@ -1,0 +1,4 @@
+interface:
+  display_name: "游戏生产协同系统"
+  short_description: "规划拆分游戏任务、前置专业设计并管理证据验收与交接"
+  default_prompt: "Use $game-production-system to plan or recover this game task with the lightest safe lane, representative proof, bounded execution, and a verified handoff."

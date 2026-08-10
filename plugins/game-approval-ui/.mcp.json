@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "game-approval-ui": {
+      "command": "node",
+      "args": [
+        "./mcp/server.mjs"
+      ],
+      "cwd": ".",
+      "startup_timeout_sec": 10,
+      "tool_timeout_sec": 900
+    }
+  }
+}

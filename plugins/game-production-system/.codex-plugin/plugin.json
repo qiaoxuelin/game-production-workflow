@@ -1,0 +1,26 @@
+{
+  "name": "game-production-system",
+  "version": "1.5.8",
+  "description": "Lean, repository-resident production governance for game projects.",
+  "author": {
+    "name": "qiaoxuelin",
+    "url": "https://github.com/qiaoxuelin"
+  },
+  "homepage": "https://github.com/qiaoxuelin/game-production-workflow",
+  "repository": "https://github.com/qiaoxuelin/game-production-workflow",
+  "keywords": ["game-development", "production", "codex", "workflow"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Game Production System",
+    "shortDescription": "Plan, execute, recover, and accept governed game work.",
+    "longDescription": "Choose the lightest safe lane, clarify original or replication requirements, front-load affected design ownership, execute bounded packages, verify representative proof, and preserve durable project state.",
+    "developerName": "qiaoxuelin",
+    "category": "Productivity",
+    "capabilities": ["Write"],
+    "defaultPrompt": [
+      "Plan this game task with the lightest safe production lane.",
+      "Continue this governed game project from its repository state.",
+      "Diagnose why this game task is stalled or repeatedly reworked."
+    ]
+  }
+}

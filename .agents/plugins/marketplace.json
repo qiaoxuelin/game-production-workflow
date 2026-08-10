@@ -1,0 +1,32 @@
+{
+  "name": "game-production-workflow",
+  "interface": {
+    "displayName": "Game Production Workflow"
+  },
+  "plugins": [
+    {
+      "name": "game-production-system",
+      "source": {
+        "source": "local",
+        "path": "./plugins/game-production-system"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "game-approval-ui",
+      "source": {
+        "source": "local",
+        "path": "./plugins/game-approval-ui"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
