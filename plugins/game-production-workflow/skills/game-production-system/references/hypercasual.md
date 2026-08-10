@@ -2,6 +2,15 @@
 
 Use this reference only when `validationMode` is `creative_first`.
 
+## Contents
+
+1. Classification
+2. G0 clarification
+3. Roles
+4. Validation order
+5. Structured UA evidence
+6. Integrity rules
+
 ## Classification
 
 Require:

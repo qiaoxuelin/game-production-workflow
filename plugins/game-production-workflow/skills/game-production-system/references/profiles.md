@@ -4,6 +4,14 @@ Do not create separate production systems for each genre. Select one project
 track, one business model, one validation mode, and one or more quality-focus
 tags. The shared task, role, evidence, and handoff model remains unchanged.
 
+## Contents
+
+1. Project tracks
+2. Business models
+3. Validation modes
+4. Quality-focus tags
+5. Classification changes
+
 ## 1. Project tracks
 
 ### `indie_game`

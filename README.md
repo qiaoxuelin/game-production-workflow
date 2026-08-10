@@ -1,6 +1,6 @@
 # 游戏生产协同系统
 
-这是现有游戏开发 Skill 流程的可安装版本，用一个 GitHub marketplace 向不同设备分发两个独立组件：
+这是现有游戏开发 Skill 流程的可安装版本。一个 GitHub marketplace 插件原子安装两个独立 Skill 和审批 MCP：
 
 - `game-production-system` `1.5.8`：生产规划、领域设计前置、任务拆分、执行止损、证据、验收与跨对话交接。
 - `game-approval-ui` `0.1.3`：可点击审批卡、离线待审批队列、附加意见和项目内持久化。
@@ -62,16 +62,16 @@
 
 ## 在另一台设备安装
 
-前置条件：Git、可用的 Codex 桌面端或 CLI、PowerShell 7，以及用于审批 MCP 的 Node.js 18+。私有仓库还需要该设备具备 GitHub 访问权限。
+前置条件：Git、GitHub CLI、可用的 Codex 桌面端或 CLI、Windows PowerShell 5.1+（也兼容 PowerShell 7），以及用于审批 MCP 的 Node.js 18+。私有仓库还需要该设备具备 GitHub 访问权限。
 
 ```powershell
 gh auth login
-codex.cmd plugin marketplace add qiaoxuelin/game-production-workflow --ref main
-codex.cmd plugin add game-production-system@game-production-workflow
-codex.cmd plugin add game-approval-ui@game-production-workflow
+gh repo clone qiaoxuelin/game-production-workflow
+Set-Location game-production-workflow
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-安装完成后重启 Codex，并新建一个任务让插件和 MCP 工具完整加载。首次使用可显式输入：
+安装器会清理旧版两个插件的安装记录和缓存，但不会删除它们的源码；若发现手工放在 `.codex/skills` 的旧核心 Skill，会提示人工归档。安装完成后重启 Codex，并新建一个任务让插件和 MCP 工具完整加载。首次使用可显式输入：
 
 ```text
 Use $game-production-system to adopt or continue this game project from its repository state.
@@ -82,9 +82,8 @@ Use $game-production-system to adopt or continue this game project from its repo
 ## 更新
 
 ```powershell
-codex.cmd plugin marketplace upgrade game-production-workflow
-codex.cmd plugin add game-production-system@game-production-workflow
-codex.cmd plugin add game-approval-ui@game-production-workflow
+git pull
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
 升级后从新任务开始使用新版本。进行中的工作包保持原状态，在自然检查点应用兼容的新策略，不为升级而中断可恢复执行。
@@ -92,7 +91,9 @@ codex.cmd plugin add game-approval-ui@game-production-workflow
 ## 本地验证
 
 ```powershell
-node plugins/game-approval-ui/scripts/test-server.mjs
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\verify.ps1
 ```
 
-两个插件清单和两个 Skill 还应分别通过 Codex 内置的 `plugin-creator` 与 `skill-creator` 验证器。
+`verify.ps1` 检查插件结构、组件版本、PowerShell 语法、Markdown 链接、常见密钥模式和审批 MCP 协议。发布前还应让两个 Skill 分别通过 Codex 内置 `skill-creator` 验证器，并让整合插件通过 `plugin-creator` 验证器。
+
+每次发布都更新插件清单中的 `+codex.<UTC 时间戳>` 缓存标识；不要仅修改内容后沿用旧版本。生产策略版本和审批服务组件版本分别保留在其实现中。
