@@ -11,6 +11,8 @@ Define only what implementation needs:
 - required material or emotional identity;
 - trigger, state, duration/loop, priority, concurrency, ducking, and variation;
 - reference traits and allowed deviation;
+- candidate maturity: direction, production-ready source, runtime golden, or
+  integrated acceptance;
 - runtime scene and device used for listening acceptance.
 
 For reference replication, reproduce functional and perceptual traits with
@@ -57,6 +59,12 @@ The audio design owner listens in runtime and accepts or returns material
 identity, hierarchy, variation, music fit, fatigue, and mix. The producer judges
 the integrated player experience when applicable. Meters, logs, automated tests,
 or the presence of an audio track cannot replace either listening judgment.
+
+Return audio that is materially wrong, harsh, cheap or monotonously synthetic,
+masks critical feedback, loops obviously, or depends on loudness to imply
+impact. For gate-critical or repeatedly returned audio, use the independent
+procedure in [experience-review.md](experience-review.md); first compare the
+runtime result with the frozen reference traits, then inspect technical reports.
 
 If two consecutive candidates fail the same audible criterion without new
 evidence, stop tuning the same source or synthesis route. Change the source,

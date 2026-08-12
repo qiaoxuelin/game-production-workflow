@@ -12,9 +12,12 @@
 
 ## Golden samples
 
+- External/category quality benchmark: `TBD`
 - Runtime golden scene: `TBD`
 - Character/asset master: `TBD`
 - UI master: `TBD`
+- Current maturity claims: `Direction / Production design / Runtime golden / Integrated acceptance`
+- Required editable sources, layers, rigs, and import constraints: `TBD`
 
 ## Shape, line, material, and detail
 
@@ -47,6 +50,7 @@
 ## Reference usage
 
 - Reference what: `TBD`
+- Required matching traits and allowed deviations: `TBD`
 - Do not copy: third-party assets, branding, footage, layouts, or distinctive
   protected expression.
 
@@ -57,3 +61,7 @@
 - AI artifacts, anatomy errors, meaningless decoration, or inconsistent detail
   remain visible at runtime size.
 - The in-engine composition or readability fails even if source art is strong.
+- The result follows an internal baseline but remains below the declared product
+  quality benchmark.
+- A concept, generated mockup, placeholder, or whole-frame substitute is being
+  presented as production-ready art or final animation.

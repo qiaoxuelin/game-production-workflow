@@ -1,6 +1,6 @@
 ---
 name: game-production-system
-description: Initialize, plan, govern, recover, continue, review, and hand off game-development projects with task decomposition, front-loaded domain design ownership, design-completeness gates, execution-health stop-loss, repository-resident contracts, reusable design modules, clarification gates, evidence, and acceptance gates. Use when starting or adopting a game project, planning or replanning a complex feature or milestone, beginning substantial gameplay/level/balance/economy/UX/art work, recovering stalled or repetitive implementation, resuming across Codex conversations, coordinating production/design/technical/QA roles, reviewing a vertical slice or release candidate, or incubating hypercasual/IAA games with creative-first market validation.
+description: Initialize, plan, govern, recover, continue, review, and hand off game-development projects with task decomposition, front-loaded professional domain design, design-completeness and quality gates, execution-health stop-loss, repository-resident contracts, reusable design modules, clarification, evidence, and acceptance. Use when starting or adopting a game project, planning or replanning a complex feature or milestone, beginning substantial gameplay/level/balance/economy/content/UX/art/animation/audio work, recovering stalled or repetitive implementation, resuming across Codex conversations, coordinating production/design/technical/QA roles, reviewing commercial-quality player-facing work, a vertical slice, or a release candidate, or incubating hypercasual/IAA games with creative-first market validation.
 ---
 
 # Game Production System
@@ -284,14 +284,22 @@ evidence, and handoff rules.
 6. Identify applicable design domains and reuse adopted modules before
    inventing new rules. Read [design-modules.md](references/design-modules.md).
 7. Have each design owner inspect references and produce only the relevant rules,
-   state flows, specifications, baselines, and acceptance criteria.
+   state flows, specifications, baselines, quality bar, maturity claim, rejection
+   conditions, and acceptance criteria. A role name or internally consistent
+   baseline does not establish professional quality.
    When the design has enumerable entities, states, routes, branches or
    dependencies, also define the applicable completeness representation and
    pass its cheapest static check before marking the design `Frozen`.
-8. For player-facing audio work, read
+8. For gameplay, level, balance, economy, progression, content, or narrative
+   work, read [game-content-design.md](references/game-content-design.md).
+   For UI, art, animation, VFX, or technical-art work, read
+   [visual-production.md](references/visual-production.md).
+   For player-facing audio work, read
    [audio-production.md](references/audio-production.md). Freeze cue intent
    before sourcing, prefer rights-cleared stock SFX, use rights-cleared
    generated BGM candidates where appropriate, and require runtime listening.
+   For subjective player-experience or commercial-quality review, read
+   [experience-review.md](references/experience-review.md).
 9. Reconcile domain conflicts through the coordinator and ask the human only
    for unresolved high-impact authority decisions.
 10. Before Full implementation, combine domain design with a technical handoff
@@ -404,6 +412,10 @@ evidence, and handoff rules.
   for Full work and applicable integrated or player-facing Standard work. Fast
   work closes on objective verification.
 - Do not let an implementer give final approval to their own high-risk work.
+- Do not treat a named expert, a frozen internal baseline, or compliance with
+  self-authored rules as proof of professional quality. Record the artifact
+  maturity and compare subjective high-risk work with an external reference or
+  explicit product quality bar before implementation and again in runtime.
 - Before uncertain iteration, define an objective acceptance measure. If two
   consecutive cycles add no new evidence toward the same failed criterion, or
   a cross-state regression repeats without new evidence, stop tuning and run a
@@ -463,8 +475,14 @@ evidence, and handoff rules.
 - `references/adoption.md`: safe existing-project adoption.
 - `references/design-modules.md`: module discovery, lifecycle, ownership, and
   task-close harvesting.
+- `references/game-content-design.md`: gameplay, level, balance, economy,
+  progression, content, and narrative craft contracts.
+- `references/visual-production.md`: UX/UI, art direction, animation/VFX, and
+  technical-art production and maturity contracts.
 - `references/audio-production.md`: stock-SFX and generated-BGM sourcing,
   provenance, integration, and audible acceptance.
+- `references/experience-review.md`: independent player-experience and
+  commercial-quality review without circular self-conformance.
 - `assets/project-template/`: minimal project governance files.
 - `assets/design-module-template/MODULE.md`: copy only when creating a module.
 - `scripts/bootstrap.ps1`: install the template without overwriting.

@@ -59,6 +59,12 @@ Rules:
 - For high-fidelity visual/player-facing work, pass the smallest representative
   in-engine precheck before exhaustive state capture, long recordings, or bulk
   production. Provide what to inspect and explicit return conditions.
+- For Standard/Full work, apply only the affected installed craft reference:
+  `game-content-design.md`, `visual-production.md`, `audio-production.md`, or
+  `experience-review.md`. A named expert or self-authored frozen baseline does
+  not prove professional quality; keep the maturity claim, external reference
+  or explicit quality bar, and hard return conditions visible in the existing
+  task/design baseline.
 - Fix immediately only when an invalid baseline/reference, crash or data risk,
   environment blocker, or material scope conflict makes further inspection
   unsafe or misleading. Keep rapid experiments isolated and promote only the
@@ -71,6 +77,9 @@ Rules:
 - Preserve protected behavior and paths.
 - Keep one active main task unless parallel work is explicit.
 - Do not self-approve gate-critical work.
+- For subjective high-risk review, inspect the actual experience against the
+  declared product-quality bar before allowing test counts or implementation
+  rationale to influence the first verdict.
 - Reuse adopted design modules before inventing new rules; do not promote a
   one-off case into a default module.
 - Do not bulk-produce art before an in-engine golden sample is approved.

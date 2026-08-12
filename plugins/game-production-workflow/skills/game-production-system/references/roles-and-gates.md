@@ -40,8 +40,11 @@ not replace domain design owners or implementation owners.
 ### Design/experience
 
 Own player problem, rules, flow, content, UX hierarchy, edge states, and
-behavioral acceptance before implementation. Produce a frozen design output and
-handoff; do not silently implement around unresolved design.
+behavioral acceptance before implementation. Establish the applicable external
+reference or explicit product quality bar, artifact maturity, production-ready
+source requirements, and hard return conditions. Produce a frozen design output
+and handoff; do not silently implement around unresolved design or call a
+concept, mockup, placeholder, or technically valid candidate production-ready.
 
 ### Technical/implementation
 
@@ -51,8 +54,11 @@ performance, build, and rollback. Do not change product rules without review.
 ### Independent review
 
 Own evidence integrity and acceptance from the relevant QA, player, art, data,
-or release perspective. For visual work, do not approve source art without
-in-engine evidence.
+or release perspective. Check both frozen-design conformance and the claimed
+product-quality level. For subjective high-risk work, compare the actual result
+with the declared external reference or product quality bar before reading
+implementation rationale when practical. For visual work, do not approve source
+art without in-engine evidence.
 
 These are accountable perspectives, not required permanent agents. One Codex
 task may execute several role passes internally. Do not create separate role
@@ -96,6 +102,12 @@ After planning, invoke the affected domain owners:
   assets, states, baselines, and tolerances;
 - technical design owns architecture and feasibility, but cannot substitute
   for missing product or experience decisions.
+
+Apply the relevant craft reference from the Skill. Naming an owner satisfies
+routing only; it does not prove that the design method, maturity, or quality bar
+is adequate. Keep one accountable owner when one person can competently cover
+several adjacent domains; do not add role passes merely because the references
+separate professional concerns.
 
 Keep design `Draft` until domain owners have made the decisions. Freeze the
 outputs and implementation handoff before entering `Ready`. For Full work, the

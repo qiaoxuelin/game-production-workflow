@@ -18,6 +18,9 @@ project-specific additions here.
 - Gate-critical review must be independent.
 - GUI restoration requires a versioned baseline, runtime comparison, and
   independent review.
+- Subjective product-quality review requires the declared artifact maturity,
+  actual runtime experience, and an external reference or explicit product
+  quality bar; internal conformance and automated checks are insufficient.
 - Keep large builds and videos outside Git; register location and hash.
 
 ## Commands
