@@ -111,6 +111,11 @@ Rules:
   genuinely unresolved design, authority, scope, baseline, or architecture.
 - For UI/GUI work, freeze the design baseline and state matrix before coding,
   then require runtime comparison evidence.
+- For Standard/Full material interactive visual work, freeze one compact
+  interaction/render contract before asset-family production. Use one
+  authoritative state source with declared renderers, run the cheapest
+  technology-appropriate assembly precheck, and keep bulk work locked until it
+  and the representative runtime proof pass. Do not add another approval layer.
 - Update the canonical decision source immediately; synchronize derivative
   summaries and plans at a milestone unless the next package needs them.
 - Before asking for approval of an implementable player-facing contract, run

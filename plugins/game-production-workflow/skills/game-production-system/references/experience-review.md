@@ -35,6 +35,8 @@ Play, view, or listen at the target size/device and normal player pace. Check:
 
 - first-impression clarity and product identity;
 - attention hierarchy, decision readability, control confidence, and recovery;
+- interaction-to-visual causality, operable spatial contact, attachment, and
+  whether independently changing state remains coherently rendered;
 - causal feedback, timing, pacing, payoff, repetition, fatigue, and emotional
   fit;
 - consistency across representative default, success/failure, interruption,
@@ -49,9 +51,10 @@ or automated success as a substitute for normal-scale runtime judgment.
 ## Return decisively
 
 Use one verdict: `Pass`, `Pass with bounded non-blocking findings`, or
-`Returned`. Return foundational hierarchy, interaction, material, motion,
-audio, gameplay, level-topology, or product-identity failures instead of
-converting them into coordinate, opacity, gain, or numeric polish tasks.
+`Returned`. Return foundational hierarchy, interaction, spatial assembly,
+source separation, material, motion, audio, gameplay, level-topology, or
+product-identity failures instead of converting them into coordinate, opacity,
+gain, or numeric polish tasks.
 
 Record one consolidated verdict with the failed criterion, observable evidence,
 retained passing parts, and next allowed route. Later Human Producer feedback

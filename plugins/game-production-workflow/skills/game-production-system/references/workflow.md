@@ -63,7 +63,7 @@ the user asks to adopt or persist one.
   affected domain owners, technical architecture ownership, and representative
   proof before bulk execution.
 
-Record the lane on new v1.5 tasks. For legacy active tasks, infer it from scope
+Record the lane on new v1.5+ tasks. For legacy active tasks, infer it from scope
 and continue without schema migration unless the checker reports incompatibility.
 Do not interrupt an executing recoverable package solely to add lane or role
 fields. Apply the policy now and record missing Full-lane ownership at the next
@@ -320,14 +320,16 @@ bounded repair batch for one subsystem or root cause and run one combined
 regression. Define the batch by the observable state matrix and causal boundary,
 not by a fixed defect count, timer, or iteration quota.
 
-For high-fidelity visual or player-facing work, split proof into two stages.
-First create the smallest representative runtime precheck that exposes dominant
-composition, readability, feel, and baseline-conformance risks. The affected
-design owner inspects that actual runtime result; obtain human golden approval
-when the frozen authority requires it. Include what to inspect and explicit
-return conditions. Only after this precheck passes should the task produce the
-exhaustive state matrix, long captures, or bulk content. Passing tests or a large
-evidence count never substitutes for the precheck judgment.
+For high-fidelity visual or player-facing work, use the smallest risk-appropriate
+proof sequence. For a material interactive visual package, freeze its compact
+interaction/render contract and run the cheapest assembly precheck natural to
+the technology before runtime proof. Then create the smallest representative
+runtime precheck that exposes dominant composition, readability, feel, and
+baseline-conformance risks. The affected design owner inspects the results;
+obtain human golden approval only when the frozen authority requires it. Only
+after the applicable prechecks pass should the task produce an exhaustive state
+matrix, long captures, or bulk content. Passing tests or a large evidence count
+never substitutes for those judgments.
 
 Stop the inspection immediately only when continuing would be unsafe or
 misleading because the baseline/reference is invalid, the program crashes or

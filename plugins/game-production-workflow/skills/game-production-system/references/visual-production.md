@@ -40,6 +40,47 @@ Use the narrowest truthful claim:
 Never promote an artifact by renaming it or because its implementation tests
 pass. Record placeholders and unfinished production assets as explicit debt.
 
+## Freeze interactive visual architecture when material
+
+For Standard or Full work that introduces a new player-operated visual surface,
+runtime-composed asset system, or material interaction/layout rule, mark
+`Interactive visual scope: Required` in `TASK.md`. Keep Fast work and changes
+that reuse an accepted interaction/render baseline `Not applicable`.
+
+Before opening material asset-family production, freeze one compact contract in
+the current task or its existing design baseline. Cover only the representative
+loop and dominant risk extremes:
+
+- player action, input, source/target, pre/post state, visible feedback, and
+  failure/recovery;
+- authoritative state source plus every renderer, attachment, and lifetime that
+  represents it;
+- camera or coordinate space, scale, anchors/contact points, occlusion, and the
+  shared spatial master whose change invalidates dependents;
+- runtime-composed layers, allowed atomic state bundles, prohibited baked
+  locations, and the placeholder boundary for the claimed maturity.
+
+Require one authoritative state source, not one renderer. Multiple world, HUD,
+preview, or accessibility renderers are valid when they derive from that source
+and cannot diverge. Pre-rendered animation or a state-specific bundle may bake
+elements that always change atomically; elements with independent state,
+timing, ownership, or combination must remain separable. Reject any baked or
+duplicated depiction that can contradict simultaneously rendered runtime state.
+
+Use the cheapest assembly precheck natural to the technology before runtime:
+an actual-size layered composite for 2D, a component/wireframe assembly for UI,
+or an editor scene for 3D, procedural, shader-driven, or engine-native work.
+This precheck verifies operable spatial contact, attachment, occlusion, source
+separation, and maturity consistency; it is design-owner conformance evidence,
+not a new human approval. `Ready` requires the frozen contract, while the
+assembly precheck may remain `Pending` during bounded implementation. Bulk work
+stays locked until both that precheck and the representative runtime proof pass.
+
+A functional or interaction greybox may use consistent placeholders and must
+claim only that maturity. A visual runtime golden may retain placeholders only
+outside the evaluated attention field, repeated structure, and critical
+interaction chain, with that boundary recorded explicitly.
+
 ## Decompose material asset production only when useful
 
 Before opening production packages, derive the required asset inventory from

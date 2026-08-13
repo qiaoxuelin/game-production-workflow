@@ -76,6 +76,18 @@ function Test-ConcreteTaskValue {
     )
 }
 
+function Test-ConcreteContractValue {
+    param([string]$Value)
+
+    if (-not (Test-ConcreteTaskValue -Value $Value)) {
+        return $false
+    }
+
+    return $Value.Trim() -notmatch (
+        '(?i)^(?:TBD|Pending|None|Not applicable|Not started)(?:\s+or)?$'
+    )
+}
+
 function Test-DomainDesignRole {
     param([string]$Role)
 
@@ -695,6 +707,13 @@ $replicationScope = Get-TaskField -Text $taskText -Name 'Replication scope'
 $criticalReplicationPoints = Get-TaskField -Text $taskText -Name 'Critical replication points'
 $comparisonMethod = Get-TaskField -Text $taskText -Name 'Comparison method and tolerances'
 $allowedDeviations = Get-TaskField -Text $taskText -Name 'Allowed deviations'
+$representativeProof = Get-TaskField -Text $taskText -Name 'Representative proof'
+$bulkOrParallelUnlock = Get-TaskField -Text $taskText -Name 'Bulk or parallel unlock'
+$interactiveVisualScope = Get-TaskField -Text $taskText -Name 'Interactive visual scope'
+$interactionRenderContract = Get-TaskField -Text $taskText -Name 'Interaction/render contract'
+$assemblyPrecheck = Get-TaskField -Text $taskText -Name 'Assembly precheck'
+$requiredAssetInventory = Get-TaskField -Text $taskText -Name 'Required asset inventory'
+$assetFamilyPackages = Get-TaskField -Text $taskText -Name 'Asset-family packages'
 $designOwners = @(Get-TaskList -Value $designOwnersText)
 $designModuleRefs = @(Get-TaskList -Value $designModulesText)
 
@@ -767,6 +786,7 @@ $systemVersionAtLeast122 = $false
 $systemVersionAtLeast130 = $false
 $systemVersionAtLeast140 = $false
 $systemVersionAtLeast150 = $false
+$systemVersionAtLeast160 = $false
 $registeredModules = @{}
 $moduleIndex = $null
 
@@ -801,6 +821,7 @@ if ($null -ne $project) {
         $systemVersionAtLeast130 = ($parsedSystemVersion -ge [version]'1.3.0')
         $systemVersionAtLeast140 = ($parsedSystemVersion -ge [version]'1.4.0')
         $systemVersionAtLeast150 = ($parsedSystemVersion -ge [version]'1.5.0')
+        $systemVersionAtLeast160 = ($parsedSystemVersion -ge [version]'1.6.0')
         if ($parsedSystemVersion -lt [version]'1.3.0') {
             Add-Issue -Scope contract -Level warning -Code 'contract_version_legacy' -Message "Project contract $systemVersion predates the compatible v1.3 baseline; migrate when the active task reaches a safe checkpoint."
         }
@@ -1194,6 +1215,91 @@ if ($systemVersionAtLeast140) {
         )
         if ($producerAcceptanceRequired -and [string]::IsNullOrWhiteSpace($producerAcceptanceReference)) {
             Add-Issue -Scope task -Level error -Code 'producer_acceptance_missing' -Message 'Accepted tasks require producer integrated-outcome acceptance.'
+        }
+    }
+}
+
+if ($systemVersionAtLeast160) {
+    $assemblyPrecheckReference = Get-AcceptanceReference -Value $assemblyPrecheck
+    $representativeProofReference = Get-AcceptanceReference -Value $representativeProof
+    $bulkUnlockReference = Get-AcceptanceReference -Value $bulkOrParallelUnlock
+
+    if ([string]::IsNullOrWhiteSpace($interactiveVisualScope)) {
+        Add-Issue -Scope task -Level error -Code 'interactive_visual_scope_missing' -Message 'TASK.md must declare Interactive visual scope as Required or Not applicable.'
+    }
+    elseif ($interactiveVisualScope -notin @('Required', 'Not applicable')) {
+        Add-Issue -Scope task -Level error -Code 'interactive_visual_scope_invalid' -Message 'Interactive visual scope must be Required or Not applicable.'
+    }
+    elseif ($interactiveVisualScope -eq 'Not applicable') {
+        if ($interactionRenderContract -ne 'Not applicable') {
+            Add-Issue -Scope task -Level error -Code 'interactive_visual_scope_contract_conflict' -Message 'Use Interaction/render contract Not applicable when Interactive visual scope is Not applicable.'
+        }
+        if ($assemblyPrecheck -ne 'Not applicable') {
+            Add-Issue -Scope task -Level error -Code 'interactive_visual_scope_precheck_conflict' -Message 'Use Assembly precheck Not applicable when Interactive visual scope is Not applicable.'
+        }
+    }
+    else {
+        if ($executionLane -eq 'Fast') {
+            Add-Issue -Scope task -Level error -Code 'interactive_visual_fast_lane_conflict' -Message 'Material interactive visual work belongs in Standard or Full; Fast work must reuse an accepted baseline and mark this scope Not applicable.'
+        }
+        if ([string]::IsNullOrWhiteSpace($interactionRenderContract)) {
+            Add-Issue -Scope task -Level error -Code 'interaction_render_contract_field_missing' -Message 'Interactive visual work requires the Interaction/render contract field.'
+        }
+        if ([string]::IsNullOrWhiteSpace($assemblyPrecheck)) {
+            Add-Issue -Scope task -Level error -Code 'assembly_precheck_field_missing' -Message 'Interactive visual work requires the Assembly precheck field.'
+        }
+
+        if ($taskStatus -in $activeStatuses) {
+            if (
+                -not [string]::IsNullOrWhiteSpace($interactionRenderContract) -and
+                -not (Test-ConcreteContractValue -Value $interactionRenderContract)
+            ) {
+                Add-Issue -Scope task -Level error -Code 'interaction_render_contract_missing' -Message 'Ready, Implementing, or Accepted interactive visual work requires a concrete action/state, authoritative-source/renderer, spatial-contact, source-separation, and placeholder-boundary contract.'
+            }
+            if ($designStatus -ne 'Frozen') {
+                Add-Issue -Scope task -Level error -Code 'interactive_visual_design_missing' -Message 'Active material interactive visual work requires Frozen design ownership and outputs.'
+            }
+            if (-not (Test-ConcreteContractValue -Value $requiredAssetInventory)) {
+                Add-Issue -Scope task -Level error -Code 'interactive_visual_asset_inventory_missing' -Message 'Active material interactive visual work requires a concrete screen/state-derived asset inventory.'
+            }
+            if (-not (Test-ConcreteContractValue -Value $assetFamilyPackages)) {
+                Add-Issue -Scope task -Level error -Code 'interactive_visual_asset_packages_missing' -Message 'Active material interactive visual work requires concrete asset-family packages, including explicit reuse-only packages when no new art is produced.'
+            }
+            if (
+                -not [string]::IsNullOrWhiteSpace($assemblyPrecheck) -and
+                $assemblyPrecheck -ne 'Pending' -and
+                [string]::IsNullOrWhiteSpace($assemblyPrecheckReference)
+            ) {
+                Add-Issue -Scope task -Level error -Code 'assembly_precheck_invalid' -Message 'Active interactive visual work requires Assembly precheck Pending or Accepted: <evidence/reference>.'
+            }
+            if ($representativeProof -ne 'Pending' -and [string]::IsNullOrWhiteSpace($representativeProofReference)) {
+                Add-Issue -Scope task -Level error -Code 'representative_proof_invalid' -Message 'Active interactive visual work requires Representative proof Pending or Accepted: <evidence/reference>.'
+            }
+            if (
+                $bulkOrParallelUnlock -notin @('Locked', 'Not applicable') -and
+                [string]::IsNullOrWhiteSpace($bulkUnlockReference)
+            ) {
+                Add-Issue -Scope task -Level error -Code 'bulk_unlock_invalid' -Message 'Interactive visual bulk/parallel work must remain Locked, be Not applicable, or use Accepted: <evidence/reference>.'
+            }
+        }
+
+        if (
+            -not [string]::IsNullOrWhiteSpace($bulkUnlockReference) -and
+            (
+                [string]::IsNullOrWhiteSpace($assemblyPrecheckReference) -or
+                [string]::IsNullOrWhiteSpace($representativeProofReference)
+            )
+        ) {
+            Add-Issue -Scope task -Level error -Code 'visual_bulk_unlock_without_prechecks' -Message 'Interactive visual bulk/parallel work cannot unlock before both the assembly precheck and representative runtime proof are accepted.'
+        }
+        if (
+            $taskStatus -eq 'Accepted' -and
+            (
+                [string]::IsNullOrWhiteSpace($assemblyPrecheckReference) -or
+                [string]::IsNullOrWhiteSpace($representativeProofReference)
+            )
+        ) {
+            Add-Issue -Scope task -Level error -Code 'interactive_visual_acceptance_incomplete' -Message 'Accepted interactive visual work requires accepted assembly and representative runtime proof.'
         }
     }
 }
@@ -2169,7 +2275,7 @@ $result = [ordered]@{
     gateReady      = $gateReady
     projectPath    = $projectRoot
     mode           = $Mode
-    policyVersion  = '1.5.10'
+    policyVersion  = '1.6.0'
     systemVersion  = $systemVersion
     projectId      = $resultProjectId
     gate           = $resultGate
@@ -2181,6 +2287,8 @@ $result = [ordered]@{
     designStatus   = $designStatus
     designOwners   = $designOwners.Count
     technicalArchitectureOwner = $technicalArchitectureOwner
+    interactiveVisualScope = $interactiveVisualScope
+    assemblyPrecheck = $assemblyPrecheck
     designAcceptance = $designAcceptance
     producerAcceptanceOwner = $producerAcceptanceOwner
     producerAcceptance = $producerAcceptance

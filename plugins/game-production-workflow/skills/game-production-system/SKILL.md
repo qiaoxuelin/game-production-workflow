@@ -107,10 +107,11 @@ they differ in how requirements are obtained:
   architecture/implementation, tool/environment, or acceptance/evidence. A new
   candidate name or version does not reset a repeated root cause.
 - For high-fidelity visual or player-facing work, first build the smallest
-  representative runtime precheck that exposes the dominant acceptance risks.
-  The affected design owner must inspect it against the frozen baseline, and
-  human golden authority decides it when required. Run exhaustive state
-  matrices, long captures, or bulk production only after that precheck passes.
+  representative proof sequence that exposes dominant interaction, assembly,
+  source-separation, and runtime risks. The affected design owner must inspect
+  it against the frozen baseline, and human golden authority decides it when
+  required. Run exhaustive matrices, long captures, or bulk production only
+  after the applicable assembly precheck and runtime golden pass.
 - Before asking a human to approve an implementable player-facing contract,
   run the cheapest non-authoritative feasibility precheck that can expose its
   dominant technical failure modes. Keep disposable fixtures and output in
@@ -264,7 +265,7 @@ evidence, and handoff rules.
 1. Read current project truth and inspect relevant code/assets before asking.
 2. Classify intent, apply the project's `developmentMode`, then choose Fast,
    Standard, or Full. Exploration and review do not enter implementation.
-   Record the lane on new v1.5 task cards; infer the lightest compatible lane
+   Record the lane on new v1.5+ task cards; infer the lightest compatible lane
    for legacy active tasks without forcing migration. Apply the lane to the
    current work package; retain Full on a Full parent task for milestone
    integration and acceptance.
@@ -439,7 +440,8 @@ evidence, and handoff rules.
 - Update the canonical decision source when a decision is made. Synchronize
   derivative summaries, translations, and plans at a milestone or handoff
   unless they are needed to execute the next package.
-- Do not bulk-produce art before an in-engine golden sample is approved.
+- Do not bulk-produce art before applicable assembly and runtime golden
+  prechecks pass.
 - Do not treat downloaded or generated audio, a waveform, a loudness/peak
   check, or a passing trigger test as audible acceptance.
 - For `creative_first`, do not build a full content pipeline before several

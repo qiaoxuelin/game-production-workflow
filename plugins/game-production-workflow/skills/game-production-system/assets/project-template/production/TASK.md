@@ -64,8 +64,13 @@
 ## Execution contract
 
 - Planned visible outcome: `TBD`
-- Representative proof: `TBD` or `Not applicable`
-- Bulk or parallel unlock: `Not applicable`
+- Representative proof: `Pending`, `Not applicable`, or `Accepted: <evidence ID or repository-relative review record>`
+- Bulk or parallel unlock: `Locked`, `Not applicable`, or `Accepted: <evidence ID or repository-relative review record>`
+- Interactive visual scope: `Not applicable` or `Required`
+- Interaction/render contract: `Not applicable` or
+  `<actions/states; authoritative state sources and renderers; spatial contacts/occlusion; source separation; placeholder boundary>`
+- Assembly precheck: `Not applicable`, `Pending`, or
+  `Accepted: <evidence ID or repository-relative review record>`
 - Required asset inventory: `Not applicable` or
   `<screen/state-derived families and assets; required variants; reuse/adapt/create/debt; runtime destination; coverage check>`
 - Asset-family packages: `Not applicable` or

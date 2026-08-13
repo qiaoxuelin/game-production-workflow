@@ -1,6 +1,6 @@
 {
   "name": "game-production-workflow",
-  "version": "1.5.10+codex.20260813090814",
+  "version": "1.6.0+codex.20260813172112",
   "description": "Repository-resident game production governance with durable approval UI.",
   "author": {
     "name": "qiaoxuelin",

@@ -12,11 +12,14 @@ $marketplacePath = Join-Path $repo ".agents/plugins/marketplace.json"
 $coreSkillPath = Join-Path $plugin "skills/game-production-system/SKILL.md"
 $approvalSkillPath = Join-Path $plugin "skills/game-approval-ui/SKILL.md"
 $checkerPath = Join-Path $plugin "skills/game-production-system/scripts/check.ps1"
+$bootstrapPath = Join-Path $plugin "skills/game-production-system/scripts/bootstrap.ps1"
 $visualProductionPath = Join-Path $plugin "skills/game-production-system/references/visual-production.md"
+$experienceReviewPath = Join-Path $plugin "skills/game-production-system/references/experience-review.md"
 $taskTemplatePath = Join-Path $plugin "skills/game-production-system/assets/project-template/production/TASK.md"
 $planTemplatePath = Join-Path $plugin "skills/game-production-system/assets/project-template/production/PLAN.md"
 $mcpPath = Join-Path $plugin ".mcp.json"
 $approvalTestPath = Join-Path $plugin "scripts/test-server.mjs"
+$policyTestPath = Join-Path $plugin "scripts/test-production-policy.mjs"
 
 function Assert-True {
     param([bool]$Condition, [string]$Message)
@@ -29,11 +32,14 @@ foreach ($required in @(
     $coreSkillPath,
     $approvalSkillPath,
     $checkerPath,
+    $bootstrapPath,
     $visualProductionPath,
+    $experienceReviewPath,
     $taskTemplatePath,
     $planTemplatePath,
     $mcpPath,
-    $approvalTestPath
+    $approvalTestPath,
+    $policyTestPath
 )) {
     Assert-True (Test-Path -LiteralPath $required -PathType Leaf) "Missing required file: $required"
 }
@@ -64,14 +70,31 @@ Assert-True $policyMatch.Success "Could not read policyVersion from check.ps1."
 Assert-True ($versionMatch.Groups["base"].Value -eq $policyMatch.Groups["version"].Value) "Plugin base version and production policyVersion differ."
 
 $visualProductionText = Get-Content -Raw -Encoding utf8 $visualProductionPath
+$experienceReviewText = Get-Content -Raw -Encoding utf8 $experienceReviewPath
 $taskTemplateText = Get-Content -Raw -Encoding utf8 $taskTemplatePath
 $planTemplateText = Get-Content -Raw -Encoding utf8 $planTemplatePath
+$bootstrapText = Get-Content -Raw -Encoding utf8 $bootstrapPath
+$readmeText = Get-Content -Raw -Encoding utf8 (Join-Path $repo 'README.md')
+$coreSkillText = Get-Content -Raw -Encoding utf8 $coreSkillPath
 Assert-True ($visualProductionText -match 'derive the required asset inventory') "Visual production must derive a required asset inventory before packages."
 Assert-True ($visualProductionText -match 'Do not\s+trigger it from a fixed file or asset count') "Asset-family splitting must not use a fixed item count."
 Assert-True ($visualProductionText -match 'human approval per asset') "Asset production must not add per-asset human approvals."
 Assert-True ($taskTemplateText -match 'Required asset inventory:') "TASK template must carry the required asset inventory."
 Assert-True ($taskTemplateText -match 'Asset-family packages:') "TASK template must carry bounded asset-family packages."
 Assert-True ($planTemplateText -match '### Asset-family extension') "PLAN template must support multi-package asset-family production."
+Assert-True ($visualProductionText -match 'authoritative state source') "Interactive visual work must distinguish authoritative state from renderers."
+Assert-True ($visualProductionText -match 'cheapest assembly precheck') "Interactive visual work must use a technology-appropriate assembly precheck."
+Assert-True ($experienceReviewText -match 'interaction-to-visual causality') "Experience review must inspect interaction-to-visual causality."
+Assert-True ($taskTemplateText -match 'Interactive visual scope:') "TASK template must classify interactive visual scope."
+Assert-True ($taskTemplateText -match 'Interaction/render contract:') "TASK template must carry a compact interaction/render contract."
+Assert-True ($taskTemplateText -match 'Assembly precheck:') "TASK template must carry assembly-precheck state."
+Assert-True ($checkerText -match 'interactive_visual_scope_missing') "Checker must require the v1.6 interactive visual scope field."
+Assert-True ($checkerText -match 'interaction_render_contract_missing') "Checker must require a frozen interaction/render contract for active work."
+Assert-True ($checkerText -match 'visual_bulk_unlock_without_prechecks') "Checker must keep visual bulk work locked until both prechecks pass."
+Assert-True ($checkerText -match 'systemVersionAtLeast160') "Checker must preserve v1.5 project compatibility behind a v1.6 predicate."
+Assert-True ($bootstrapText -match "systemVersion\s*=\s*'1\.6\.0'") "New projects must bootstrap the v1.6 contract."
+Assert-True ($readmeText -match 'game-production-system` `1\.6\.0') "README system version must match the v1.6 release."
+Assert-True (@($coreSkillText.TrimEnd() -split "\r?\n").Count -le 500) "Core SKILL.md must remain at or below 500 lines; keep interactive details in its reference."
 
 foreach ($skill in @(
     @{ Path = $coreSkillPath; Name = "game-production-system" },
@@ -153,5 +176,7 @@ $node = Get-Command node -ErrorAction SilentlyContinue
 Assert-True ($null -ne $node) "Node.js is required for approval MCP validation."
 & $node.Source $approvalTestPath
 Assert-True ($LASTEXITCODE -eq 0) "Approval MCP protocol test failed."
+& $node.Source $policyTestPath
+Assert-True ($LASTEXITCODE -eq 0) "Production policy structure test failed."
 
-Write-Host "PASS atomic plugin structure, versions, scripts, links, secret scan, and approval MCP protocol"
+Write-Host "PASS atomic plugin structure, versions, skills, policy, scripts, links, secret scan, and approval MCP protocol"

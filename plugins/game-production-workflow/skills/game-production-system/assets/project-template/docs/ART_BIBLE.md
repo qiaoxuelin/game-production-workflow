@@ -63,6 +63,8 @@
 - AI artifacts, anatomy errors, meaningless decoration, or inconsistent detail
   remain visible at runtime size.
 - The in-engine composition or readability fails even if source art is strong.
+- Independently changing runtime state is baked into or duplicated across
+  assets so that simultaneous renderers can contradict the authoritative state.
 - The result follows an internal baseline but remains below the declared product
   quality benchmark.
 - A concept, generated mockup, placeholder, or whole-frame substitute is being
