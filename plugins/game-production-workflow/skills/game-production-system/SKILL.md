@@ -294,6 +294,13 @@ evidence, and handoff rules.
    work, read [game-content-design.md](references/game-content-design.md).
    For UI, art, animation, VFX, or technical-art work, read
    [visual-production.md](references/visual-production.md).
+   When material asset production has shared masters, variants, multiple
+   production paths or owners, or meaningful import/provenance/performance
+   risk, apply its asset-family split in the existing task or plan. Never use a
+   fixed asset count, per-file work package, or per-asset human approval.
+   Derive the required asset inventory from frozen screens, states, flows, and
+   feedback beats before opening those packages, and statically check that
+   every scoped need is covered.
    For player-facing audio work, read
    [audio-production.md](references/audio-production.md). Freeze cue intent
    before sourcing, prefer rights-cleared stock SFX, use rights-cleared

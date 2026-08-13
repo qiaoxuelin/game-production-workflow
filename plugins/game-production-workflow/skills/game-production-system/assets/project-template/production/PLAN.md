@@ -21,6 +21,17 @@ inactive.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `TBD` | `TBD` | `None` | `TBD` | `TBD` | `TBD` | `TBD` | `Planned` |
 
+### Asset-family extension
+
+Use only when material asset families have real dependency, parallel, or
+integration order. Group by shared master and acceptance boundary, not file
+count; otherwise keep `Asset-family packages` inline in `TASK.md` or mark it
+not applicable.
+
+| Package ID | Family outcome, required assets, and states | Shared master, dependencies, and invalidation | Source/export/import/provenance boundary | Production owner and unique integrator | Runtime acceptance |
+| --- | --- | --- | --- | --- | --- |
+| `Not applicable` | `TBD` | `TBD` | `TBD` | `TBD` | `TBD` |
+
 ## Shared contracts and integration
 
 - Shared files/contracts: `TBD`

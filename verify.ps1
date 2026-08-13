@@ -12,6 +12,9 @@ $marketplacePath = Join-Path $repo ".agents/plugins/marketplace.json"
 $coreSkillPath = Join-Path $plugin "skills/game-production-system/SKILL.md"
 $approvalSkillPath = Join-Path $plugin "skills/game-approval-ui/SKILL.md"
 $checkerPath = Join-Path $plugin "skills/game-production-system/scripts/check.ps1"
+$visualProductionPath = Join-Path $plugin "skills/game-production-system/references/visual-production.md"
+$taskTemplatePath = Join-Path $plugin "skills/game-production-system/assets/project-template/production/TASK.md"
+$planTemplatePath = Join-Path $plugin "skills/game-production-system/assets/project-template/production/PLAN.md"
 $mcpPath = Join-Path $plugin ".mcp.json"
 $approvalTestPath = Join-Path $plugin "scripts/test-server.mjs"
 
@@ -26,6 +29,9 @@ foreach ($required in @(
     $coreSkillPath,
     $approvalSkillPath,
     $checkerPath,
+    $visualProductionPath,
+    $taskTemplatePath,
+    $planTemplatePath,
     $mcpPath,
     $approvalTestPath
 )) {
@@ -56,6 +62,16 @@ $checkerText = Get-Content -Raw -Encoding utf8 $checkerPath
 $policyMatch = [regex]::Match($checkerText, "policyVersion\s*=\s*'(?<version>[^']+)'")
 Assert-True $policyMatch.Success "Could not read policyVersion from check.ps1."
 Assert-True ($versionMatch.Groups["base"].Value -eq $policyMatch.Groups["version"].Value) "Plugin base version and production policyVersion differ."
+
+$visualProductionText = Get-Content -Raw -Encoding utf8 $visualProductionPath
+$taskTemplateText = Get-Content -Raw -Encoding utf8 $taskTemplatePath
+$planTemplateText = Get-Content -Raw -Encoding utf8 $planTemplatePath
+Assert-True ($visualProductionText -match 'derive the required asset inventory') "Visual production must derive a required asset inventory before packages."
+Assert-True ($visualProductionText -match 'Do not\s+trigger it from a fixed file or asset count') "Asset-family splitting must not use a fixed item count."
+Assert-True ($visualProductionText -match 'human approval per asset') "Asset production must not add per-asset human approvals."
+Assert-True ($taskTemplateText -match 'Required asset inventory:') "TASK template must carry the required asset inventory."
+Assert-True ($taskTemplateText -match 'Asset-family packages:') "TASK template must carry bounded asset-family packages."
+Assert-True ($planTemplateText -match '### Asset-family extension') "PLAN template must support multi-package asset-family production."
 
 foreach ($skill in @(
     @{ Path = $coreSkillPath; Name = "game-production-system" },

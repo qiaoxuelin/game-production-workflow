@@ -589,4 +589,5 @@ Default to one active main task. For explicit parallel work:
 6. Run full checks after integration.
 
 Do not allow multiple tasks to rewrite a scene root, global theme, engine
-settings, save schema, public contract, or current gate file concurrently.
+settings, save schema, public contract, current gate file, shared art master,
+atlas, or component library concurrently.

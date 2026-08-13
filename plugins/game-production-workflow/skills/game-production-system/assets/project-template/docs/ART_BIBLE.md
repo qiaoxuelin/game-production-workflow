@@ -18,6 +18,8 @@
 - UI master: `TBD`
 - Current maturity claims: `Direction / Production design / Runtime golden / Integrated acceptance`
 - Required editable sources, layers, rigs, and import constraints: `TBD`
+- Asset families, state/variant coverage, and shared masters: `Not applicable` or `TBD`
+- Master-change invalidation boundary: `Not applicable` or `TBD`
 
 ## Shape, line, material, and detail
 

@@ -66,6 +66,10 @@
 - Planned visible outcome: `TBD`
 - Representative proof: `TBD` or `Not applicable`
 - Bulk or parallel unlock: `Not applicable`
+- Required asset inventory: `Not applicable` or
+  `<screen/state-derived families and assets; required variants; reuse/adapt/create/debt; runtime destination; coverage check>`
+- Asset-family packages: `Not applicable` or
+  `<family: outcome and inventory assets; shared master/dependencies; source/export/import boundary; exclusive paths; production/integration owner; runtime acceptance>`
 - Stop/replan triggers: `TBD`
 - Evidence budget: `One promoted summary per applicable facet; raw trials remain in task-owned scratch`
 

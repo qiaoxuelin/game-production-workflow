@@ -83,6 +83,16 @@ Rules:
 - Reuse adopted design modules before inventing new rules; do not promote a
   one-off case into a default module.
 - Do not bulk-produce art before an in-engine golden sample is approved.
+- Before opening material asset packages, derive the required asset inventory
+  from frozen screens, states, flows, content extremes, and feedback beats.
+  Map every scoped need to a family and required states/variants, classify
+  reuse/adapt/create/debt, name its runtime destination, and statically check
+  coverage in the existing task or plan.
+- Split material asset production at the asset-family level only when shared
+  masters, variants, multiple production paths or owners, or import,
+  provenance, performance, dependency, or parallel risk makes it useful. Keep
+  bounded asset work in `TASK.md`, use `PLAN.md` only for real multi-package
+  order, and never add per-file work packages or per-asset approvals.
 - Define an objective measure before uncertain tuning. After two consecutive
   cycles add no new evidence toward the same failed criterion, or a cross-state
   regression repeats without new evidence, stop tuning and run a

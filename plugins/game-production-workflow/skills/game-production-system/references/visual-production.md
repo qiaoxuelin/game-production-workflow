@@ -40,6 +40,59 @@ Use the narrowest truthful claim:
 Never promote an artifact by renaming it or because its implementation tests
 pass. Record placeholders and unfinished production assets as explicit debt.
 
+## Decompose material asset production only when useful
+
+Before opening production packages, derive the required asset inventory from
+the frozen screen/state inventory, content extremes, interaction flows, and
+animation/VFX beats. Map each visible or runtime need to an asset family and
+its required states/variants, then classify it as reuse, adapt, create, or
+explicit placeholder debt and name its runtime destination. Run the cheapest
+static coverage check: every required screen/state need maps to an asset or
+intentional non-asset treatment, and every planned asset maps back to a scoped
+use. Keep this inventory in the current task or plan; use a separate structured
+artifact only when it is the actual production source of truth or the inline
+record would be unreadable.
+
+Use an asset-family split when material production has shared masters, state or
+content variants, multiple production methods or owners, import/provenance/
+performance risk, or a dependency boundary that affects sequencing. Do not
+trigger it from a fixed file or asset count. Group assets that share a visual
+master, production method, runtime purpose, and acceptance boundary; the
+production unit is normally an asset family, not one exported file.
+
+Keep a bounded package inline in `TASK.md`. Use the existing `PLAN.md` only
+when several families have real dependency, parallel, or integration order.
+For each active family record only:
+
+- the player-facing outcome, inventory-derived assets, and required
+  state/variant coverage;
+- the shared master and dependencies, plus which downstream families become
+  stale if that master changes;
+- applicable editable-source, export, import, runtime, and provenance
+  constraints;
+- exclusive paths, production owner, unique integrator, and rollback point;
+- technical completion checks and the representative runtime acceptance that
+  proves design conformance.
+
+Do not create a separate asset-contract document, permanent asset role, or
+human approval per asset. Select generation, stock, procedural, or manual
+production by the family need; record rights and provenance when applicable
+instead of making the tool choice a gate.
+
+A passing golden unlocks only families governed by its frozen visual system,
+shared masters, component/state rules, and integration contract. Materially
+different visual systems need representative proof, but related decisions may
+be consolidated into one understandable golden review. Run deterministic
+technical checks across the produced set; have the design owner review each
+family and its risk extremes in runtime; reserve producer and independent
+review for the integrated outcome and selected gate risk.
+
+Parallelize family production only after shared masters and interfaces freeze,
+with non-overlapping editable/import paths and one integrator. Integrate shared
+atlases, themes, component libraries, and scene roots serially. When a master
+changes, invalidate and recheck only its declared dependents unless the change
+alters the wider visual baseline.
+
 ## Apply the craft checks
 
 For UX/UI, verify grouping, attachment, hierarchy, affordance, semantic

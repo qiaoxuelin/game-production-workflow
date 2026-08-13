@@ -94,6 +94,12 @@ acceptance milestones. Record:
 - representative proof and the condition that unlocks bulk or parallel work;
 - completion boundary, evidence budget, and replan triggers.
 
+For material art production, let `visual-production.md` decide whether an
+asset-family split is useful. Plan by shared master, runtime purpose,
+production method, dependency, and acceptance boundary rather than file count.
+Keep bounded asset work inline in the current task; use plan packages only for
+real sequencing or parallelism. This split adds no per-asset role or approval.
+
 After planning, invoke the affected domain owners:
 
 - game/level/balance/economy/content design owns rules, progression, values,
