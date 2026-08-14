@@ -105,11 +105,18 @@ function Get-LatestManifestVersionChangeCommit {
             -Repository $Repository `
             -Revision $commit `
             -ManifestRelativePath $ManifestRelativePath
-        $parentVersion = Get-ManifestVersionAtRevision `
-            -Repository $Repository `
-            -Revision $parentFields[1] `
-            -ManifestRelativePath $ManifestRelativePath
-        if ($commitVersion -ne $parentVersion) {
+        $parentVersions = @(
+            foreach ($parentCommit in @($parentFields | Select-Object -Skip 1)) {
+                Get-ManifestVersionAtRevision `
+                    -Repository $Repository `
+                    -Revision $parentCommit `
+                    -ManifestRelativePath $ManifestRelativePath
+            }
+        )
+        $matchesParentVersion = @(
+            $parentVersions | Where-Object { $_ -eq $commitVersion }
+        ).Count -gt 0
+        if (-not $matchesParentVersion) {
             return [string]$commit
         }
     }

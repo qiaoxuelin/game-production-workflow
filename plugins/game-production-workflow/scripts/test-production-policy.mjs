@@ -317,6 +317,222 @@ function testCompareRefRequiresLatestContentCoveredByVersion() {
   }
 }
 
+function testCompareRefMergeCoverageIsParentOrderInvariant() {
+  const fixtureRoot = fs.mkdtempSync(
+    path.join(os.tmpdir(), "game production merge topology "),
+  );
+  const fixtureRepository = path.join(fixtureRoot, "fixture repository");
+  try {
+    runFixtureCommand(
+      "git",
+      ["clone", "--quiet", "--no-hardlinks", repositoryRoot, fixtureRepository],
+      { cwd: fixtureRoot },
+    );
+    const verifySource = fs.readFileSync(
+      path.join(repositoryRoot, "verify.ps1"),
+      "utf8",
+    );
+    const compareOnlyVerify = verifySource.replace(
+      "\n$node = Get-Command node -ErrorAction SilentlyContinue",
+      "\nexit 0\n\n$node = Get-Command node -ErrorAction SilentlyContinue",
+    );
+    assert.notEqual(compareOnlyVerify, verifySource);
+    fs.writeFileSync(
+      path.join(fixtureRepository, "verify.ps1"),
+      compareOnlyVerify,
+      "utf8",
+    );
+
+    const baseRevision = runFixtureCommand(
+      "git",
+      ["rev-parse", "HEAD"],
+      { cwd: fixtureRepository },
+    ).stdout.trim();
+    const fixtureManifestPath = path.join(
+      fixtureRepository,
+      "plugins/game-production-workflow/.codex-plugin/plugin.json",
+    );
+    const fixtureReferencePath = path.join(
+      fixtureRepository,
+      "plugins/game-production-workflow/skills/game-art-production/references/visual-review.md",
+    );
+    const writeManifest = (manifest) => fs.writeFileSync(
+      fixtureManifestPath,
+      `${JSON.stringify(manifest, null, 2)}\n`,
+      "utf8",
+    );
+    const commit = (message) => runFixtureCommand(
+      "git",
+      [
+        "-c",
+        "user.name=CompareRef Fixture",
+        "-c",
+        "user.email=compare-ref@example.invalid",
+        "commit",
+        "--quiet",
+        "-m",
+        message,
+      ],
+      { cwd: fixtureRepository },
+    );
+    const mergeWithoutCommit = (branch) => runFixtureCommand(
+      "git",
+      ["merge", "--quiet", "--no-ff", "--no-commit", branch],
+      { cwd: fixtureRepository },
+    );
+    const runCompare = () => spawnSync(
+      "pwsh",
+      ["-NoProfile", "-File", "./verify.ps1", "-CompareRef", baseRevision],
+      {
+        cwd: fixtureRepository,
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          GAME_PRODUCTION_COMPARE_REF_FIXTURE: "1",
+        },
+      },
+    );
+
+    runFixtureCommand(
+      "git",
+      ["checkout", "--quiet", "-b", "version-sibling", baseRevision],
+      { cwd: fixtureRepository },
+    );
+    const versionSiblingManifest = JSON.parse(
+      fs.readFileSync(fixtureManifestPath, "utf8"),
+    );
+    versionSiblingManifest.version = "1.8.0+codex.20260814190011";
+    writeManifest(versionSiblingManifest);
+    runFixtureCommand(
+      "git",
+      ["add", "plugins/game-production-workflow/.codex-plugin/plugin.json"],
+      { cwd: fixtureRepository },
+    );
+    commit("release: create early sibling cachebuster");
+
+    runFixtureCommand(
+      "git",
+      ["checkout", "--quiet", "-b", "content-sibling", baseRevision],
+      { cwd: fixtureRepository },
+    );
+    fs.appendFileSync(
+      fixtureReferencePath,
+      "\nLater sibling plugin content change.\n",
+      "utf8",
+    );
+    runFixtureCommand(
+      "git",
+      ["add", "plugins/game-production-workflow/skills/game-art-production/references/visual-review.md"],
+      { cwd: fixtureRepository },
+    );
+    commit("feat: create later sibling plugin content");
+
+    runFixtureCommand(
+      "git",
+      ["checkout", "--quiet", "-b", "merge-content-first"],
+      { cwd: fixtureRepository },
+    );
+    mergeWithoutCommit("version-sibling");
+    const contentFirstManifest = JSON.parse(
+      fs.readFileSync(fixtureManifestPath, "utf8"),
+    );
+    contentFirstManifest.description += " Parent-order merge fixture.";
+    writeManifest(contentFirstManifest);
+    runFixtureCommand(
+      "git",
+      ["add", "plugins/game-production-workflow/.codex-plugin/plugin.json"],
+      { cwd: fixtureRepository },
+    );
+    commit("merge: content parent first");
+    const contentFirstMerge = runFixtureCommand(
+      "git",
+      ["rev-parse", "HEAD"],
+      { cwd: fixtureRepository },
+    ).stdout.trim();
+
+    runFixtureCommand(
+      "git",
+      ["checkout", "--quiet", "-b", "merge-version-first", "version-sibling"],
+      { cwd: fixtureRepository },
+    );
+    mergeWithoutCommit("content-sibling");
+    const versionFirstManifest = JSON.parse(
+      fs.readFileSync(fixtureManifestPath, "utf8"),
+    );
+    versionFirstManifest.description += " Parent-order merge fixture.";
+    writeManifest(versionFirstManifest);
+    runFixtureCommand(
+      "git",
+      ["add", "plugins/game-production-workflow/.codex-plugin/plugin.json"],
+      { cwd: fixtureRepository },
+    );
+    commit("merge: version parent first");
+    const versionFirstMerge = runFixtureCommand(
+      "git",
+      ["rev-parse", "HEAD"],
+      { cwd: fixtureRepository },
+    ).stdout.trim();
+    const contentFirstTree = runFixtureCommand(
+      "git",
+      ["rev-parse", `${contentFirstMerge}^{tree}`],
+      { cwd: fixtureRepository },
+    ).stdout.trim();
+    const versionFirstTree = runFixtureCommand(
+      "git",
+      ["rev-parse", `${versionFirstMerge}^{tree}`],
+      { cwd: fixtureRepository },
+    ).stdout.trim();
+    assert.equal(
+      contentFirstTree,
+      versionFirstTree,
+      "parent-order fixtures must have identical final trees",
+    );
+
+    for (const branch of ["merge-content-first", "merge-version-first"]) {
+      runFixtureCommand(
+        "git",
+        ["checkout", "--quiet", branch],
+        { cwd: fixtureRepository },
+      );
+      const uncoveredResult = runCompare();
+      assert.notEqual(
+        uncoveredResult.status,
+        0,
+        `CompareRef result depended on merge parent order for ${branch}:\n${uncoveredResult.stdout}`,
+      );
+      assert.match(
+        `${uncoveredResult.stdout}\n${uncoveredResult.stderr}`,
+        /latest plugin content change is not covered/i,
+      );
+
+      runFixtureCommand(
+        "git",
+        ["checkout", "--quiet", "-b", `covered-${branch}`],
+        { cwd: fixtureRepository },
+      );
+      const coveredManifest = JSON.parse(
+        fs.readFileSync(fixtureManifestPath, "utf8"),
+      );
+      coveredManifest.version = "1.8.0+codex.20260814190012";
+      writeManifest(coveredManifest);
+      runFixtureCommand(
+        "git",
+        ["add", "plugins/game-production-workflow/.codex-plugin/plugin.json"],
+        { cwd: fixtureRepository },
+      );
+      commit(`release: cover ${branch}`);
+      const coveredResult = runCompare();
+      assert.equal(
+        coveredResult.status,
+        0,
+        coveredResult.stderr || coveredResult.stdout,
+      );
+    }
+  } finally {
+    fs.rmSync(fixtureRoot, { recursive: true, force: true });
+  }
+}
+
 const manifest = JSON.parse(
   read("plugins/game-production-workflow/.codex-plugin/plugin.json"),
 );
@@ -703,6 +919,7 @@ assert(
 if (process.env.GAME_PRODUCTION_COMPARE_REF_FIXTURE !== "1") {
   testCompareRefRequiresVersionValueChange();
   testCompareRefRequiresLatestContentCoveredByVersion();
+  testCompareRefMergeCoverageIsParentOrderInvariant();
 }
 
 console.log(
