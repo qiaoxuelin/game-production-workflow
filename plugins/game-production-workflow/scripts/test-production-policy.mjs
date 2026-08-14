@@ -48,14 +48,14 @@ const baseVersion = manifest.version.split("+", 1)[0];
 const policyVersion = checker.match(/policyVersion\s*=\s*'([^']+)'/)?.[1];
 const bootstrapVersion = bootstrap.match(/systemVersion\s*=\s*'([^']+)'/)?.[1];
 
-assert.equal(baseVersion, "1.7.0", "plugin base version must be 1.7.0");
+assert.equal(baseVersion, "1.7.1", "plugin base version must be 1.7.1");
 assert.equal(policyVersion, baseVersion, "policy and plugin versions must match");
 assert.equal(
   bootstrapVersion,
   baseVersion,
   "new projects must bootstrap the current policy contract",
 );
-assert.match(readme, /game-production-system` `1\.7\.0/);
+assert.match(readme, /game-production-system` `1\.7\.1/);
 
 for (const field of [
   "Interactive visual scope:",
@@ -88,6 +88,36 @@ assert.match(
   checker,
   /\$bulkOrParallelUnlock -notin @\('Locked', 'Not applicable'\)/,
 );
+
+const v171VocabularyGuard = checker.indexOf("if ($systemVersionAtLeast171) {");
+const v171HandoffGuard = checker.indexOf(
+  "if ($systemVersionAtLeast171 -and $executionLane -in @('Standard', 'Full')) {",
+);
+assert.notEqual(
+  v171VocabularyGuard,
+  -1,
+  "v1.7.1 result vocabulary needs a compatibility guard",
+);
+assert.notEqual(
+  v171HandoffGuard,
+  -1,
+  "v1.7.1 detailed handoff needs a compatibility and lane guard",
+);
+const prefixPosition = checker.indexOf("returned_candidate_result_prefix_invalid");
+assert(
+  prefixPosition > v171VocabularyGuard && prefixPosition < v171HandoffGuard,
+  "ambiguous Result vocabulary must be guarded by version but apply to Fast",
+);
+for (const code of [
+  "returned_candidate_status_conflict",
+  "returned_candidate_result_missing",
+  "returned_candidate_risk_contract_missing",
+  "returned_candidate_next_action_missing",
+  "returned_candidate_fallback_missing",
+]) {
+  const position = checker.indexOf(code);
+  assert(position > v171HandoffGuard, `${code} must remain inside the Standard/Full v1.7.1 guard`);
+}
 
 const coreLineCount = coreSkill.trimEnd().split(/\r?\n/).length;
 assert(

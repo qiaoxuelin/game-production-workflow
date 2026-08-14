@@ -25,6 +25,12 @@ return conditions. Keep test counts, implementation rationale, prior praise,
 and author persuasion out of the first subjective pass when practical. The
 reviewer may inspect them after recording an initial experience verdict.
 
+The reviewer records the failed criterion, observable evidence, retained
+passing parts, conditions for passage, and next owner. The reviewer does not
+choose the implementation repair; production coordination and the affected
+design or technical owner convert a `Returned` verdict into the executable
+handoff defined by the production loop.
+
 Use an independent reviewer for gate-critical or repeatedly returned work. If
 the reviewer contributed materially to the design or implementation, disclose
 it and add one genuinely independent pass rather than relabeling self-review.

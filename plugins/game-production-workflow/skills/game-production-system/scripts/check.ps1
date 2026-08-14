@@ -88,6 +88,36 @@ function Test-ConcreteContractValue {
     )
 }
 
+function Test-ReturnedCandidateClause {
+    param(
+        [string]$Value,
+        [Parameter(Mandatory = $true)][string]$Marker
+    )
+
+    if (-not (Test-ConcreteContractValue -Value $Value)) {
+        return $false
+    }
+
+    $pattern = '(?i)^\s*(?<primary>.+?)\s*;\s*' + [Regex]::Escape($Marker) + '\s*:\s*(?<secondary>.+?)\s*$'
+    $match = [Regex]::Match($Value.Trim(), $pattern)
+    if (-not $match.Success) {
+        return $false
+    }
+
+    foreach ($part in @(
+        $match.Groups['primary'].Value,
+        $match.Groups['secondary'].Value
+    )) {
+        if (
+            -not (Test-ConcreteContractValue -Value $part) -or
+            $part -match '(?i)(?<![A-Za-z0-9_])TBD(?![A-Za-z0-9_])'
+        ) {
+            return $false
+        }
+    }
+    return $true
+}
+
 function Test-DomainDesignRole {
     param([string]$Role)
 
@@ -330,10 +360,25 @@ function Get-TaskContractFingerprint {
     if (-not (Test-Path -LiteralPath $taskPath -PathType Leaf)) {
         return $null
     }
+    $mutableFields = @('Status', 'Result', 'Evidence IDs', 'Module harvest', 'Next action')
+    $projectStatePath = Join-Path $Root 'production\project.json'
+    if (Test-Path -LiteralPath $projectStatePath -PathType Leaf) {
+        try {
+            $fingerprintProject = Get-Content -LiteralPath $projectStatePath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $fingerprintVersion = [version]([string]$fingerprintProject.systemVersion)
+            if ($fingerprintVersion -ge [version]'1.7.1') {
+                $mutableFields += @('Unresolved risks', 'Stop/replan triggers')
+            }
+        }
+        catch {
+            # Invalid project metadata is reported by the main checker; preserve the legacy fingerprint here.
+        }
+    }
+    $mutableFieldPattern = ($mutableFields | ForEach-Object { [Regex]::Escape($_) }) -join '|'
     $text = Get-Content -LiteralPath $taskPath -Raw -Encoding UTF8
     $contractText = [Regex]::Replace(
         $text,
-        '(?m)^- (Status|Result|Evidence IDs|Module harvest|Next action):.*(?:\r?\n)?',
+        "(?m)^- ($mutableFieldPattern):.*(?:\r?\n)?",
         ''
     ).Replace("`r`n", "`n")
     $sha = [System.Security.Cryptography.SHA256]::Create()
@@ -714,6 +759,10 @@ $interactionRenderContract = Get-TaskField -Text $taskText -Name 'Interaction/re
 $assemblyPrecheck = Get-TaskField -Text $taskText -Name 'Assembly precheck'
 $requiredAssetInventory = Get-TaskField -Text $taskText -Name 'Required asset inventory'
 $assetFamilyPackages = Get-TaskField -Text $taskText -Name 'Asset-family packages'
+$stopReplanTriggers = Get-TaskField -Text $taskText -Name 'Stop/replan triggers'
+$resultSummary = Get-TaskField -Text $taskText -Name 'Result'
+$unresolvedRisks = Get-TaskField -Text $taskText -Name 'Unresolved risks'
+$nextAction = Get-TaskField -Text $taskText -Name 'Next action'
 $designOwners = @(Get-TaskList -Value $designOwnersText)
 $designModuleRefs = @(Get-TaskList -Value $designModulesText)
 
@@ -787,6 +836,7 @@ $systemVersionAtLeast130 = $false
 $systemVersionAtLeast140 = $false
 $systemVersionAtLeast150 = $false
 $systemVersionAtLeast160 = $false
+$systemVersionAtLeast171 = $false
 $registeredModules = @{}
 $moduleIndex = $null
 
@@ -822,6 +872,7 @@ if ($null -ne $project) {
         $systemVersionAtLeast140 = ($parsedSystemVersion -ge [version]'1.4.0')
         $systemVersionAtLeast150 = ($parsedSystemVersion -ge [version]'1.5.0')
         $systemVersionAtLeast160 = ($parsedSystemVersion -ge [version]'1.6.0')
+        $systemVersionAtLeast171 = ($parsedSystemVersion -ge [version]'1.7.1')
         if ($parsedSystemVersion -lt [version]'1.3.0') {
             Add-Issue -Scope contract -Level warning -Code 'contract_version_legacy' -Message "Project contract $systemVersion predates the compatible v1.3 baseline; migrate when the active task reaches a safe checkpoint."
         }
@@ -1300,6 +1351,45 @@ if ($systemVersionAtLeast160) {
             )
         ) {
             Add-Issue -Scope task -Level error -Code 'interactive_visual_acceptance_incomplete' -Message 'Accepted interactive visual work requires accepted assembly and representative runtime proof.'
+        }
+    }
+}
+
+if ($systemVersionAtLeast171) {
+    if (
+        -not [string]::IsNullOrWhiteSpace($resultSummary) -and
+        $resultSummary -match '(?i)^Returned\b'
+    ) {
+        Add-Issue -Scope task -Level error -Code 'returned_candidate_result_prefix_invalid' -Message 'Use Result Candidate returned — <failed criterion>; evidence: <observable evidence> for a returned task candidate; Returned alone is reserved for review verdicts.'
+    }
+}
+if ($systemVersionAtLeast171 -and $executionLane -in @('Standard', 'Full')) {
+    $returnedCandidatePrefix = (
+        -not [string]::IsNullOrWhiteSpace($resultSummary) -and
+        $resultSummary -match '(?i)^Candidate returned\b'
+    )
+    if ($returnedCandidatePrefix) {
+        if ($taskStatus -ne 'Implementing') {
+            Add-Issue -Scope task -Level error -Code 'returned_candidate_status_conflict' -Message 'A returned Standard or Full candidate remains Implementing until its repair route passes.'
+        }
+        $returnedCandidateDetails = [Regex]::Match(
+            $resultSummary,
+            '(?i)^Candidate returned\s*(?:—|-|:)\s*(?<details>.+)$'
+        )
+        if (
+            -not $returnedCandidateDetails.Success -or
+            -not (Test-ReturnedCandidateClause -Value $returnedCandidateDetails.Groups['details'].Value -Marker 'evidence')
+        ) {
+            Add-Issue -Scope task -Level error -Code 'returned_candidate_result_missing' -Message 'Candidate returned requires <failed criterion>; evidence: <observable evidence> in Result.'
+        }
+        if (-not (Test-ReturnedCandidateClause -Value $unresolvedRisks -Marker 'retained')) {
+            Add-Issue -Scope task -Level error -Code 'returned_candidate_risk_contract_missing' -Message 'A returned candidate requires one primary root cause and retained: <passing parts> in Unresolved risks.'
+        }
+        if (-not (Test-ReturnedCandidateClause -Value $nextAction -Marker 'verify')) {
+            Add-Issue -Scope task -Level error -Code 'returned_candidate_next_action_missing' -Message 'A returned candidate requires one bounded executable repair and verify: <command/artifact> in Next action.'
+        }
+        if (-not (Test-ReturnedCandidateClause -Value $stopReplanTriggers -Marker 'fallback')) {
+            Add-Issue -Scope task -Level error -Code 'returned_candidate_fallback_missing' -Message 'A returned candidate requires an observable no-progress condition and fallback: <next route> in Stop/replan triggers.'
         }
     }
 }
@@ -2275,7 +2365,7 @@ $result = [ordered]@{
     gateReady      = $gateReady
     projectPath    = $projectRoot
     mode           = $Mode
-    policyVersion  = '1.7.0'
+    policyVersion  = '1.7.1'
     systemVersion  = $systemVersion
     projectId      = $resultProjectId
     gate           = $resultGate

@@ -274,6 +274,14 @@ frozen. Return to `Clarifying` only when design, authority, scope, baseline, or
 architecture is genuinely unresolved. Record only the selected cause, retained
 proof, next route, and rollback point in the existing task handoff.
 
+For a returned candidate in Standard or Full work, including one explicitly
+returned after stop-loss fires, make that existing task handoff executable:
+record the failed criterion and observable evidence in `Result`, the primary
+cause and retained proof in `Unresolved risks`, one bounded repair plus its
+verification in `Next action`, and the no-progress condition plus one fallback
+in `Stop/replan triggers`. Keep ordinary Fast repair inline and do not add a new
+status, document, review, or approval.
+
 ## 4. Design modules
 
 Read [design-modules.md](design-modules.md) when a task repeats or establishes

@@ -88,6 +88,30 @@ Move `Ready` to `Implementing` when the first product source change or executabl
 product precheck begins. Update governance state at the same checkpoint, not as
 a substitute for starting production.
 
+## Returned-candidate convergence
+
+When a Standard or Full representative candidate is returned, including when
+stop-loss explicitly selects returning that candidate on its failed criterion,
+keep the task `Implementing` and replace vague handoff prose with this positive
+recipe in the existing task fields:
+
+- `Result: Candidate returned — <failed criterion>; evidence: <observable evidence>`
+- `Unresolved risks: <primary root cause>; retained: <passing parts>`
+- `Next action: <one bounded executable repair>; verify: <command/artifact>`
+- `Stop/replan triggers: <observable no-progress condition>; fallback: <next route>`
+
+The production coordinator selects exactly one repair, replan,
+enabling-capability, materially new candidate, or abandonment route with the
+affected design or technical owner. The independent reviewer supplies the
+failed criterion, evidence, retained proof, conditions for passage, and next
+owner; review remains read-only. Do not add a `Returned` task state, recovery
+document, approval, or duplicate plan. Fast work continues its direct
+edit-check-recovery loop without this record.
+
+If the fallback changes a frozen product, quality, scope, cost, platform, or
+release boundary, request the owning human decision. Otherwise execute the
+selected route without reopening planning or lowering the quality bar.
+
 ## Interactive visual execution
 
 Do not treat a composed design image as an asset inventory or runtime UI. For
