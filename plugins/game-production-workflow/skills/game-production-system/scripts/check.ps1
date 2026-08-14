@@ -1439,6 +1439,9 @@ elseif ($guiRestoration -notin $knownGuiRestoration) {
     }
 }
 $guiRequired = ($guiRestoration -eq 'Required')
+if ($guiRequired -and $executionLane -eq 'Fast') {
+    Add-Issue -Scope task -Level error -Code 'gui_restoration_fast_lane_conflict' -Message 'Fast work must reuse an accepted GUI baseline and mark GUI restoration Not applicable; restoration that freezes a design baseline and reviewer belongs in Standard or Full.'
+}
 
 $taskLineCount = @($taskText -split "\r?\n").Count
 if ($taskLineCount -gt 160 -or $taskText.Length -gt 24000) {
@@ -2365,7 +2368,7 @@ $result = [ordered]@{
     gateReady      = $gateReady
     projectPath    = $projectRoot
     mode           = $Mode
-    policyVersion  = '1.7.1'
+    policyVersion  = '1.7.2'
     systemVersion  = $systemVersion
     projectId      = $resultProjectId
     gate           = $resultGate

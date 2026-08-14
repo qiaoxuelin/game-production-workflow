@@ -48,14 +48,14 @@ const baseVersion = manifest.version.split("+", 1)[0];
 const policyVersion = checker.match(/policyVersion\s*=\s*'([^']+)'/)?.[1];
 const bootstrapVersion = bootstrap.match(/systemVersion\s*=\s*'([^']+)'/)?.[1];
 
-assert.equal(baseVersion, "1.7.1", "plugin base version must be 1.7.1");
+assert.equal(baseVersion, "1.7.2", "plugin base version must be 1.7.2");
 assert.equal(policyVersion, baseVersion, "policy and plugin versions must match");
 assert.equal(
   bootstrapVersion,
   baseVersion,
   "new projects must bootstrap the current policy contract",
 );
-assert.match(readme, /game-production-system` `1\.7\.1/);
+assert.match(readme, /game-production-system` `1\.7\.2/);
 
 for (const field of [
   "Interactive visual scope:",
@@ -124,6 +124,37 @@ assert(
   coreLineCount <= 500,
   `core SKILL.md grew to ${coreLineCount} lines; keep details in references`,
 );
+const coreWordCount = coreSkill.trim().split(/\s+/).length;
+assert(
+  coreWordCount <= 4159,
+  `core SKILL.md grew to ${coreWordCount} words; route details progressively instead of adding policy`,
+);
+assert.match(coreSkill, /## Operation router/);
+const immediatelyRepeatedCoreLines = coreSkill
+  .split(/\r?\n/)
+  .filter((line, index, lines) => line.trim() && line === lines[index - 1]);
+assert.deepEqual(
+  immediatelyRepeatedCoreLines,
+  [],
+  "core SKILL.md contains an immediately repeated instruction",
+);
+for (const [operation, load, result] of [
+  ["Explore/discuss", "Project truth and relevant source", "Conversation only; no writes"],
+  ["Diagnose/review", "Affected source and craft reference", "Report only; no repair"],
+  ["Initialize, adopt, or plan", "`workflow.md` plus selected references", "Executable repository contract"],
+  ["Execute or continue", "`execution.md` plus affected craft", "Player-visible or capability delta"],
+  ["Close", "`workflow.md` completion/evidence sections", "Verified recoverable handoff"],
+  ["Review a gate", "`roles-and-gates.md`", "Read-only gate verdict"],
+]) {
+  const row = coreSkill
+    .split(/\r?\n/)
+    .find((line) => line.startsWith("|") && line.includes(`**${operation}**`));
+  assert(row, `operation router is missing ${operation}`);
+  assert(
+    row.includes(load) && row.includes(result),
+    `${operation} must preserve its load and permitted-result mapping`,
+  );
+}
 assert(fs.existsSync(skillRoot), "game-production-system skill root is missing");
 
 assert(
@@ -131,6 +162,23 @@ assert(
   "standalone production execution reference is missing",
 );
 const execution = fs.readFileSync(executionPath, "utf8");
+for (const [rationalization, routeFragments] of [
+  ["A renamed candidate is progress.", ["Compare evidence against the same failed criterion", "invoke stop-loss"]],
+  ["A composed image is the runtime UI or asset inventory.", ["Execute the player-action-to-runtime chain", "prove assembly before bulk work"]],
+  ["An external Skill is missing, so return to planning.", ["Use an available or replaceable capability", "do not reopen a healthy Ready contract"]],
+  ["Tests pass, so experience quality passed.", ["Keep objective validity separate", "integrated acceptance"]],
+]) {
+  const row = execution
+    .split(/\r?\n/)
+    .find((line) => line.startsWith("|") && line.includes(`**${rationalization}**`));
+  assert(row, `execution guidance is missing red flag ${rationalization}`);
+  for (const fragment of routeFragments) {
+    assert(
+      row.includes(fragment),
+      `${rationalization} is missing recovery route fragment: ${fragment}`,
+    );
+  }
+}
 assert.match(coreSkill, /### Execute a ready task/);
 assert.match(coreSkill, /references\/execution\.md/);
 assert.match(
@@ -139,6 +187,16 @@ assert.match(
   "continue must route authorized Ready work into production instead of stopping at status review",
 );
 assert.match(execution, /standalone lifecycle authority/i);
+assert.match(
+  coreSkill,
+  /load only the references selected by the Operation\s+router/i,
+  "startup must preserve progressive disclosure instead of preloading workflow.md",
+);
+assert.match(
+  execution,
+  /reuse a passing capability handshake[\s\S]*environment[\s\S]*unchanged/i,
+  "execution should reuse a current capability result for an unchanged environment",
+);
 assert.match(execution, /player-visible product delta/i);
 assert.match(execution, /external Skills are optional/i);
 assert.match(
@@ -149,6 +207,19 @@ assert.match(
 assert.match(execution, /player action.*interface state.*asset family.*assembly.*runtime/is);
 assert.match(projectInstructions, /External Skills are\s+optional accelerators/i);
 assert.match(projectInstructions, /must reuse `production\/TASK\.md`/i);
+assert.match(projectInstructions, /Select[\s\S]*Produce[\s\S]*Integrate[\s\S]*Observe[\s\S]*Repair[\s\S]*Checkpoint/i);
+assert.match(projectInstructions, /Fast[\s\S]*no independent review or human approval/i);
+assert.match(projectInstructions, /routine Fast UI repair[\s\S]*restoration Not applicable/i);
+const projectInstructionLines = projectInstructions.trimEnd().split(/\r?\n/).length;
+const projectInstructionWords = projectInstructions.trim().split(/\s+/).length;
+assert(
+  projectInstructionLines <= 120,
+  `project AGENTS.md grew to ${projectInstructionLines} lines; keep stable project routing instead of copying policy`,
+);
+assert(
+  projectInstructionWords <= 1100,
+  `project AGENTS.md grew to ${projectInstructionWords} words; keep detailed policy in the installed Skill`,
+);
 assert.match(openaiYaml, /execute the next player-visible game slice/i);
 
 const pluginPrompts = manifest.interface?.defaultPrompt ?? [];
