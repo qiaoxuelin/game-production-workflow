@@ -588,17 +588,35 @@ function Test-LocalEvidenceLocation {
 function Get-ImageDimensions {
     param([Parameter(Mandatory = $true)][string]$Path)
 
+    $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
+    $inspectorPath = Join-Path $PSScriptRoot 'image-inspect.mjs'
+    if (
+        $null -eq $nodeCommand -or
+        -not (Test-Path -LiteralPath $inspectorPath -PathType Leaf)
+    ) {
+        return $null
+    }
+
+    $previousErrorActionPreference = $ErrorActionPreference
     try {
-        Add-Type -AssemblyName System.Drawing -ErrorAction Stop
-        $image = [System.Drawing.Image]::FromFile($Path)
-        try {
-            return [pscustomobject]@{
-                width  = $image.Width
-                height = $image.Height
-            }
-        }
-        finally {
-            $image.Dispose()
+        $ErrorActionPreference = 'Continue'
+        $inspectionOutput = @(& $nodeCommand.Source $inspectorPath $Path 2>&1)
+        $inspectionExitCode = $LASTEXITCODE
+    }
+    catch {
+        return $null
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    if ($inspectionExitCode -ne 0) {
+        return $null
+    }
+    try {
+        $image = ($inspectionOutput -join [Environment]::NewLine) | ConvertFrom-Json
+        return [pscustomobject]@{
+            width  = [int]$image.width
+            height = [int]$image.height
         }
     }
     catch {
@@ -631,7 +649,8 @@ $requiredFiles = @(
     'production\evidence\manifest.json',
     'docs\ART_BIBLE.md',
     'tools\production\check.ps1',
-    'tools\production\evidence.ps1'
+    'tools\production\evidence.ps1',
+    'tools\production\image-inspect.mjs'
 )
 
 foreach ($relative in $requiredFiles) {

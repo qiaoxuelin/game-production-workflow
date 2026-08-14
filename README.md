@@ -62,12 +62,49 @@
 
 ## 在另一台设备安装
 
-前置条件：Git、GitHub CLI、可用的 Codex 桌面端或 CLI、Windows PowerShell 5.1+（也兼容 PowerShell 7），以及用于审批 MCP 的 Node.js 18+。私有仓库还需要该设备具备 GitHub 访问权限。
+所有系统都需要 [Git](https://git-scm.com/downloads)、[Node.js 18+](https://nodejs.org/en/download)、可从终端执行的 `codex` 命令，以及 PowerShell。GitHub CLI 只是私有仓库认证或 `gh repo clone` 的可选方式，不是插件运行依赖。Codex 的 macOS、Linux、Windows、npm 和 Homebrew 安装入口见 [OpenAI Codex CLI 文档](https://learn.chatgpt.com/docs/codex/cli)。
+
+各系统只区分依赖安装方法；仓库仍使用同一套 `install.ps1`、`bootstrap.ps1`、`check.ps1` 和 `evidence.ps1`，不维护单独的 Mac 或 Windows 安装器。
+
+### Windows
+
+推荐 PowerShell 7：
 
 ```powershell
-gh auth login
-gh repo clone qiaoxuelin/game-production-workflow
+winget install --id Microsoft.PowerShell --source winget
+pwsh --version
+```
+
+完整选项见微软的 [Windows 安装说明](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.6)。Windows PowerShell 5.1 继续作为兼容路径接受验证，但新环境优先使用 PowerShell 7。
+
+### macOS
+
+安装微软签名 PKG，或使用 Homebrew：
+
+```bash
+brew install powershell
+pwsh --version
+```
+
+完整选项和处理器要求见微软的 [macOS 安装说明](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-macos?view=powershell-7.6)。macOS 需要 PowerShell 7；系统不自带 Windows PowerShell 5.1。
+
+### Linux
+
+按发行版使用微软的 [Linux 安装说明](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-linux?view=powershell-7.6) 安装 PowerShell 7，并确认 `pwsh --version`。不要把 Windows 的 `winget` 或 macOS 的 Homebrew 命令复制到 Linux。
+
+### 安装插件
+
+公开仓库可直接使用 Git；私有仓库需先配置对应设备的 GitHub 访问权限：
+
+```powershell
+git clone https://github.com/qiaoxuelin/game-production-workflow.git
 Set-Location game-production-workflow
+pwsh -NoProfile -File ./install.ps1
+```
+
+只在既有 Windows PowerShell 5.1 环境中使用兼容命令：
+
+```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
@@ -83,7 +120,7 @@ Use $game-production-system to adopt or continue this game project from its repo
 
 ```powershell
 git pull
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+pwsh -NoProfile -File ./install.ps1
 ```
 
 升级后从新任务开始使用新版本。进行中的工作包保持原状态，在自然检查点应用兼容的新策略，不为升级而中断可恢复执行。
@@ -91,9 +128,15 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ## 本地验证
 
 ```powershell
+pwsh -NoProfile -File ./verify.ps1
+```
+
+Windows PowerShell 5.1 兼容验证使用：
+
+```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\verify.ps1
 ```
 
-`verify.ps1` 检查插件结构、组件版本、PowerShell 语法、Markdown 链接、常见密钥模式和审批 MCP 协议。发布前还应让两个 Skill 分别通过 Codex 内置 `skill-creator` 验证器，并让整合插件通过 `plugin-creator` 验证器。
+`verify.ps1` 检查插件结构、组件版本、PowerShell 语法、Markdown 链接、常见密钥模式、审批 MCP 协议，并实际运行一次 bootstrap → check → 普通文件证据 → PNG 截图证据链。GitHub Actions 还会在 Windows、macOS 和 Linux 的 PowerShell 7 上运行这条验证，并单独覆盖 Windows PowerShell 5.1。发布前还应让两个 Skill 分别通过 Codex 内置 `skill-creator` 验证器，并让整合插件通过 `plugin-creator` 验证器。
 
 每次发布都更新插件清单中的 `+codex.<UTC 时间戳>` 缓存标识；不要仅修改内容后沿用旧版本。生产策略版本和审批服务组件版本分别保留在其实现中。
