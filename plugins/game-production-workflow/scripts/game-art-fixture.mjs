@@ -20,6 +20,26 @@ const nextActionKinds = new Set([
   "bounded-repair", "replan", "capability-enabling", "alternative-candidate", "stop",
 ]);
 const acceptanceValues = new Set(["Pending", "Accepted", "Not applicable"]);
+const actionKindsByProfessionalResult = new Map([
+  ["Proposed", new Set(["human-selection", "bounded-repair", "stop"])],
+  ["Implemented", new Set(["independent-review", "human-acceptance", "bounded-repair", "stop"])],
+  ["Returned", new Set(["bounded-repair", "replan", "capability-enabling", "alternative-candidate", "stop"])],
+  ["Blocked", new Set(["replan", "capability-enabling", "alternative-candidate", "stop"])],
+]);
+const actionKindRequirements = new Map([
+  ["Proposed", "human-selection, bounded-repair, or stop"],
+  ["Implemented", "post-production"],
+  ["Returned", "bounded-repair, replan, capability-enabling, alternative-candidate, or stop"],
+  ["Blocked", "replan, capability-enabling, alternative-candidate, or stop"],
+]);
+const auditedLegacyNextActions = new Map([
+  ["Implemented", new Set([
+    "Have the named independent reviewer inspect the running 1280×720 experience and record design/producer decisions without treating deterministic checks as artistic passage.",
+  ])],
+  ["Proposed", new Set([
+    "Human producer reviews the three candidate desktop captures and recommended portrait overflow capture, then selects, returns, or bounds one direction.",
+  ])],
+]);
 
 function requireNonEmptyString(value, name) {
   if (typeof value !== "string" || value.trim().length === 0) {
@@ -408,11 +428,6 @@ function classifyAcceptance(value, name) {
   ], name);
 }
 
-function isPreProductionNextAction(value) {
-  const normalized = value.trim().toLocaleLowerCase("en-US").replace(/\s+/gu, " ");
-  return /^(?:assemble|build|create|implement|make|produce|render)\b.*\b(?:first|initial)\b.*\b(?:candidate|slice)\b/u.test(normalized);
-}
-
 function validateLifecycleHandoff(runRoot, observation, taskStateAfter) {
   const declaration = extractDeclaredResult(observation);
   if (!declaration) return null;
@@ -445,14 +460,20 @@ function validateLifecycleHandoff(runRoot, observation, taskStateAfter) {
     if (declaration.value.nextAction !== task.nextAction) {
       throw new Error("lifecycle handoff declared nextAction must match TASK and project state");
     }
-  }
-
-  if (
-    !declaration.complete &&
-    ["Implemented", "Proposed"].includes(declaration.value.professionalResult) &&
-    isPreProductionNextAction(task.nextAction)
-  ) {
-    throw new Error(`${declaration.value.professionalResult} professional result cannot retain a pre-production Next action`);
+    const allowedKinds = actionKindsByProfessionalResult.get(
+      declaration.value.professionalResult,
+    );
+    if (!allowedKinds.has(declaration.value.nextActionKind)) {
+      const requirement = actionKindRequirements.get(declaration.value.professionalResult);
+      throw new Error(`${declaration.value.professionalResult} professional result next action kind must be ${requirement}`);
+    }
+  } else {
+    const allowedActions = auditedLegacyNextActions.get(
+      declaration.value.professionalResult,
+    );
+    if (!allowedActions?.has(task.nextAction)) {
+      throw new Error("observation schemaVersion 1 professionalResult requires an audited legacy Next action; migrate to schemaVersion 2");
+    }
   }
 
   if (declaration.value.professionalResult === "Implemented") {
@@ -470,14 +491,6 @@ function validateLifecycleHandoff(runRoot, observation, taskStateAfter) {
     }
     if (durable.assemblyPrecheck !== "Passed") {
       throw new Error("Implemented professional result requires assembly precheck Passed");
-    }
-    if (
-      declaration.complete &&
-      !new Set([
-        "independent-review", "human-acceptance", "bounded-repair", "stop",
-      ]).has(declaration.value.nextActionKind)
-    ) {
-      throw new Error("Implemented professional result next action kind must be post-production");
     }
   }
 
