@@ -98,10 +98,25 @@ function Get-TaskContractFingerprint {
     if (-not (Test-Path -LiteralPath $taskPath -PathType Leaf)) {
         return $null
     }
+    $mutableFields = @('Status', 'Result', 'Evidence IDs', 'Module harvest', 'Next action')
+    $projectStatePath = Join-Path $Root 'production\project.json'
+    if (Test-Path -LiteralPath $projectStatePath -PathType Leaf) {
+        try {
+            $fingerprintProject = Get-Content -LiteralPath $projectStatePath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $fingerprintVersion = [version]([string]$fingerprintProject.systemVersion)
+            if ($fingerprintVersion -ge [version]'1.7.1') {
+                $mutableFields += @('Unresolved risks', 'Stop/replan triggers')
+            }
+        }
+        catch {
+            # Invalid project metadata is reported by check.ps1; preserve the legacy fingerprint here.
+        }
+    }
+    $mutableFieldPattern = ($mutableFields | ForEach-Object { [Regex]::Escape($_) }) -join '|'
     $text = Get-Content -LiteralPath $taskPath -Raw -Encoding UTF8
     $contractText = [Regex]::Replace(
         $text,
-        '(?m)^- (Status|Result|Evidence IDs|Module harvest|Next action):.*(?:\r?\n)?',
+        "(?m)^- ($mutableFieldPattern):.*(?:\r?\n)?",
         ''
     ).Replace("`r`n", "`n")
     $sha = [System.Security.Cryptography.SHA256]::Create()
