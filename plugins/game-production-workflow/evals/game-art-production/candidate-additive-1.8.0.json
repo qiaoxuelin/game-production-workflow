@@ -301,7 +301,7 @@
       ],
       "loadedContext": {
         "metadataWords": 75,
-        "bodyWords": 4580,
+        "bodyWords": 4576,
         "referenceWords": 2995,
         "files": [
           "plugins/game-production-workflow/skills/game-production-system/SKILL.md",
@@ -602,9 +602,9 @@
       "variant": "primary",
       "criterion": "Actual keyboard/controller interaction-to-visual causality",
       "evidence": [
-        "Genuine Retry/Exit/focus visual causality was not demonstrated.",
-        "The bounded follow-up could not acquire a browser backend, so no genuine input could be delivered or observed.",
-        "Prior automation-key attempts remain diagnostic only and cannot substitute for genuine input evidence."
+        "Genuine Retry/Exit/focus visual causality was not demonstrated. The browser observation/input surface is unavailable, and the original physical-input confirmation limitation remains intact.",
+        "The prior key attempts began from a proof-state control that programmatically focused Retry. They are retained only as diagnostic history and are not treated as genuine-input evidence.",
+        "Blocked before live-page acquisition; no valid genuine-input event could be delivered."
       ]
     }
   ],
@@ -612,7 +612,7 @@
     "id": "unavailable-browser-input-bridge",
     "criterion": "Actual keyboard/controller interaction-to-visual causality",
     "classification": "Environment evidence limitation",
-    "attribution": "The unresolved criterion is attributed to an unavailable browser/input bridge: prior automation key APIs failed at the input boundary and the bounded follow-up could not acquire any controllable browser backend.",
+    "attribution": "The unresolved result is most likely caused by browser automation/input-bridge availability rather than candidate runtime code, because pointer causality works, standard native-button semantics are intact, all attempted automation key APIs previously failed at the input boundary, and the browser backend is now unavailable.",
     "notAttributedTo": [
       "game-art-production Skill wording",
       "candidate runtime"
@@ -620,11 +620,11 @@
     "candidateArtifactRepairBatchUsed": false,
     "sameRootCycles": 2,
     "evidence": [
-      "Pointer causality reached the native button listeners and produced observable feedback.",
-      "Retry and Exit remain native buttons with no candidate code suppressing native keyboard activation.",
-      "No valid genuine-input event could be delivered during the follow-up cycle."
+      "Pointer activation previously reached the native button click listeners and produced observable feedback.",
+      "Retry and Exit remain native button elements in DOM order with click listeners; the candidate source contains no keydown handler, preventDefault call, disabled state, inert container, or tabindex override that suppresses native keyboard activation.",
+      "Blocked before live-page acquisition; no valid genuine-input event could be delivered."
     ],
-    "recovery": "When a controllable browser/input bridge is available, repeat only the bounded genuine-input evidence cycle from ordinary runtime success, observe Tab focus and Enter/Space feedback, check the console, and rerun the full matrix only if a candidate-runtime repair is actually required."
+    "recovery": "Repeat this bounded evidence cycle when a controllable browser backend is available. Begin from ordinary runtime success without using keyboard-focus/controller-focus preset controls, use genuine Tab navigation into Retry and Exit, capture focus-visible before and feedback after Enter/Space, check console output, then rerun the full state/viewport matrix only if a candidate-runtime repair is actually required."
   },
   "burden": {
     "primaryFixtures": {
@@ -664,7 +664,7 @@
       "approvals": 0,
       "loadedContext": {
         "metadataWords": 1813,
-        "bodyWords": 9755,
+        "bodyWords": 9751,
         "referenceWords": 13982,
         "files": [
           "AGENTS.md",
