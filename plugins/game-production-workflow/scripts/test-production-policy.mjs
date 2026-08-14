@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -11,6 +13,309 @@ const artSkillRoot = path.join(pluginRoot, "skills/game-art-production");
 
 const read = (relativePath) =>
   fs.readFileSync(path.join(repositoryRoot, relativePath), "utf8");
+
+function runFixtureCommand(command, args, options = {}) {
+  const result = spawnSync(command, args, {
+    encoding: "utf8",
+    ...options,
+  });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  return result;
+}
+
+function testCompareRefRequiresVersionValueChange() {
+  const fixtureRoot = fs.mkdtempSync(
+    path.join(os.tmpdir(), "game production verify "),
+  );
+  const fixtureRepository = path.join(fixtureRoot, "fixture repository");
+  try {
+    runFixtureCommand(
+      "git",
+      ["clone", "--quiet", "--no-hardlinks", repositoryRoot, fixtureRepository],
+      { cwd: fixtureRoot },
+    );
+    const verifySource = fs.readFileSync(
+      path.join(repositoryRoot, "verify.ps1"),
+      "utf8",
+    );
+    const compareOnlyVerify = verifySource.replace(
+      "\n$node = Get-Command node -ErrorAction SilentlyContinue",
+      "\nexit 0\n\n$node = Get-Command node -ErrorAction SilentlyContinue",
+    );
+    assert.notEqual(
+      compareOnlyVerify,
+      verifySource,
+      "fixture could not isolate the real CompareRef block",
+    );
+    fs.writeFileSync(
+      path.join(fixtureRepository, "verify.ps1"),
+      compareOnlyVerify,
+      "utf8",
+    );
+
+    const fixtureManifestPath = path.join(
+      fixtureRepository,
+      "plugins/game-production-workflow/.codex-plugin/plugin.json",
+    );
+    const fixtureManifest = JSON.parse(
+      fs.readFileSync(fixtureManifestPath, "utf8"),
+    );
+    fixtureManifest.description += " CompareRef fixture description change.";
+    fs.writeFileSync(
+      fixtureManifestPath,
+      `${JSON.stringify(fixtureManifest, null, 2)}\n`,
+      "utf8",
+    );
+    fs.appendFileSync(
+      path.join(
+        fixtureRepository,
+        "plugins/game-production-workflow/skills/game-art-production/references/visual-review.md",
+      ),
+      "\nCompareRef fixture content change.\n",
+      "utf8",
+    );
+
+    const result = spawnSync(
+      "pwsh",
+      ["-NoProfile", "-File", "./verify.ps1", "-CompareRef", "HEAD"],
+      {
+        cwd: fixtureRepository,
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          GAME_PRODUCTION_COMPARE_REF_FIXTURE: "1",
+        },
+      },
+    );
+    assert.notEqual(
+      result.status,
+      0,
+      `CompareRef accepted plugin content with an unchanged version:\n${result.stdout}`,
+    );
+    assert.match(
+      `${result.stdout}\n${result.stderr}`,
+      /plugin content changed without a new manifest version value/i,
+    );
+
+    fixtureManifest.version = "1.8.0+codex.20260814190000";
+    fs.writeFileSync(
+      fixtureManifestPath,
+      `${JSON.stringify(fixtureManifest, null, 2)}\n`,
+      "utf8",
+    );
+    const changedVersionResult = spawnSync(
+      "pwsh",
+      ["-NoProfile", "-File", "./verify.ps1", "-CompareRef", "HEAD"],
+      {
+        cwd: fixtureRepository,
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          GAME_PRODUCTION_COMPARE_REF_FIXTURE: "1",
+        },
+      },
+    );
+    assert.equal(
+      changedVersionResult.status,
+      0,
+      changedVersionResult.stderr || changedVersionResult.stdout,
+    );
+  } finally {
+    fs.rmSync(fixtureRoot, { recursive: true, force: true });
+  }
+}
+
+function testCompareRefRequiresLatestContentCoveredByVersion() {
+  const fixtureRoot = fs.mkdtempSync(
+    path.join(os.tmpdir(), "game production history "),
+  );
+  const fixtureRepository = path.join(fixtureRoot, "fixture repository");
+  try {
+    runFixtureCommand(
+      "git",
+      ["clone", "--quiet", "--no-hardlinks", repositoryRoot, fixtureRepository],
+      { cwd: fixtureRoot },
+    );
+    const verifySource = fs.readFileSync(
+      path.join(repositoryRoot, "verify.ps1"),
+      "utf8",
+    );
+    const compareOnlyVerify = verifySource.replace(
+      "\n$node = Get-Command node -ErrorAction SilentlyContinue",
+      "\nexit 0\n\n$node = Get-Command node -ErrorAction SilentlyContinue",
+    );
+    assert.notEqual(compareOnlyVerify, verifySource);
+    fs.writeFileSync(
+      path.join(fixtureRepository, "verify.ps1"),
+      compareOnlyVerify,
+      "utf8",
+    );
+
+    const baseRevision = runFixtureCommand(
+      "git",
+      ["rev-parse", "HEAD"],
+      { cwd: fixtureRepository },
+    ).stdout.trim();
+    const fixtureManifestPath = path.join(
+      fixtureRepository,
+      "plugins/game-production-workflow/.codex-plugin/plugin.json",
+    );
+    const fixtureReferencePath = path.join(
+      fixtureRepository,
+      "plugins/game-production-workflow/skills/game-art-production/references/visual-review.md",
+    );
+    const fixtureManifest = JSON.parse(
+      fs.readFileSync(fixtureManifestPath, "utf8"),
+    );
+
+    fixtureManifest.version = "1.8.0+codex.20260814190001";
+    fs.writeFileSync(
+      fixtureManifestPath,
+      `${JSON.stringify(fixtureManifest, null, 2)}\n`,
+      "utf8",
+    );
+    runFixtureCommand(
+      "git",
+      ["add", "plugins/game-production-workflow/.codex-plugin/plugin.json"],
+      { cwd: fixtureRepository },
+    );
+    runFixtureCommand(
+      "git",
+      [
+        "-c",
+        "user.name=CompareRef Fixture",
+        "-c",
+        "user.email=compare-ref@example.invalid",
+        "commit",
+        "--quiet",
+        "-m",
+        "release: bump fixture version",
+      ],
+      { cwd: fixtureRepository },
+    );
+
+    fixtureManifest.description += " Long-lived description-only change.";
+    fs.writeFileSync(
+      fixtureManifestPath,
+      `${JSON.stringify(fixtureManifest, null, 2)}\n`,
+      "utf8",
+    );
+    fs.appendFileSync(
+      fixtureReferencePath,
+      "\nLong-lived plugin content change.\n",
+      "utf8",
+    );
+    runFixtureCommand(
+      "git",
+      [
+        "add",
+        "plugins/game-production-workflow/.codex-plugin/plugin.json",
+        "plugins/game-production-workflow/skills/game-art-production/references/visual-review.md",
+      ],
+      { cwd: fixtureRepository },
+    );
+    runFixtureCommand(
+      "git",
+      [
+        "-c",
+        "user.name=CompareRef Fixture",
+        "-c",
+        "user.email=compare-ref@example.invalid",
+        "commit",
+        "--quiet",
+        "-m",
+        "feat: change plugin content without a new version",
+      ],
+      { cwd: fixtureRepository },
+    );
+
+    const runCompare = () => spawnSync(
+      "pwsh",
+      ["-NoProfile", "-File", "./verify.ps1", "-CompareRef", baseRevision],
+      {
+        cwd: fixtureRepository,
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          GAME_PRODUCTION_COMPARE_REF_FIXTURE: "1",
+        },
+      },
+    );
+    const result = runCompare();
+    assert.notEqual(
+      result.status,
+      0,
+      `CompareRef let an old version change cover newer plugin content:\n${result.stdout}`,
+    );
+    assert.match(
+      `${result.stdout}\n${result.stderr}`,
+      /latest plugin content change is not covered/i,
+    );
+
+    fixtureManifest.version = "1.8.0+codex.20260814190002";
+    fs.writeFileSync(
+      fixtureManifestPath,
+      `${JSON.stringify(fixtureManifest, null, 2)}\n`,
+      "utf8",
+    );
+    runFixtureCommand(
+      "git",
+      ["add", "plugins/game-production-workflow/.codex-plugin/plugin.json"],
+      { cwd: fixtureRepository },
+    );
+    runFixtureCommand(
+      "git",
+      [
+        "-c",
+        "user.name=CompareRef Fixture",
+        "-c",
+        "user.email=compare-ref@example.invalid",
+        "commit",
+        "--quiet",
+        "-m",
+        "release: cover the latest plugin content",
+      ],
+      { cwd: fixtureRepository },
+    );
+    const coveredCommitResult = runCompare();
+    assert.equal(
+      coveredCommitResult.status,
+      0,
+      coveredCommitResult.stderr || coveredCommitResult.stdout,
+    );
+
+    fs.appendFileSync(
+      fixtureReferencePath,
+      "\nUncommitted plugin content change.\n",
+      "utf8",
+    );
+    const workingContentResult = runCompare();
+    assert.notEqual(
+      workingContentResult.status,
+      0,
+      "CompareRef let a committed version change cover newer working-tree plugin content",
+    );
+    assert.match(
+      `${workingContentResult.stdout}\n${workingContentResult.stderr}`,
+      /working-tree plugin content changed without/i,
+    );
+
+    fixtureManifest.version = "1.8.0+codex.20260814190003";
+    fs.writeFileSync(
+      fixtureManifestPath,
+      `${JSON.stringify(fixtureManifest, null, 2)}\n`,
+      "utf8",
+    );
+    const coveredWorkingResult = runCompare();
+    assert.equal(
+      coveredWorkingResult.status,
+      0,
+      coveredWorkingResult.stderr || coveredWorkingResult.stdout,
+    );
+  } finally {
+    fs.rmSync(fixtureRoot, { recursive: true, force: true });
+  }
+}
 
 const manifest = JSON.parse(
   read("plugins/game-production-workflow/.codex-plugin/plugin.json"),
@@ -394,6 +699,11 @@ assert(
   pluginPrompts.some((prompt) => /build the next player-visible slice/i.test(prompt)),
   "plugin prompts must expose direct game production, not only planning and approvals",
 );
+
+if (process.env.GAME_PRODUCTION_COMPARE_REF_FIXTURE !== "1") {
+  testCompareRefRequiresVersionValueChange();
+  testCompareRefRequiresLatestContentCoveredByVersion();
+}
 
 console.log(
   "PASS production policy interactive visual and standalone execution contracts",

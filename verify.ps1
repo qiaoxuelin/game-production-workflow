@@ -6,8 +6,9 @@ param(
 $ErrorActionPreference = "Stop"
 $repo = $PSScriptRoot
 $pluginRelative = "plugins/game-production-workflow"
+$manifestRelative = "$pluginRelative/.codex-plugin/plugin.json"
 $plugin = Join-Path $repo $pluginRelative
-$manifestPath = Join-Path $plugin ".codex-plugin/plugin.json"
+$manifestPath = Join-Path $repo $manifestRelative
 $marketplacePath = Join-Path $repo ".agents/plugins/marketplace.json"
 $coreSkillPath = Join-Path $plugin "skills/game-production-system/SKILL.md"
 $artSkillPath = Join-Path $plugin "skills/game-art-production/SKILL.md"
@@ -41,6 +42,78 @@ $installTestPath = Join-Path $plugin "scripts/test-install.mjs"
 function Assert-True {
     param([bool]$Condition, [string]$Message)
     if (-not $Condition) { throw $Message }
+}
+
+function Get-ManifestVersionAtRevision {
+    param(
+        [Parameter(Mandatory = $true)][string]$Repository,
+        [Parameter(Mandatory = $true)][string]$Revision,
+        [Parameter(Mandatory = $true)][string]$ManifestRelativePath
+    )
+
+    $objectSpec = '{0}:{1}' -f $Revision, $ManifestRelativePath
+    $manifestJson = @(& git -C $Repository show $objectSpec 2>$null)
+    Assert-True ($LASTEXITCODE -eq 0) "Could not read plugin manifest from comparison ref: $Revision"
+    try {
+        $revisionManifest = ($manifestJson -join [Environment]::NewLine) | ConvertFrom-Json
+    }
+    catch {
+        throw "Plugin manifest at comparison ref is not valid JSON: $Revision"
+    }
+    $revisionVersion = [string]$revisionManifest.version
+    Assert-True (-not [string]::IsNullOrWhiteSpace($revisionVersion)) "Plugin manifest at comparison ref has no version: $Revision"
+    return $revisionVersion
+}
+
+function Get-LatestPluginContentCommit {
+    param(
+        [Parameter(Mandatory = $true)][string]$Repository,
+        [Parameter(Mandatory = $true)][string]$RevisionRange,
+        [Parameter(Mandatory = $true)][string]$PluginRelativePath,
+        [Parameter(Mandatory = $true)][string]$ManifestRelativePath
+    )
+
+    $excludeManifest = ":(exclude)$ManifestRelativePath"
+    $commits = @(
+        & git -C $Repository log -1 --format=%H --topo-order $RevisionRange `
+            -- $PluginRelativePath $excludeManifest
+    )
+    Assert-True ($LASTEXITCODE -eq 0) "Could not inspect plugin-content history for $RevisionRange."
+    return @($commits | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }) |
+        Select-Object -First 1
+}
+
+function Get-LatestManifestVersionChangeCommit {
+    param(
+        [Parameter(Mandatory = $true)][string]$Repository,
+        [Parameter(Mandatory = $true)][string]$RevisionRange,
+        [Parameter(Mandatory = $true)][string]$ManifestRelativePath
+    )
+
+    $commits = @(
+        & git -C $Repository log --format=%H --topo-order $RevisionRange `
+            -- $ManifestRelativePath
+    )
+    Assert-True ($LASTEXITCODE -eq 0) "Could not inspect plugin-version history for $RevisionRange."
+    foreach ($commit in $commits) {
+        $parents = @(& git -C $Repository rev-list --parents -n 1 $commit)
+        Assert-True ($LASTEXITCODE -eq 0) "Could not inspect parent for plugin manifest commit: $commit"
+        $parentFields = @(([string]$parents[0]) -split '\s+')
+        if ($parentFields.Count -lt 2) { continue }
+
+        $commitVersion = Get-ManifestVersionAtRevision `
+            -Repository $Repository `
+            -Revision $commit `
+            -ManifestRelativePath $ManifestRelativePath
+        $parentVersion = Get-ManifestVersionAtRevision `
+            -Repository $Repository `
+            -Revision $parentFields[1] `
+            -ManifestRelativePath $ManifestRelativePath
+        if ($commitVersion -ne $parentVersion) {
+            return [string]$commit
+        }
+    }
+    return $null
 }
 
 foreach ($required in @(
@@ -200,11 +273,64 @@ if ($CompareRef) {
     Assert-True ($LASTEXITCODE -eq 0) "Compare ref does not exist: $CompareRef"
     $changed = @(& git -C $repo diff --name-only $CompareRef --)
     Assert-True ($LASTEXITCODE -eq 0) "Could not compare changes with $CompareRef."
-    $pluginChanged = @($changed | Where-Object { $_ -like "$pluginRelative/*" })
-    if ($pluginChanged.Count -gt 0) {
+    $untrackedPlugin = @(
+        & git -C $repo ls-files --others --exclude-standard -- $pluginRelative
+    )
+    Assert-True ($LASTEXITCODE -eq 0) "Could not inspect untracked plugin content."
+    $pluginChanged = @(
+        @($changed | Where-Object { $_ -like "$pluginRelative/*" }) +
+        @($untrackedPlugin)
+    )
+    $pluginContentChanged = @(
+        $pluginChanged | Where-Object { $_ -ne $manifestRelative }
+    )
+    if ($pluginContentChanged.Count -gt 0) {
+        $compareVersion = Get-ManifestVersionAtRevision `
+            -Repository $repo `
+            -Revision $CompareRef `
+            -ManifestRelativePath $manifestRelative
         Assert-True (
-            $changed -contains "$pluginRelative/.codex-plugin/plugin.json"
-        ) "Plugin content changed without updating its manifest cachebuster."
+            [string]$manifest.version -ne $compareVersion
+        ) "Plugin content changed without a new manifest version value."
+
+        $headVersion = Get-ManifestVersionAtRevision `
+            -Repository $repo `
+            -Revision 'HEAD' `
+            -ManifestRelativePath $manifestRelative
+        $workingChanged = @(
+            & git -C $repo diff --name-only HEAD -- $pluginRelative
+        )
+        Assert-True ($LASTEXITCODE -eq 0) "Could not inspect working-tree plugin changes."
+        $workingContentChanged = @(
+            @($workingChanged | Where-Object { $_ -ne $manifestRelative }) +
+            @($untrackedPlugin | Where-Object { $_ -ne $manifestRelative })
+        )
+        if ($workingContentChanged.Count -gt 0) {
+            Assert-True (
+                [string]$manifest.version -ne $headVersion
+            ) "Working-tree plugin content changed without a working-tree version value change."
+        }
+        elseif ([string]$manifest.version -eq $headVersion) {
+            $revisionRange = "$CompareRef..HEAD"
+            $latestContentCommit = Get-LatestPluginContentCommit `
+                -Repository $repo `
+                -RevisionRange $revisionRange `
+                -PluginRelativePath $pluginRelative `
+                -ManifestRelativePath $manifestRelative
+            if (-not [string]::IsNullOrWhiteSpace($latestContentCommit)) {
+                $latestVersionCommit = Get-LatestManifestVersionChangeCommit `
+                    -Repository $repo `
+                    -RevisionRange $revisionRange `
+                    -ManifestRelativePath $manifestRelative
+                $versionCoversContent = $false
+                if (-not [string]::IsNullOrWhiteSpace($latestVersionCommit)) {
+                    & git -C $repo merge-base --is-ancestor `
+                        $latestContentCommit $latestVersionCommit *> $null
+                    $versionCoversContent = ($LASTEXITCODE -eq 0)
+                }
+                Assert-True $versionCoversContent "Latest plugin content change is not covered by the same or a later version value change."
+            }
+        }
     }
 }
 
