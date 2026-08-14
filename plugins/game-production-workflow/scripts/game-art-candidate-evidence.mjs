@@ -8,6 +8,31 @@ export const candidateEvidenceRelative = "plugins/game-production-workflow/evals
 export const controlSummaryRelative = "plugins/game-production-workflow/evals/game-art-production/control-1.7.2.json";
 
 const retainedCriterion = "Actual keyboard/controller interaction-to-visual causality";
+const candidateRouteAnchor = {
+  candidateCommit: "2c26db33dadd2e23e06f7e2eea6604143a38ad7a",
+  routes: {
+    "design-direction/primary": [
+      { path: "plugins/game-production-workflow/skills/game-production-system/SKILL.md", sha256: "sha256:8fd8968c3fa199b0a8b28402e71f46b8de1ecc7153f01889a34732f3bb3bfb9a", wordCount: 4158, contextBucket: "reference" },
+      { path: "plugins/game-production-workflow/skills/game-art-production/SKILL.md", sha256: "sha256:5e8c56e40633a8d310ad126c4dd26aed11e89d3c481967ef18344c7eeb9419ba", wordCount: 497, contextBucket: "reference" },
+      { path: "plugins/game-production-workflow/skills/game-art-production/references/visual-design.md", sha256: "sha256:832d580fa982fd574f4a16b09cba0f0c12c2eab1eecc03260e4ccb8b16954b37", wordCount: 466, contextBucket: "reference" },
+    ],
+    "composite-runtime/primary": [
+      { path: "plugins/game-production-workflow/skills/game-production-system/SKILL.md", sha256: "sha256:8fd8968c3fa199b0a8b28402e71f46b8de1ecc7153f01889a34732f3bb3bfb9a", wordCount: 40, contextBucket: "metadata" },
+      { path: "plugins/game-production-workflow/skills/game-art-production/SKILL.md", sha256: "sha256:5e8c56e40633a8d310ad126c4dd26aed11e89d3c481967ef18344c7eeb9419ba", wordCount: 35, contextBucket: "metadata" },
+      { path: "plugins/game-production-workflow/skills/game-production-system/SKILL.md", sha256: "sha256:8fd8968c3fa199b0a8b28402e71f46b8de1ecc7153f01889a34732f3bb3bfb9a", wordCount: 4116, contextBucket: "body" },
+      { path: "plugins/game-production-workflow/skills/game-art-production/SKILL.md", sha256: "sha256:5e8c56e40633a8d310ad126c4dd26aed11e89d3c481967ef18344c7eeb9419ba", wordCount: 460, contextBucket: "body" },
+      { path: "plugins/game-production-workflow/skills/game-production-system/references/execution.md", sha256: "sha256:4480f51617322904c4684bd463c8265a74857387612268cb6d8cbe0b2d2aef10", wordCount: 1468, contextBucket: "reference" },
+      { path: "plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md", sha256: "sha256:94e723b0d9dc1cc18c7a2a7d2c7df5eb7f2860089fd6b7a56283db84e624330e", wordCount: 523, contextBucket: "reference" },
+    ],
+    "composite-runtime/no-optional-generation": [
+      { path: "plugins/game-production-workflow/skills/game-production-system/SKILL.md", sha256: "sha256:8fd8968c3fa199b0a8b28402e71f46b8de1ecc7153f01889a34732f3bb3bfb9a", wordCount: 4158, contextBucket: "metadata+body" },
+      { path: "plugins/game-production-workflow/skills/game-production-system/references/execution.md", sha256: "sha256:4480f51617322904c4684bd463c8265a74857387612268cb6d8cbe0b2d2aef10", wordCount: 1468, contextBucket: "reference" },
+      { path: "plugins/game-production-workflow/skills/game-production-system/scripts/doctor.mjs", sha256: "sha256:0c0118a225f1006e54e280c1fb7dc716a433a3f2d12a5072c27d98c87b66bcc5", wordCount: 1004, contextBucket: "reference" },
+      { path: "plugins/game-production-workflow/skills/game-art-production/SKILL.md", sha256: "sha256:5e8c56e40633a8d310ad126c4dd26aed11e89d3c481967ef18344c7eeb9419ba", wordCount: 497, contextBucket: "metadata+body" },
+      { path: "plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md", sha256: "sha256:94e723b0d9dc1cc18c7a2a7d2c7df5eb7f2860089fd6b7a56283db84e624330e", wordCount: 523, contextBucket: "reference" },
+    ],
+  },
+};
 const recordKey = ({ fixtureId, variant }) => `${fixtureId}/${variant}`;
 const pathIdentity = (value) => process.platform === "win32" ? value.toLowerCase() : value;
 const canonicalValue = (value) => Array.isArray(value)
@@ -20,7 +45,6 @@ export const semanticHash = (value) => `sha256:${crypto.createHash("sha256")
   .update(`${JSON.stringify(canonicalValue(value), null, 2)}\n`)
   .digest("hex")}`;
 
-const fileHash = (file) => `sha256:${crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex")}`;
 const containedBy = (root, target) => {
   const relative = path.relative(root, target);
   return relative === "" || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative));
@@ -51,6 +75,17 @@ const assertRepositoryFile = (repositoryRoot, relative, label) => {
   return assertRealCanonicalPath(target, "file", label);
 };
 
+const assertHistoricalRouteIdentity = (repositoryRoot, route, label) => {
+  assert.equal(typeof route.path, "string", `${label}: path must be a string`);
+  assert(route.path.length > 0 && !path.posix.isAbsolute(route.path) && !path.win32.isAbsolute(route.path), `${label}: path must be repository-relative`);
+  assert.equal(path.posix.normalize(route.path), route.path, `${label}: path must be normalized`);
+  assert(!route.path.includes("\\"), `${label}: path must use canonical separators`);
+  assert(containedBy(repositoryRoot, path.resolve(repositoryRoot, ...route.path.split("/"))), `${label}: path escapes repository root`);
+  assert.match(route.sha256, /^sha256:[a-f0-9]{64}$/, `${label}: invalid historical hash`);
+  assert(Number.isInteger(route.wordCount) && route.wordCount > 0, `${label}: invalid historical word count`);
+  assert(["metadata", "body", "reference", "metadata+body"].includes(route.contextBucket), `${label}: invalid historical context bucket`);
+};
+
 const approvalChangeCount = (before, after) => {
   const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
   return [...keys].filter((key) => JSON.stringify(canonicalValue(before[key])) !== JSON.stringify(canonicalValue(after[key]))).length;
@@ -72,7 +107,8 @@ export function validateCandidateDocuments({ repositoryRoot, summary, evidence, 
   const trustedRepositoryRoot = assertRealCanonicalPath(repositoryRoot, "directory", "repository root");
   assert.equal(summary.schemaVersion, 1);
   assert.equal(evidence.schemaVersion, 1);
-  assert.equal(summary.candidateCommit, "2c26db33dadd2e23e06f7e2eea6604143a38ad7a");
+  assert.match(summary.candidateCommit, /^[a-f0-9]{40}$/, "candidate commit must be a full 40-hex identity");
+  assert.equal(summary.candidateCommit, candidateRouteAnchor.candidateCommit, "candidate commit differs from the audited route anchor");
   assert.equal(evidence.candidateCommit, summary.candidateCommit);
   assert.deepEqual(summary.committedEvidence, {
     location: candidateEvidenceRelative,
@@ -128,6 +164,9 @@ export function validateCandidateDocuments({ repositoryRoot, summary, evidence, 
 
   for (const record of records.values()) {
     const key = recordKey(record);
+    const anchoredRoutes = candidateRouteAnchor.routes[key];
+    assert(anchoredRoutes, `${key}: missing audited historical route anchor`);
+    assert.deepEqual(record.routeIdentity, anchoredRoutes, `${key}: historical route identity differs from candidate-commit anchor`);
     assert.equal(record.run.candidateCommit, summary.candidateCommit, `${key}: run commit mismatch`);
     assert.deepEqual(Object.keys(record.sourceRecords).sort(), [
       "candidateRunRecord",
@@ -159,9 +198,7 @@ export function validateCandidateDocuments({ repositoryRoot, summary, evidence, 
       assert(["metadata", "body", "reference"].includes(context.contextBucket));
     }
     for (const route of record.routeIdentity) {
-      const routePath = assertRepositoryFile(trustedRepositoryRoot, route.path, `${key} route`);
-      assert.equal(fileHash(routePath), route.sha256, `${key}: stale route hash`);
-      assert(Number.isInteger(route.wordCount) && route.wordCount > 0, `${key}: invalid route word count`);
+      assertHistoricalRouteIdentity(trustedRepositoryRoot, route, `${key} route`);
     }
     assert.equal(record.historicalRawBundle.authoritative, false, `${key}: historical bundle cannot be authoritative`);
     assert.match(record.historicalRawBundle.location, /^\.tmp\/game-art-evals\/candidate-[a-z-]+$/, `${key}: invalid historical provenance`);

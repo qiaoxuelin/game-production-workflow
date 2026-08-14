@@ -532,6 +532,48 @@ const candidateMutations = [
       summary.fixtureResults[0].loadedContext.files = summary.fixtureResults[0].loadedContext.files.map((entry) => entry === oldPath ? newPath : entry);
     },
   },
+  {
+    name: "forged historical route hash",
+    mutate(summary, evidence) {
+      const designEvidence = evidence.records.find(({ fixtureId }) => fixtureId === "design-direction");
+      const designSummary = summary.fixtureResults.find(({ fixtureId }) => fixtureId === "design-direction");
+      const forgedHash = `sha256:${"0".repeat(64)}`;
+      designEvidence.routeIdentity[0].sha256 = forgedHash;
+      designSummary.routeFiles[0].sha256 = forgedHash;
+      summary.committedEvidence.hash = semanticHash(evidence);
+    },
+  },
+  {
+    name: "candidate commit substitution",
+    mutate(summary, evidence) {
+      const substituteCommit = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+      summary.candidateCommit = substituteCommit;
+      evidence.candidateCommit = substituteCommit;
+      for (const record of evidence.records) record.run.candidateCommit = substituteCommit;
+      summary.committedEvidence.hash = semanticHash(evidence);
+    },
+  },
+  {
+    name: "historical route path substitution",
+    mutate(summary, evidence) {
+      const designEvidence = evidence.records.find(({ fixtureId }) => fixtureId === "design-direction");
+      const designSummary = summary.fixtureResults.find(({ fixtureId }) => fixtureId === "design-direction");
+      const oldPath = designEvidence.routeIdentity[0].path;
+      const newPath = "plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md";
+      const substituteHash = "sha256:94e723b0d9dc1cc18c7a2a7d2c7df5eb7f2860089fd6b7a56283db84e624330e";
+      designEvidence.routeIdentity[0].path = newPath;
+      designEvidence.routeIdentity[0].sha256 = substituteHash;
+      designEvidence.run.loadedContext.files = designEvidence.run.loadedContext.files.map((entry) => entry === oldPath ? newPath : entry);
+      designSummary.routeFiles[0].path = newPath;
+      designSummary.routeFiles[0].sha256 = substituteHash;
+      designSummary.loadedContext.files = designSummary.loadedContext.files.map((entry) => entry === oldPath ? newPath : entry);
+      for (const burden of [summary.burden.primaryFixtures, summary.burden.allRuns]) {
+        const index = burden.loadedContext.files.indexOf(oldPath);
+        burden.loadedContext.files[index] = newPath;
+      }
+      summary.committedEvidence.hash = semanticHash(evidence);
+    },
+  },
 ];
 const acceptedCandidateMutations = candidateMutations.flatMap(({ name, mutate }) => {
   const mutation = structuredClone(candidateSummary);
@@ -571,6 +613,9 @@ try {
     fs.copyFileSync(source, destination);
   }
   assert.equal(fs.existsSync(path.join(portableRoot, ".tmp/game-art-evals")), false, "portable fixture must not copy ignored raw evidence");
+  validateCandidateRepository(portableRoot);
+  const laterRoutePath = path.join(portableRoot, candidateEvidence.records[0].routeIdentity[0].path);
+  fs.appendFileSync(laterRoutePath, "\nTask 6 later route revision.\n");
   validateCandidateRepository(portableRoot);
 
   let symlinksSupported = true;
