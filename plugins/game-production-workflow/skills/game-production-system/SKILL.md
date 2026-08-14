@@ -237,7 +237,7 @@ An intact 1.8 plugin requires bundled `game-art-production` for positive UI/2D
 predicate. An installed 1.8 plugin missing `game-art-production` is a
 bundle-integrity failure: preserve work,
 report it, repair/reinstall, and grant no art-path completion. Repository-only with no plugin
-uses the project `AGENTS.md` interaction-to-visual loop without claiming the
+uses project `AGENTS.md`'s interaction-to-visual loop without claiming the
 dedicated protocol or unavailable subjective authority ran. `execution.md` remains
 standalone for production.
 
@@ -314,7 +314,7 @@ standalone for production.
 10. Before Full implementation, technical handoff freezes architecture
    boundaries, interfaces, data/asset pipeline, feasibility, verification, and
    rollback; no human approval unless a human boundary changes.
-11. Freeze minimum executable decisions in `TASK.md` or one baseline; never create
+11. Freeze minimum executable decisions in `TASK.md` or one referenced baseline; never create
    role reports solely as process evidence.
 12. Mark GUI restoration `Required` only for reconstruction, a material
    layout/component-system change, or a new visual rule; freeze its baseline,

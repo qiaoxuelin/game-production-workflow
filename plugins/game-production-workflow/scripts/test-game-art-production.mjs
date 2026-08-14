@@ -137,6 +137,11 @@ const repositoryProjectClause = normalizedProjectInstructions.slice(
 assert.match(repositoryProjectClause, /interaction-to-visual loop/i);
 assert.match(
   repositoryProjectClause,
+  /declared greybox boundaries/i,
+  "repository-only greybox boundaries must be declared explicitly",
+);
+assert.match(
+  repositoryProjectClause,
   /must not claim use of the dedicated protocol or unavailable subjective authority/i,
 );
 assert.match(

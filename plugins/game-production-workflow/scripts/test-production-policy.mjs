@@ -182,6 +182,11 @@ for (const [obligation, pattern] of [
     `substantial-feature design must ${obligation}`,
   );
 }
+assert.match(
+  substantialFeatureRoute,
+  /minimum executable decisions[\s\S]*`TASK\.md` or one referenced baseline/i,
+  "the alternate executable-decision baseline must be referenced from the task route",
+);
 for (const [operation, load, result] of [
   ["Explore/discuss", "Project truth and relevant source", "Conversation only; no writes"],
   ["Diagnose/review", "Affected source and craft reference", "Report only; no repair"],
@@ -303,6 +308,11 @@ assert(
 const repositoryOnlyClause = normalizedProjectInstructions.slice(
   repositoryOnlyStart,
   repositoryOnlyEnd,
+);
+assert.match(
+  repositoryOnlyClause,
+  /declared greybox boundaries/i,
+  "repository-only greybox boundaries must be declared explicitly",
 );
 assert.match(
   repositoryOnlyClause,
