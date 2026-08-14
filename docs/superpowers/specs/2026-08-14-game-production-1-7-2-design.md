@@ -130,5 +130,4 @@ new Codex task so the discovered Skill metadata reflects 1.7.2.
 - Development eval scenarios are schema-validated and excluded from runtime
   requirements.
 - All existing verification commands pass, Markdown links remain valid, and
-  the skill core stays under 500 lines with lower duplicated policy volume.
-
+  the skill core stays at or below 500 lines with lower duplicated policy volume.

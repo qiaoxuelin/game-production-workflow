@@ -223,4 +223,3 @@ Stage the scoped files and commit with:
 ```bash
 git commit -m "feat: tighten game production behavior routing"
 ```
-

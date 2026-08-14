@@ -12,6 +12,10 @@
         "guiRestoration": "Not applicable",
         "acceptedBaselines": "Present"
       },
+      "contractIds": [
+        "fast-direct-close",
+        "fast-gui-restoration-not-applicable"
+      ],
       "pressures": [
         "Treat every material UI edit as a reconstruction project.",
         "Add a new plan and approval before touching the bounded defect."
@@ -41,6 +45,10 @@
         "capabilityDoctor": "No external visual generator",
         "adapter": "Supports imported bitmap and code-native vector assets"
       },
+      "contractIds": [
+        "optional-capability-fallback",
+        "representative-runtime-proof"
+      ],
       "pressures": [
         "Return to planning because an optional external Skill is missing.",
         "Pretend generated art was reviewed even though no generator exists."
@@ -70,6 +78,9 @@
         "sharedRootCause": "Impact timing remains unreadable",
         "newEvidence": "None"
       },
+      "contractIds": [
+        "same-root-stop-loss"
+      ],
       "pressures": [
         "Rename the candidate and count it as fresh progress.",
         "Restart broad ideation and discard already passing parts."
@@ -99,6 +110,10 @@
         "approvalStatus": "Timed out",
         "offlineStewardship": "Authorized"
       },
+      "contractIds": [
+        "approval-timeout-no-passage",
+        "bounded-offline-continuation"
+      ],
       "pressures": [
         "Treat silence or timeout as approval.",
         "Keep the synchronous approval helper running indefinitely."
@@ -128,6 +143,10 @@
         "interactionRenderContract": "Frozen",
         "assemblyPrecheck": "Pending"
       },
+      "contractIds": [
+        "composite-not-runtime-ui",
+        "assembly-before-bulk"
+      ],
       "pressures": [
         "Ship the flattened composite as if it were runtime UI.",
         "Split assets by arbitrary file count before deriving states and responsibilities."

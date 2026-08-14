@@ -138,18 +138,21 @@ assert.deepEqual(
   [],
   "core SKILL.md contains an immediately repeated instruction",
 );
-for (const operation of [
-  "Explore/discuss",
-  "Diagnose/review",
-  "Initialize, adopt, or plan",
-  "Execute or continue",
-  "Close",
-  "Review a gate",
+for (const [operation, load, result] of [
+  ["Explore/discuss", "Project truth and relevant source", "Conversation only; no writes"],
+  ["Diagnose/review", "Affected source and craft reference", "Report only; no repair"],
+  ["Initialize, adopt, or plan", "`workflow.md` plus selected references", "Executable repository contract"],
+  ["Execute or continue", "`execution.md` plus affected craft", "Player-visible or capability delta"],
+  ["Close", "`workflow.md` completion/evidence sections", "Verified recoverable handoff"],
+  ["Review a gate", "`roles-and-gates.md`", "Read-only gate verdict"],
 ]) {
-  assert.match(
-    coreSkill,
-    new RegExp(operation.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"),
-    `operation router is missing ${operation}`,
+  const row = coreSkill
+    .split(/\r?\n/)
+    .find((line) => line.startsWith("|") && line.includes(`**${operation}**`));
+  assert(row, `operation router is missing ${operation}`);
+  assert(
+    row.includes(load) && row.includes(result),
+    `${operation} must preserve its load and permitted-result mapping`,
   );
 }
 assert(fs.existsSync(skillRoot), "game-production-system skill root is missing");
@@ -159,17 +162,22 @@ assert(
   "standalone production execution reference is missing",
 );
 const execution = fs.readFileSync(executionPath, "utf8");
-for (const demonstratedRedFlag of [
-  /renamed candidate.*progress/is,
-  /composed image.*runtime UI/is,
-  /external Skill.*missing.*planning/is,
-  /tests pass.*experience quality/is,
+for (const [rationalization, routeFragments] of [
+  ["A renamed candidate is progress.", ["Compare evidence against the same failed criterion", "invoke stop-loss"]],
+  ["A composed image is the runtime UI or asset inventory.", ["Execute the player-action-to-runtime chain", "prove assembly before bulk work"]],
+  ["An external Skill is missing, so return to planning.", ["Use an available or replaceable capability", "do not reopen a healthy Ready contract"]],
+  ["Tests pass, so experience quality passed.", ["Keep objective validity separate", "integrated acceptance"]],
 ]) {
-  assert.match(
-    execution,
-    demonstratedRedFlag,
-    `execution guidance is missing demonstrated red flag ${demonstratedRedFlag}`,
-  );
+  const row = execution
+    .split(/\r?\n/)
+    .find((line) => line.startsWith("|") && line.includes(`**${rationalization}**`));
+  assert(row, `execution guidance is missing red flag ${rationalization}`);
+  for (const fragment of routeFragments) {
+    assert(
+      row.includes(fragment),
+      `${rationalization} is missing recovery route fragment: ${fragment}`,
+    );
+  }
 }
 assert.match(coreSkill, /### Execute a ready task/);
 assert.match(coreSkill, /references\/execution\.md/);

@@ -443,6 +443,83 @@ try {
   ]) {
     assert(!legacyCodes.has(code), `${code} forced migration of a v1.7.0 task`);
   }
+
+  const acceptedFastTask = healthyTask
+    .replace("- Gate: `G1`", "- Gate: `G0`")
+    .replace("- Execution lane: `Standard`", "- Execution lane: `Fast`")
+    .replace("- Status: `Implementing`", "- Status: `Accepted`")
+    .replace("- Producer acceptance: `Pending`", "- Producer acceptance: `Not applicable`")
+    .replace("- Module harvest: `Pending`", "- Module harvest: `Case only`")
+    .replace(
+      "- Result: `In progress`",
+      "- Result: `Accepted — bounded Fast repair passed objective checks`",
+    );
+  const acceptedFastProject = {
+    ...baseProject,
+    systemVersion: "1.7.2",
+    gate: "G0",
+    status: "Accepted",
+    nextAction: "Archive the bounded Fast repair",
+  };
+  fs.writeFileSync(taskPath, acceptedFastTask);
+  fs.writeFileSync(
+    projectPath,
+    `${JSON.stringify(acceptedFastProject, null, 2)}\n`,
+  );
+  for (const args of [
+    ["add", "."],
+    ["commit", "-m", "accepted Fast fixture"],
+  ]) {
+    const git = run("git", args, fixtureRoot);
+    assert.equal(
+      git.status,
+      0,
+      `git ${args.join(" ")} failed:\n${git.stdout}\n${git.stderr}`,
+    );
+  }
+  const fastEvidence = run(
+    "pwsh",
+    [
+      "-NoProfile",
+      "-File",
+      path.join(fixtureRoot, "tools/production/evidence.ps1"),
+      "-ProjectPath",
+      fixtureRoot,
+      "-TaskId",
+      "task-returned",
+      "-Gate",
+      "G0",
+      "-Type",
+      "test",
+      "-Location",
+      "https://example.invalid/fast-gui-repair",
+      "-Verdict",
+      "Pass",
+    ],
+    fixtureRoot,
+  );
+  assert.equal(
+    fastEvidence.status,
+    0,
+    `Fast evidence registration failed:\n${fastEvidence.stdout}\n${fastEvidence.stderr}`,
+  );
+  const acceptedFastResult = check(acceptedFastTask);
+  assert.equal(
+    acceptedFastResult.valid,
+    true,
+    `a verified Accepted Fast UI repair gained extra ceremony:\n${JSON.stringify(acceptedFastResult.issues, null, 2)}`,
+  );
+  for (const code of [
+    "design_acceptance_missing",
+    "producer_acceptance_missing",
+    "missing_independent_acceptance_review",
+    "gui_restoration_fast_lane_conflict",
+  ]) {
+    assert(
+      !issueCodes(acceptedFastResult).has(code),
+      `${code} added reviewer or approval ceremony to an accepted Fast repair`,
+    );
+  }
 } finally {
   fs.rmSync(fixtureRoot, { recursive: true, force: true });
 }
