@@ -168,6 +168,17 @@ review gate, satisfy it with the existing canonical artifact and recorded
 decision. Invoke the technique at most once for the current boundary and resume
 this production loop immediately afterward.
 
+## Stop signs during production
+
+These statements signal a demonstrated wrong route:
+
+| Rationalization | Required route |
+| --- | --- |
+| **A renamed candidate is progress.** | Compare evidence against the same failed criterion; when it did not advance, invoke stop-loss without resetting the root cause. |
+| **A composed image is the runtime UI or asset inventory.** | Execute the player-action-to-runtime chain, preserve independent state as separate sources, and prove assembly before bulk work. |
+| **An external Skill is missing, so return to planning.** | Use an available or replaceable capability, base tools, engine primitives, or record the exact blocker; do not reopen a healthy Ready contract. |
+| **Tests pass, so experience quality passed.** | Keep objective validity separate from runtime design conformance, product-quality judgment, and integrated acceptance. |
+
 ## Completion boundary
 
 Do not close from documentation alone. Close through the main Skill only after

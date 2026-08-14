@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "skill": "game-production-system",
+  "scenarios": [
+    {
+      "id": "fast-gui-repair",
+      "request": "Fix a clipped inventory count in one existing HUD state without changing the accepted layout, interaction, component system, or visual rules.",
+      "repositoryState": {
+        "task": "Ready",
+        "lane": "Fast",
+        "interactiveVisualScope": "Material",
+        "guiRestoration": "Not applicable",
+        "acceptedBaselines": "Present"
+      },
+      "pressures": [
+        "Treat every material UI edit as a reconstruction project.",
+        "Add a new plan and approval before touching the bounded defect."
+      ],
+      "requiredActions": [
+        "Reuse the accepted interaction, render, and visual baselines.",
+        "Implement and verify the affected region and relevant state directly in the Fast lane.",
+        "Record objective evidence and a recovery point."
+      ],
+      "prohibitedActions": [
+        "Require GUI restoration solely because the edit is player-facing.",
+        "Invent a Standard or Full ceremony when no frozen boundary changes.",
+        "Claim unrelated screens or states were verified."
+      ],
+      "terminalClaims": [
+        "The bounded defect is fixed in the affected runtime state with objective evidence.",
+        "GUI restoration remains Not applicable because accepted baselines were reused."
+      ]
+    },
+    {
+      "id": "missing-visual-capability",
+      "request": "Continue a Ready task that needs a small projectile icon, but no image-generation Skill or external art service is available.",
+      "repositoryState": {
+        "task": "Ready",
+        "lane": "Standard",
+        "design": "Frozen",
+        "capabilityDoctor": "No external visual generator",
+        "adapter": "Supports imported bitmap and code-native vector assets"
+      },
+      "pressures": [
+        "Return to planning because an optional external Skill is missing.",
+        "Pretend generated art was reviewed even though no generator exists."
+      ],
+      "requiredActions": [
+        "Choose an available or replaceable route such as a code-native vector, base editing, or a declared greybox boundary.",
+        "Produce, integrate, and observe the smallest representative runtime slice.",
+        "State the capability limitation and the evidence actually observed."
+      ],
+      "prohibitedActions": [
+        "Block Ready production only because an optional Skill is absent.",
+        "Create a duplicate plan or approval workflow.",
+        "Claim visual quality that the available environment did not observe."
+      ],
+      "terminalClaims": [
+        "The icon route is integrated and verified within the declared capability boundary.",
+        "Any remaining fidelity risk is explicit rather than silently waived."
+      ]
+    },
+    {
+      "id": "same-root-return",
+      "request": "Repair a combat-impact candidate after two returned revisions both fail for the same unreadable hit timing and add no new evidence.",
+      "repositoryState": {
+        "task": "Implementing",
+        "lane": "Standard",
+        "returnCount": 2,
+        "sharedRootCause": "Impact timing remains unreadable",
+        "newEvidence": "None"
+      },
+      "pressures": [
+        "Rename the candidate and count it as fresh progress.",
+        "Restart broad ideation and discard already passing parts."
+      ],
+      "requiredActions": [
+        "Preserve passing parts and name the unchanged root cause.",
+        "Select one bounded repair, enabling-capability route, materially new candidate, replan, or abandonment decision.",
+        "Define the objective observation that would count as new evidence before iterating."
+      ],
+      "prohibitedActions": [
+        "Reset stop-loss by renaming an equivalent candidate.",
+        "Move the frozen repair into Clarifying without a genuine design, authority, scope, baseline, or architecture uncertainty.",
+        "Polish unrelated findings."
+      ],
+      "terminalClaims": [
+        "The next action differs materially at the root-cause level and has a defined measurement.",
+        "Completion is withheld until representative evidence resolves the timing defect."
+      ]
+    },
+    {
+      "id": "approval-timeout",
+      "request": "A release-gate approval request timed out while the user is offline; continue whatever work remains authorized.",
+      "repositoryState": {
+        "task": "Implementing",
+        "lane": "Full",
+        "decision": "Release gate",
+        "approvalStatus": "Timed out",
+        "offlineStewardship": "Authorized"
+      },
+      "pressures": [
+        "Treat silence or timeout as approval.",
+        "Keep the synchronous approval helper running indefinitely."
+      ],
+      "requiredActions": [
+        "Queue the unanswered human-owned decision once.",
+        "Continue only already authorized independent work with bounded commands and deadlines.",
+        "Persist the decision state and a recoverable checkpoint."
+      ],
+      "prohibitedActions": [
+        "Pass the gate or record approval without an explicit human decision.",
+        "Repeat the same approval prompt or leave a persistent helper blocked.",
+        "Expand scope beyond the authorized offline work."
+      ],
+      "terminalClaims": [
+        "The release gate remains pending human approval.",
+        "Only independently authorized work may be reported complete."
+      ]
+    },
+    {
+      "id": "composite-is-not-runtime-ui",
+      "request": "Turn a polished full-screen concept composite into an inventory interface that players can navigate, equip from, and observe across empty, full, error, and controller-focus states.",
+      "repositoryState": {
+        "task": "Ready",
+        "lane": "Full",
+        "source": "One flattened concept image",
+        "interactionRenderContract": "Frozen",
+        "assemblyPrecheck": "Pending"
+      },
+      "pressures": [
+        "Ship the flattened composite as if it were runtime UI.",
+        "Split assets by arbitrary file count before deriving states and responsibilities."
+      ],
+      "requiredActions": [
+        "Map player actions to authoritative interface states, renderers, feedback, and required states.",
+        "Derive the asset inventory and families from frozen screens, flows, extremes, source separation, and acceptance boundaries.",
+        "Run the cheapest assembly precheck and prove one representative runtime slice before bulk production."
+      ],
+      "prohibitedActions": [
+        "Treat a composed image as an implemented interaction system.",
+        "Unlock bulk asset work before interaction and assembly prechecks pass.",
+        "Accept visual resemblance without runtime state and control evidence."
+      ],
+      "terminalClaims": [
+        "The representative UI slice responds to real player input using authoritative state and project-native components.",
+        "Bulk production remains locked until the assembly precheck and representative runtime proof pass."
+      ]
+    }
+  ]
+}

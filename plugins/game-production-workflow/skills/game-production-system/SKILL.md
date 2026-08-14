@@ -1,20 +1,16 @@
 ---
 name: game-production-system
-description: Initialize, plan, govern, recover, continue, review, and hand off game-development projects with task decomposition, front-loaded professional domain design, design-completeness and quality gates, execution-health stop-loss, repository-resident contracts, reusable design modules, clarification, evidence, and acceptance. Use when starting or adopting a game project, planning or replanning a complex feature or milestone, beginning substantial gameplay/level/balance/economy/content/UX/art/animation/audio work, recovering stalled or repetitive implementation, resuming across Codex conversations, coordinating production/design/technical/QA roles, reviewing commercial-quality player-facing work, a vertical slice, or a release candidate, or incubating hypercasual/IAA games with creative-first market validation.
+description: Use when starting, adopting, planning, executing, recovering, reviewing, or handing off a game project or substantial player-facing game work, especially when cross-domain design, representative runtime proof, quality gates, commercial-quality review, durable continuation, or creative-first validation is required.
 ---
 
 # Game Production System
 
-Use the repository as the durable source of truth. Treat expert roles as
-accountable work perspectives invoked by domain and risk, not permanent agents.
-Planning and domain-design roles act before implementation; independent review
-acts after it.
-
-Keep product authority, production planning, and delivery health distinct.
-The human producer owns human-only product and gate decisions. Production
-planning defines the executable route. Production coordination keeps state
-accurate, detects when that route stops producing evidence, and invokes a
-bounded root-cause review or replan without becoming another approval layer.
+Use the repository as durable truth. Roles are accountable work perspectives,
+not permanent agents: domain design and planning precede implementation;
+independent review follows it. The human producer owns human-only product and
+gate decisions. Planning defines the executable route; production coordination
+keeps state truthful and invokes bounded root-cause review or replanning only
+when evidence stops advancing.
 
 Interpret validation precisely:
 
@@ -26,32 +22,36 @@ Interpret validation precisely:
   review, and human decisions.
 - Never describe `valid: true` from Task mode as gate passage.
 
+## Operation router
+
+| Intent | Load | Permitted result |
+| --- | --- | --- |
+| **Explore/discuss** | Project truth and relevant source | Conversation only; no writes |
+| **Diagnose/review** | Affected source and craft reference | Report only; no repair |
+| **Initialize, adopt, or plan** | `workflow.md` plus selected references | Executable repository contract |
+| **Execute or continue** | `execution.md` plus affected craft | Player-visible or capability delta |
+| **Close** | `workflow.md` completion/evidence sections | Verified recoverable handoff |
+| **Review a gate** | `roles-and-gates.md` | Read-only gate verdict |
+
 ## Lean execution
 
-Classify the user's intent before creating files or implementation:
+After routing the intent, choose the lightest safe lane for implementation:
 
-- **Explore/discuss:** inspect and answer. Tentative language such as
-  "consider", "could", or "what if" does not authorize repository writes.
-- **Diagnose/review:** inspect read-only and report evidence-backed findings.
-- **Implement/change:** choose the lightest safe execution lane:
-  - **Fast:** routine, reversible work with no new player-facing rule or
-    high-risk decision. Implement, run relevant checks, and leave a recoverable
-    checkpoint. Do not create a plan, role documents, or approval step.
-  - **Standard:** one bounded feature. Keep one task card; involve only affected
-    design owners and technical implementation. Do not create a separate plan
-    or role document unless it is needed to make the work executable.
-  - **Full:** core-loop, high-fidelity replication, monetization, save/platform
-    or architecture migration, bulk content/art, gate, or release work. Use
-    planning, affected domain owners, technical architecture ownership, a
-    multi-package plan when needed, and representative proof before bulk work.
+- **Fast:** routine, reversible work with no new player-facing rule or
+  high-risk decision. Implement, run relevant checks, and leave a recoverable
+  checkpoint. Do not create a plan, role documents, or approval step.
+- **Standard:** one bounded feature. Keep one task card; involve only affected
+  design owners and technical implementation. Do not create a separate plan
+  or role document unless it is needed to make the work executable.
+- **Full:** core-loop, high-fidelity replication, monetization, save/platform
+  or architecture migration, bulk content/art, gate, or release work. Use
+  planning, affected domain owners, technical architecture ownership, a
+  multi-package plan when needed, and representative proof before bulk work.
 
 Choose the lane for the current work package. A Full parent remains Full at
 milestone acceptance, but bounded implementation, test, tooling, or evidence
 packages inside it use Fast or Standard controls unless they change frozen
 product, design, or architecture boundaries.
-
-Do not escalate merely because this Skill was invoked. Treat quality checks as
-a risk inventory, not a user-visible sequence.
 
 Choose one project development mode before G0. Both modes clarify requirements;
 they differ in how requirements are obtained:
@@ -318,8 +318,10 @@ evidence, and handoff rules.
 11. Freeze the minimum executable decisions in `TASK.md` or one referenced
    baseline. Do not create separate planner, designer, or architect reports
    solely for process evidence.
-12. For UI/GUI work, mark GUI restoration `Required` and freeze the approved
-   design baseline, target states, viewports, and comparison method.
+12. Mark GUI restoration `Required` only for reconstruction, a material
+   layout/component-system change, or a new visual rule; freeze its baseline,
+   target states, viewports, comparison method, and reviewer. A routine Fast UI
+   repair that reuses accepted baselines marks it `Not applicable`.
 13. Consolidate unresolved high-impact choices into at most 3 questions and give
    a recommended option for each.
 14. Record reversible implementation assumptions, never missing design rules.

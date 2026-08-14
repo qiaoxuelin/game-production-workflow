@@ -25,6 +25,8 @@ $mcpPath = Join-Path $plugin ".mcp.json"
 $approvalTestPath = Join-Path $plugin "scripts/test-server.mjs"
 $policyTestPath = Join-Path $plugin "scripts/test-production-policy.mjs"
 $convergenceTestPath = Join-Path $plugin "scripts/test-convergence-policy.mjs"
+$skillEvalTestPath = Join-Path $plugin "scripts/test-skill-evals.mjs"
+$skillEvalCorpusPath = Join-Path $plugin "evals/game-production-system.json"
 $doctorTestPath = Join-Path $plugin "scripts/test-doctor.mjs"
 $installTestPath = Join-Path $plugin "scripts/test-install.mjs"
 
@@ -52,6 +54,8 @@ foreach ($required in @(
     $approvalTestPath,
     $policyTestPath,
     $convergenceTestPath,
+    $skillEvalTestPath,
+    $skillEvalCorpusPath,
     $doctorTestPath,
     $installTestPath
 )) {
@@ -194,6 +198,8 @@ Assert-True ($LASTEXITCODE -eq 0) "Approval MCP protocol test failed."
 Assert-True ($LASTEXITCODE -eq 0) "Production policy structure test failed."
 & $node.Source $convergenceTestPath
 Assert-True ($LASTEXITCODE -eq 0) "Returned-candidate convergence test failed."
+& $node.Source $skillEvalTestPath
+Assert-True ($LASTEXITCODE -eq 0) "Game-production behavior evaluation corpus failed."
 & $node.Source $doctorTestPath
 Assert-True ($LASTEXITCODE -eq 0) "Production capability doctor test failed."
 & $node.Source $installTestPath

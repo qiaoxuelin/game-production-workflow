@@ -124,6 +124,26 @@ assert(
   coreLineCount <= 500,
   `core SKILL.md grew to ${coreLineCount} lines; keep details in references`,
 );
+const coreWordCount = coreSkill.trim().split(/\s+/).length;
+assert(
+  coreWordCount <= 4159,
+  `core SKILL.md grew to ${coreWordCount} words; route details progressively instead of adding policy`,
+);
+assert.match(coreSkill, /## Operation router/);
+for (const operation of [
+  "Explore/discuss",
+  "Diagnose/review",
+  "Initialize, adopt, or plan",
+  "Execute or continue",
+  "Close",
+  "Review a gate",
+]) {
+  assert.match(
+    coreSkill,
+    new RegExp(operation.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"),
+    `operation router is missing ${operation}`,
+  );
+}
 assert(fs.existsSync(skillRoot), "game-production-system skill root is missing");
 
 assert(
@@ -131,6 +151,18 @@ assert(
   "standalone production execution reference is missing",
 );
 const execution = fs.readFileSync(executionPath, "utf8");
+for (const demonstratedRedFlag of [
+  /renamed candidate.*progress/is,
+  /composed image.*runtime UI/is,
+  /external Skill.*missing.*planning/is,
+  /tests pass.*experience quality/is,
+]) {
+  assert.match(
+    execution,
+    demonstratedRedFlag,
+    `execution guidance is missing demonstrated red flag ${demonstratedRedFlag}`,
+  );
+}
 assert.match(coreSkill, /### Execute a ready task/);
 assert.match(coreSkill, /references\/execution\.md/);
 assert.match(
@@ -149,6 +181,19 @@ assert.match(
 assert.match(execution, /player action.*interface state.*asset family.*assembly.*runtime/is);
 assert.match(projectInstructions, /External Skills are\s+optional accelerators/i);
 assert.match(projectInstructions, /must reuse `production\/TASK\.md`/i);
+assert.match(projectInstructions, /Select[\s\S]*Produce[\s\S]*Integrate[\s\S]*Observe[\s\S]*Repair[\s\S]*Checkpoint/i);
+assert.match(projectInstructions, /Fast[\s\S]*no independent review or human approval/i);
+assert.match(projectInstructions, /routine Fast UI repair[\s\S]*restoration Not applicable/i);
+const projectInstructionLines = projectInstructions.trimEnd().split(/\r?\n/).length;
+const projectInstructionWords = projectInstructions.trim().split(/\s+/).length;
+assert(
+  projectInstructionLines <= 120,
+  `project AGENTS.md grew to ${projectInstructionLines} lines; keep stable project routing instead of copying policy`,
+);
+assert(
+  projectInstructionWords <= 1100,
+  `project AGENTS.md grew to ${projectInstructionWords} words; keep detailed policy in the installed Skill`,
+);
 assert.match(openaiYaml, /execute the next player-visible game slice/i);
 
 const pluginPrompts = manifest.interface?.defaultPrompt ?? [];
