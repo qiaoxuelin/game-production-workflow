@@ -149,10 +149,11 @@ before(() => {
     "custom",
   ]);
   const bootstrapResult = parseJsonOutput(bootstrap, "bootstrap");
-  assert.equal(
-    fs.realpathSync(bootstrapResult.projectPath),
-    fs.realpathSync(projectRoot),
-  );
+  const requestedDirectory = fs.statSync(projectRoot);
+  const returnedDirectory = fs.statSync(bootstrapResult.projectPath);
+  assert.equal(returnedDirectory.dev, requestedDirectory.dev);
+  assert.equal(returnedDirectory.ino, requestedDirectory.ino);
+  projectRoot = bootstrapResult.projectPath;
 
   const check = runPowerShell(
     "check.ps1",
