@@ -10,7 +10,13 @@ $plugin = Join-Path $repo $pluginRelative
 $manifestPath = Join-Path $plugin ".codex-plugin/plugin.json"
 $marketplacePath = Join-Path $repo ".agents/plugins/marketplace.json"
 $coreSkillPath = Join-Path $plugin "skills/game-production-system/SKILL.md"
+$artSkillPath = Join-Path $plugin "skills/game-art-production/SKILL.md"
 $approvalSkillPath = Join-Path $plugin "skills/game-approval-ui/SKILL.md"
+$coreAgentPath = Join-Path $plugin "skills/game-production-system/agents/openai.yaml"
+$artAgentPath = Join-Path $plugin "skills/game-art-production/agents/openai.yaml"
+$artVisualDesignPath = Join-Path $plugin "skills/game-art-production/references/visual-design.md"
+$artInteractiveUiPath = Join-Path $plugin "skills/game-art-production/references/interactive-ui-2d.md"
+$artVisualReviewPath = Join-Path $plugin "skills/game-art-production/references/visual-review.md"
 $checkerPath = Join-Path $plugin "skills/game-production-system/scripts/check.ps1"
 $bootstrapPath = Join-Path $plugin "skills/game-production-system/scripts/bootstrap.ps1"
 $visualProductionPath = Join-Path $plugin "skills/game-production-system/references/visual-production.md"
@@ -24,6 +30,7 @@ $planTemplatePath = Join-Path $plugin "skills/game-production-system/assets/proj
 $mcpPath = Join-Path $plugin ".mcp.json"
 $approvalTestPath = Join-Path $plugin "scripts/test-server.mjs"
 $policyTestPath = Join-Path $plugin "scripts/test-production-policy.mjs"
+$artTestPath = Join-Path $plugin "scripts/test-game-art-production.mjs"
 $convergenceTestPath = Join-Path $plugin "scripts/test-convergence-policy.mjs"
 $skillEvalTestPath = Join-Path $plugin "scripts/test-skill-evals.mjs"
 $gameArtFixtureTestPath = Join-Path $plugin "scripts/test-game-art-fixtures.mjs"
@@ -40,7 +47,13 @@ foreach ($required in @(
     $manifestPath,
     $marketplacePath,
     $coreSkillPath,
+    $artSkillPath,
     $approvalSkillPath,
+    $coreAgentPath,
+    $artAgentPath,
+    $artVisualDesignPath,
+    $artInteractiveUiPath,
+    $artVisualReviewPath,
     $checkerPath,
     $bootstrapPath,
     $visualProductionPath,
@@ -54,6 +67,7 @@ foreach ($required in @(
     $mcpPath,
     $approvalTestPath,
     $policyTestPath,
+    $artTestPath,
     $convergenceTestPath,
     $skillEvalTestPath,
     $gameArtFixtureTestPath,
@@ -71,7 +85,7 @@ $marketplace = Get-Content -Raw -Encoding utf8 $marketplacePath | ConvertFrom-Js
 $mcp = Get-Content -Raw -Encoding utf8 $mcpPath | ConvertFrom-Json
 
 Assert-True ($manifest.name -eq "game-production-workflow") "Plugin manifest name does not match the combined plugin."
-Assert-True ($manifest.skills -eq "./skills/") "Plugin manifest must expose both skills from ./skills/."
+Assert-True ($manifest.skills -eq "./skills/") "Plugin manifest must expose all three skills from ./skills/."
 Assert-True ($manifest.mcpServers -eq "./.mcp.json") "Plugin manifest must expose the approval MCP."
 Assert-True ($marketplace.plugins.Count -eq 1) "Marketplace must expose exactly one atomic plugin."
 Assert-True ($marketplace.plugins[0].name -eq $manifest.name) "Marketplace and manifest plugin names differ."
@@ -81,9 +95,9 @@ Assert-True (Test-Path -LiteralPath (Join-Path $plugin "mcp/server.mjs") -PathTy
 
 $versionMatch = [regex]::Match(
     [string]$manifest.version,
-    '^(?<base>\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)\+codex\.(?<cache>[0-9A-Za-z.-]+)$'
+    '^(?<base>\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)\+codex\.(?<cache>\d{14})$'
 )
-Assert-True $versionMatch.Success "Plugin version must include one +codex.<cachebuster> suffix."
+Assert-True $versionMatch.Success "Plugin version must include one +codex.YYYYMMDDhhmmss UTC cachebuster suffix."
 $checkerText = Get-Content -Raw -Encoding utf8 $checkerPath
 $policyMatch = [regex]::Match($checkerText, "policyVersion\s*=\s*'(?<version>[^']+)'")
 Assert-True $policyMatch.Success "Could not read policyVersion from check.ps1."
@@ -112,12 +126,14 @@ Assert-True ($checkerText -match 'interactive_visual_scope_missing') "Checker mu
 Assert-True ($checkerText -match 'interaction_render_contract_missing') "Checker must require a frozen interaction/render contract for active work."
 Assert-True ($checkerText -match 'visual_bulk_unlock_without_prechecks') "Checker must keep visual bulk work locked until both prechecks pass."
 Assert-True ($checkerText -match 'systemVersionAtLeast160') "Checker must preserve v1.5 project compatibility behind a v1.6 predicate."
-Assert-True ($bootstrapText -match "systemVersion\s*=\s*'1\.7\.2'") "New projects must bootstrap the v1.7.2 contract."
-Assert-True ($readmeText -match 'game-production-system` `1\.7\.2') "README system version must match the v1.7.2 release."
+Assert-True ($bootstrapText -match "systemVersion\s*=\s*'1\.8\.0'") "New projects must bootstrap the v1.8.0 contract."
+Assert-True ($readmeText -match 'game-production-system` `1\.8\.0') "README system version must match the v1.8.0 release."
+Assert-True ($readmeText -match '原子安装三个独立 Skill 和审批 MCP') "README must describe the atomic three-Skill bundle and approval MCP."
 Assert-True (@($coreSkillText.TrimEnd() -split "\r?\n").Count -le 500) "Core SKILL.md must remain at or below 500 lines; keep interactive details in its reference."
 
 foreach ($skill in @(
     @{ Path = $coreSkillPath; Name = "game-production-system" },
+    @{ Path = $artSkillPath; Name = "game-art-production" },
     @{ Path = $approvalSkillPath; Name = "game-approval-ui" }
 )) {
     $text = Get-Content -Raw -Encoding utf8 $skill.Path
@@ -198,6 +214,8 @@ Assert-True ($null -ne $node) "Node.js is required for approval MCP validation."
 Assert-True ($LASTEXITCODE -eq 0) "Approval MCP protocol test failed."
 & $node.Source $policyTestPath
 Assert-True ($LASTEXITCODE -eq 0) "Production policy structure test failed."
+& $node.Source $artTestPath
+Assert-True ($LASTEXITCODE -eq 0) "Game-art production structure test failed."
 & $node.Source $convergenceTestPath
 Assert-True ($LASTEXITCODE -eq 0) "Returned-candidate convergence test failed."
 & $node.Source $skillEvalTestPath

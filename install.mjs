@@ -189,7 +189,8 @@ try {
     if (options.json) {
       process.stdout.write(`${JSON.stringify({ platform: process.platform, externalSkillsRequired: false, installed: true, ...result }, null, 2)}\n`);
     } else {
-      console.log(`Installed ${pluginName} with both bundled Skills and the approval UI.`);
+      console.log(`Installed ${pluginName} with all three bundled Skills and the approval MCP.`);
+      console.log("No external Skill installation is required.");
       if (result.duplicateStandaloneSkill) {
         console.warn(`Archive the old standalone Skill at ${result.standaloneSkill} before restarting Codex.`);
       }

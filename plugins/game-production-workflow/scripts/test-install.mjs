@@ -71,7 +71,6 @@ try {
 
   const added = runInstaller(
     { marketplaceConfigured: false, installed: false, legacy: true },
-    "--json",
     "--repository",
     "owner/repository",
     "--ref",
@@ -81,6 +80,14 @@ try {
   assert.deepEqual(added.state.added, ["owner/repository", "--ref", "release"]);
   assert.equal(added.state.legacy, false);
   assert.equal(added.state.installed, true);
+  assert.match(
+    added.result.stdout,
+    /all three bundled Skills and the approval MCP[\s\S]*No external Skill installation is required/i,
+  );
+  const pluginAdds = added.state.calls.filter(
+    (args) => args[0] === "plugin" && args[1] === "add",
+  );
+  assert.deepEqual(pluginAdds, [["plugin", "add", "game-production-workflow@game-production-workflow"]]);
 
   const upgraded = runInstaller(
     { marketplaceConfigured: true, installed: false, legacy: false },

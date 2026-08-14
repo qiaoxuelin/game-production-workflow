@@ -172,7 +172,7 @@ if (Test-Path -LiteralPath $projectStatePath) {
 elseif ($PSCmdlet.ShouldProcess($projectStatePath, 'Create project state')) {
     $state = [ordered]@{
         schemaVersion    = 1
-        systemVersion    = '1.7.2'
+        systemVersion    = '1.8.0'
         projectId        = $ProjectId
         developmentMode  = $DevelopmentMode
         projectTrack     = $ProjectTrack

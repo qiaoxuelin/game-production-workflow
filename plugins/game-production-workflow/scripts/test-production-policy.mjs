@@ -7,6 +7,7 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(scriptDirectory, "../../..");
 const pluginRoot = path.resolve(scriptDirectory, "..");
 const skillRoot = path.join(pluginRoot, "skills/game-production-system");
+const artSkillRoot = path.join(pluginRoot, "skills/game-art-production");
 
 const read = (relativePath) =>
   fs.readFileSync(path.join(repositoryRoot, relativePath), "utf8");
@@ -42,20 +43,64 @@ const projectInstructions = read(
 const openaiYaml = read(
   "plugins/game-production-workflow/skills/game-production-system/agents/openai.yaml",
 );
+const artSkill = read(
+  "plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+);
+const artOpenaiYaml = read(
+  "plugins/game-production-workflow/skills/game-art-production/agents/openai.yaml",
+);
 const readme = read("README.md");
 
 const baseVersion = manifest.version.split("+", 1)[0];
 const policyVersion = checker.match(/policyVersion\s*=\s*'([^']+)'/)?.[1];
 const bootstrapVersion = bootstrap.match(/systemVersion\s*=\s*'([^']+)'/)?.[1];
 
-assert.equal(baseVersion, "1.7.2", "plugin base version must be 1.7.2");
+assert.equal(baseVersion, "1.8.0", "plugin base version must be 1.8.0");
 assert.equal(policyVersion, baseVersion, "policy and plugin versions must match");
 assert.equal(
   bootstrapVersion,
   baseVersion,
   "new projects must bootstrap the current policy contract",
 );
-assert.match(readme, /game-production-system` `1\.7\.2/);
+assert.match(readme, /game-production-system` `1\.8\.0/);
+
+for (const skillName of [
+  "game-production-system",
+  "game-art-production",
+  "game-approval-ui",
+]) {
+  const bundledSkillRoot = path.join(pluginRoot, "skills", skillName);
+  assert(
+    fs.existsSync(bundledSkillRoot) && fs.statSync(bundledSkillRoot).isDirectory(),
+    `atomic plugin is missing bundled Skill directory: ${skillName}`,
+  );
+}
+
+for (const [agentPath, label] of [
+  [path.join(skillRoot, "agents/openai.yaml"), "production"],
+  [path.join(artSkillRoot, "agents/openai.yaml"), "art"],
+]) {
+  assert(fs.existsSync(agentPath), `atomic plugin is missing ${label} agents/openai.yaml`);
+}
+assert.match(openaiYaml, /execute the next player-visible game slice/i);
+assert.match(artOpenaiYaml, /produce or review the next interactive UI\/2D visual slice/i);
+
+const artDescription = artSkill.match(/^description:\s*(.+)$/mu)?.[1] ?? "";
+assert(artDescription.length > 0 && artDescription.length <= 500, "art Skill route description must be present and at most 500 characters");
+assert.match(
+  artDescription,
+  /interactive UI\/2D[\s\S]*flattened-composite decomposition[\s\S]*project-native integration[\s\S]*runtime visual proof[\s\S]*professional visual review/i,
+  "art Skill route description must remain bound to its interactive UI/2D scope",
+);
+
+assert.match(readme, /原子安装三个独立 Skill 和审批 MCP/);
+for (const skillName of [
+  "game-production-system",
+  "game-art-production",
+  "game-approval-ui",
+]) {
+  assert(readme.includes(`\`${skillName}\``), `README must list bundled Skill: ${skillName}`);
+}
 
 for (const field of [
   "Interactive visual scope:",
