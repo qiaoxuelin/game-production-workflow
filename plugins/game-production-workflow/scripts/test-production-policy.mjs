@@ -152,6 +152,18 @@ assert.match(
   /character[\s\S]*environment[\s\S]*3D[\s\S]*animation[\s\S]*VFX[\s\S]*technical-art[\s\S]*broad visual[\s\S]*visual-production\.md/i,
   "broader visual crafts must remain on visual-production.md",
 );
+for (const [obligation, pattern] of [
+  ["identify applicable design domains", /identify applicable design domains/i],
+  ["inspect applicable references", /each design owner[\s\S]*inspect(?:s)? applicable references/i],
+  ["define the applicable completeness representation", /define the applicable completeness representation/i],
+  ["pass the cheapest static validator before Frozen", /(?:run and pass|pass)[\s\S]*cheapest\s+static (?:check|validator)[\s\S]*before `Frozen`/i],
+]) {
+  assert.match(
+    substantialFeatureRoute,
+    pattern,
+    `substantial-feature design must ${obligation}`,
+  );
+}
 for (const [operation, load, result] of [
   ["Explore/discuss", "Project truth and relevant source", "Conversation only; no writes"],
   ["Diagnose/review", "Affected source and craft reference", "Report only; no repair"],
@@ -229,11 +241,54 @@ assert.match(
   /intact installed 1\.8 plugin[\s\S]*game-art-production[\s\S]*required/i,
   "project instructions must honor the intact installed art route",
 );
-assert.match(
-  projectInstructions,
-  /installed 1\.8 plugin[\s\S]*missing[\s\S]*game-art-production[\s\S]*integrity failure[\s\S]*(?:repair|reinstall)[\s\S]*no art-path completion/i,
-  "project instructions must not disguise a damaged bundle as repository-only fallback",
+const normalizedProjectInstructions = projectInstructions.replace(/\s+/g, " ");
+const damagedProjectStart = normalizedProjectInstructions.indexOf(
+  "An installed 1.8 plugin missing `game-art-production`",
 );
+const repositoryOnlyStart = normalizedProjectInstructions.indexOf(
+  "Repository-only with no plugin",
+);
+assert(damagedProjectStart >= 0, "project instructions are missing the damaged installed branch");
+const damagedProjectCompletion = "no art-path completion.";
+const damagedProjectEnd =
+  normalizedProjectInstructions.indexOf(damagedProjectCompletion, damagedProjectStart) +
+  damagedProjectCompletion.length;
+assert(
+  damagedProjectEnd > damagedProjectStart,
+  "project damaged installed branch must be a bounded clause",
+);
+assert(
+  repositoryOnlyStart > damagedProjectEnd,
+  "repository-only fallback must be a distinct branch after the damaged installed branch",
+);
+const damagedProjectClause = normalizedProjectInstructions.slice(
+  damagedProjectStart,
+  damagedProjectEnd,
+);
+assert.match(damagedProjectClause, /integrity failure/i);
+assert.match(damagedProjectClause, /(?:repair|reinstall)/i);
+assert.match(damagedProjectClause, /no art-path completion/i);
+assert.doesNotMatch(
+  damagedProjectClause,
+  /repository-only|interaction-to-visual/i,
+  "a damaged installed bundle must not fall through to repository-only fallback",
+);
+
+const repositoryOnlyEnd = normalizedProjectInstructions.indexOf(
+  "## Design and player-facing quality",
+  repositoryOnlyStart,
+);
+assert(
+  repositoryOnlyEnd > repositoryOnlyStart,
+  "repository-only fallback must end before the design policy section",
+);
+const repositoryOnlyClause = normalizedProjectInstructions.slice(
+  repositoryOnlyStart,
+  repositoryOnlyEnd,
+);
+assert.match(repositoryOnlyClause, /must not claim that the dedicated protocol ran/i);
+assert.match(repositoryOnlyClause, /must not claim that[^.]*unavailable subjective authority ran/i);
+assert.match(repositoryOnlyClause, /must not claim that[^.]*unobserved proof ran/i);
 assert.match(
   execution,
   /external generation, design, and browser tools[\s\S]*optional capability techniques[\s\S]*never lifecycle prerequisites/i,

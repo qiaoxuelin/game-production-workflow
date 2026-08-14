@@ -278,19 +278,21 @@ standalone for production.
 3. In `reference_replication`, deconstruct before planning and record the exact
    baseline, scope, critical points, state matrix, comparison/tolerances, and
    allowed deviations in `TASK.md` or one referenced baseline.
-4. For Standard or Full, assign needed domain-design owners. They decide
+4. Needed Standard/Full domain-design owners decide
    gameplay, level, balance, economy, content, art, UX, animation, VFX, and audio
-   rules; technical roles check feasibility without inventing experience rules.
-5. Full work invokes production planning and technical architecture. Use
-   `Single-task` only for one bounded outcome without cross-module sequencing;
+   rules; technical roles check feasibility without inventing them.
+5. Full invokes production planning and technical architecture. Use
+   `Single-task` only for a bounded outcome without cross-module sequencing;
    otherwise maintain `production/PLAN.md`.
-6. Reuse applicable design modules before inventing rules; read
+6. Identify applicable design domains and reuse adopted modules before inventing
+   rules; read
    [design-modules.md](references/design-modules.md).
-7. Design owners provide relevant rules, flows, specifications, baselines,
-   quality bar, maturity, rejection conditions, and acceptance criteria. Names
-   or internal consistency do not establish professional quality. Before
-   `Frozen`, statically check completeness for enumerable entities, states,
-   routes, branches, and dependencies.
+7. Each design owner inspects applicable references and provides relevant rules,
+   flows, specifications, baselines, quality bar, maturity, rejection conditions,
+   and acceptance criteria. Names/consistency do not establish professional
+   quality. For enumerable entities, states, routes, branches, or dependencies,
+   define the applicable completeness representation and run and pass its cheapest
+   static validator before `Frozen`.
 8. Read [game-content-design.md](references/game-content-design.md) for gameplay,
    level, balance, economy, progression, content, or narrative. Unresolved
    interactive UI/2D direction requires `game-art-production` `Design`; it must
@@ -307,13 +309,13 @@ standalone for production.
    generated BGM candidates where appropriate, and require runtime listening.
    For subjective player-experience or commercial-quality review, read
    [experience-review.md](references/experience-review.md).
-9. Reconcile domain conflicts through the coordinator; ask humans only for
+9. Reconcile domain conflicts through coordinator; ask humans only about
    unresolved high-impact authority decisions.
-10. Before Full implementation, freeze architecture boundaries, interfaces,
-   data/asset pipeline, feasibility, verification, and rollback in the technical
-   handoff. It needs no separate human approval unless a human boundary changes.
-11. Freeze minimum executable decisions in `TASK.md` or one baseline; create no
-   planner, designer, or architect report solely as process evidence.
+10. Before Full implementation, technical handoff freezes architecture
+   boundaries, interfaces, data/asset pipeline, feasibility, verification, and
+   rollback; it needs no human approval unless a human boundary changes.
+11. Freeze minimum executable decisions in `TASK.md` or one baseline; never create
+   role reports solely as process evidence.
 12. Mark GUI restoration `Required` only for reconstruction, a material
    layout/component-system change, or a new visual rule; freeze its baseline,
    target states, viewports, comparison method, and reviewer. A routine Fast UI

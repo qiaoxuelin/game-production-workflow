@@ -17,26 +17,25 @@ Preserve protected paths and unrelated dirty changes. Keep one active main task 
 - Exploration stays in conversation; tentative ideas do not authorize writes.
 - Diagnosis and review are read-only and return evidence-backed findings.
 - Implementation uses the lightest safe lane for the current work package.
-- **Fast:** routine and reversible, with no new player-facing rule or high-risk
-  decision. Implement and verify directly with no independent review or human approval;
-  omit the plan, role ceremony, and separate report.
+- **Fast:** routine and reversible, with no new player-facing rule or high-risk decision.
+  Implement/verify directly; no independent review or human approval; omit plan, role ceremony, and separate report.
 - **Standard:** one bounded feature, one task card, affected design ownership,
   technical implementation, and risk-selected acceptance.
 - **Full:** core loop, high-fidelity replication, monetization, migration, bulk
   production, gate, or release. Freeze affected domain design and technical
   architecture; add a plan only for real multi-package sequencing.
 
-A Full parent retains Full milestone acceptance, while bounded child fixes,
-tests, tools, or evidence use Fast/Standard controls unless a frozen boundary
-changes. Do not enter `Ready` or `Implementing` with required design or the
-lane-applicable handoff unresolved.
+A Full parent retains Full milestone acceptance. Bounded child fixes, tests, tools,
+or evidence use Fast/Standard controls unless a frozen boundary changes. Do not enter
+`Ready` or `Implementing` with required design or the lane-applicable handoff unresolved.
 
 ## Execute Ready or Implementing work
 
 The Game Production System remains lifecycle authority. With an intact installed 1.8 plugin,
 `game-art-production` is required for its matching art route. External Skills are
-optional accelerators; they must reuse `production/TASK.md` and its referenced `production/PLAN.md`,
-and must not create duplicate plans, approvals, states, or acceptance sources.
+optional accelerators; they must reuse `production/TASK.md` and its referenced
+`production/PLAN.md`, and must not create duplicate plans, approvals, states, or
+acceptance sources.
 
 Run one bounded production loop:
 
@@ -49,9 +48,12 @@ Run one bounded production loop:
 5. **Repair** one shared root cause without polishing unrelated findings.
 6. **Checkpoint** the delta, result, recovery point, risk, and next action.
 
-An installed 1.8 plugin missing `game-art-production` is an integrity failure; preserve work, repair/reinstall, and grant no art-path completion.
-Repository-only with no plugin uses this interaction-to-visual loop, available or replaceable capabilities,
-base editing, engine primitives, code-native UI, or greybox boundaries; it must not claim the dedicated protocol or unavailable subjective authority ran, or claim proof the environment could not observe.
+An installed 1.8 plugin missing `game-art-production` is an integrity failure:
+preserve work, repair/reinstall, and grant no art-path completion.
+Repository-only with no plugin uses this interaction-to-visual loop, available or
+replaceable capabilities, base editing, engine primitives, code-native UI, or
+greybox boundaries. It must not claim that the dedicated protocol ran,
+unavailable subjective authority ran, or unobserved proof ran.
 
 ## Design and player-facing quality
 
@@ -65,10 +67,9 @@ base editing, engine primitives, code-native UI, or greybox boundaries; it must 
 - For high-fidelity work, prove the smallest representative slice in the engine
   before exhaustive capture or bulk production. Automated success alone does
   not establish visual, audio, player, or commercial quality.
-- A routine Fast UI repair that reuses accepted interaction/render and visual
-  baselines marks GUI restoration Not applicable and verifies only affected
-  regions/states. Reconstruction, a material layout/component-system change, or
-  a new visual rule marks it Required and belongs in Standard/Full.
+- A routine Fast UI repair reusing accepted interaction/render and visual baselines
+  marks GUI restoration Not applicable and verifies only affected regions/states.
+  Reconstruction, material layout/component-system change, or a new visual rule is Required and Standard/Full.
 - Material interactive visual work freezes the player action, authoritative
   state source, renderers, spatial master, source separation, asset families,
   assembly precheck, and representative runtime proof before bulk unlock.
@@ -85,10 +86,9 @@ base editing, engine primitives, code-native UI, or greybox boundaries; it must 
 - Fast closes on objective checks and recovery. Standard/Full add applicable
   design, producer, independent, and gate acceptance; never self-approve
   gate-critical work or record human approval without an explicit decision.
-- Define an objective measure before uncertain iteration. After two same-root
-  cycles add no evidence, retain passing parts and select one bounded repair,
-  replan, enabling-capability route, materially new candidate, or abandonment.
-  Renaming a candidate does not reset stop-loss.
+- Define an objective measure before uncertain iteration. After two same-root cycles
+  add no evidence, retain passing parts and select one bounded repair, replan,
+  enabling-capability route, materially new candidate, or abandonment; renaming does not reset stop-loss.
 - Keep frozen repairs `Implementing`. Use `Clarifying` only when design,
   authority, scope, baseline, or architecture is genuinely unresolved; do not
   invent Recovery or Returned task states.

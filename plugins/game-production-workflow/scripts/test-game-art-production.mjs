@@ -91,16 +91,53 @@ assert.match(
   /intact 1\.8 plugin\s+requires bundled `game-art-production` for (?:the )?positive UI\/2D\s+predicate/i,
   "an intact 1.8 plugin must require its bundled art Skill",
 );
-assert.match(
-  coreSkill,
-  /installed 1\.8\s+plugin missing `game-art-production` is a\s+bundle-integrity failure:[\s\S]{0,180}report it[\s\S]{0,80}(?:repair|reinstall)[\s\S]{0,80}no art-path completion/i,
-  "a damaged installed 1.8 bundle must fail integrity without granting completion",
+const normalizedCore = coreSkill.replace(/\s+/g, " ");
+const damagedCoreStart = normalizedCore.indexOf(
+  "An installed 1.8 plugin missing `game-art-production`",
 );
-assert.match(
-  projectInstructions,
-  /repository-only[\s\S]*no\s+plugin[\s\S]*interaction-to-visual loop[\s\S]*must not claim[\s\S]*dedicated protocol[\s\S]*subjective authority ran/i,
-  "repository-only fallback must be useful without claiming unavailable authority",
+const repositoryCoreStart = normalizedCore.indexOf("Repository-only with no plugin");
+assert(damagedCoreStart >= 0, "core is missing the damaged installed branch");
+const damagedCoreCompletion = "no art-path completion.";
+const damagedCoreEnd =
+  normalizedCore.indexOf(damagedCoreCompletion, damagedCoreStart) +
+  damagedCoreCompletion.length;
+assert(damagedCoreEnd > damagedCoreStart, "core damaged installed branch must be a bounded clause");
+assert(
+  repositoryCoreStart > damagedCoreEnd,
+  "core repository-only fallback must be distinct from damaged installed handling",
 );
+const damagedCoreClause = normalizedCore.slice(damagedCoreStart, damagedCoreEnd);
+assert.match(damagedCoreClause, /bundle-integrity failure/i);
+assert.match(damagedCoreClause, /report it/i);
+assert.match(damagedCoreClause, /(?:repair|reinstall)/i);
+assert.match(damagedCoreClause, /no art-path completion/i);
+assert.doesNotMatch(
+  damagedCoreClause,
+  /repository-only|interaction-to-visual/i,
+  "a damaged installed 1.8 bundle must not fall through to repository-only fallback",
+);
+
+const normalizedProjectInstructions = projectInstructions.replace(/\s+/g, " ");
+const repositoryProjectStart = normalizedProjectInstructions.indexOf(
+  "Repository-only with no plugin",
+);
+const repositoryProjectEnd = normalizedProjectInstructions.indexOf(
+  "## Design and player-facing quality",
+  repositoryProjectStart,
+);
+assert(repositoryProjectStart >= 0, "project instructions are missing repository-only fallback");
+assert(
+  repositoryProjectEnd > repositoryProjectStart,
+  "repository-only fallback must end before the design policy section",
+);
+const repositoryProjectClause = normalizedProjectInstructions.slice(
+  repositoryProjectStart,
+  repositoryProjectEnd,
+);
+assert.match(repositoryProjectClause, /interaction-to-visual loop/i);
+assert.match(repositoryProjectClause, /must not claim that the dedicated protocol ran/i);
+assert.match(repositoryProjectClause, /must not claim that[^.]*unavailable subjective authority ran/i);
+assert.match(repositoryProjectClause, /must not claim that[^.]*unobserved proof ran/i);
 
 for (const field of [
   "Operation",
