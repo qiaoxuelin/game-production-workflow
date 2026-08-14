@@ -8,9 +8,9 @@ production lifecycle authority and `game-approval-ui` as the human-decision
 surface. Ship all three Skills as one atomically versioned plugin.
 
 Develop this change as a 1.8.0 candidate. Do not replace the stable 1.7.2
-installation or remove current visual safeguards until behavior tests and a
-real project-native UI/2D fixture demonstrate equal governance behavior and
-better production outcomes.
+installation or remove current visual safeguards until behavior tests, the
+project-native UI/2D fixtures, and one actual target-project pilot demonstrate
+equal governance behavior and better production outcomes.
 
 This specification covers subproject A only: reducing core production burden
 and closing the practical art-production loop. Project learning, redaction,
@@ -51,9 +51,9 @@ ceremony.
 
 ## Goals
 
-- Turn an accepted visual direction into editable sources, runtime-native
-  components, imported assets, representative playable proof, and a bounded
-  repair result.
+- Turn player/product intent into a reviewable UI/2D visual direction, then
+  turn the accepted direction into editable sources, runtime-native components,
+  imported assets, representative playable proof, and a bounded repair result.
 - Derive interface and asset decomposition from player actions and states, not
   from the visual seams of a composite image.
 - Load detailed art guidance only when observable task scope requires it.
@@ -61,7 +61,9 @@ ceremony.
   consolidated result.
 - Remain useful without ImageGen, Figma, another art Skill, or a particular
   game engine.
-- Distinguish honest greybox, production candidate, and accepted maturity.
+- Preserve the existing Direction, Production design, Runtime golden, and
+  Integrated acceptance maturity model while disclosing placeholder, greybox,
+  working, and final asset fidelity separately.
 - Improve time to the first valid runtime visual slice while reducing
   same-root rework and post-bulk-production waste.
 - Preserve every 1.7.2 behavior, installation, approval, and compatibility
@@ -97,6 +99,18 @@ the art predicate, the same executing agent loads and follows
 not an RPC boundary or a second process. The art Skill returns a structured
 result to the core, which alone records lifecycle state and decides continuation
 or closure.
+
+The art Skill exposes three operation protocols without creating three
+lifecycles:
+
+| Operation | Entry | Permitted result |
+| --- | --- | --- |
+| `Design` | The core has an unresolved UI/2D visual direction or needs an implementable visual system before `Ready` | Direction or production-design candidate for core-owned review and freeze |
+| `Produce` | The task is `Ready` or `Implementing` and the applicable direction/design contract is frozen | Editable, imported, project-native player-visible delta plus evidence and recovery |
+| `Review` | The user/core requests visual diagnosis, conformance, golden, or gate evidence | Read-only professional finding; no repair or passage |
+
+The operation is selected from the core task status and intent. A mode switch
+does not create another task, plan, approval, or status transition.
 
 `game-approval-ui` remains the only structured human-decision surface. The art
 Skill may identify that a golden or product direction decision is required,
@@ -140,7 +154,12 @@ not transfer lifecycle ownership to that discipline.
 
 `game-art-production` owns the professional execution needed to:
 
-- interpret the frozen art/UX baseline and applicable references;
+- develop reviewable UI/2D direction candidates from an explicit player,
+  product, platform, reference, and quality brief;
+- turn the selected direction into a coherent visual system and implementable
+  production-design candidate without granting its approval;
+- interpret the frozen art/UX baseline and applicable references during
+  production;
 - map player action to authoritative state, renderer, visible response, and
   required asset family;
 - define shared spatial masters, components, layers, state variants, editable
@@ -149,13 +168,16 @@ not transfer lifecycle ownership to that discipline.
 - create, adapt, or replace art sources using available capabilities;
 - import and integrate sources into the actual project;
 - inspect the running result and perform one bounded root-cause repair batch;
-- report artifact maturity, coverage, evidence, recovery, and remaining risk.
+- report the existing maturity claim, fidelity disclosure, coverage, evidence,
+  recovery, and remaining risk.
 
 The art Skill must not:
 
 - create or own `TASK`, `PLAN`, gate, approval, or lifecycle state;
 - change frozen gameplay rules or the authoritative gameplay state model;
 - self-approve a golden, gate, or final subjective-quality decision;
+- invent missing gameplay rules, interaction semantics, authoritative state
+  ownership, or protected UX behavior;
 - claim that a generated image, mockup, screenshot, contact sheet, or passing
   automated test is a completed runtime interface;
 - return a healthy Ready task to planning only because an optional art tool or
@@ -169,6 +191,12 @@ The human producer retains product direction, golden visual, business, waiver,
 release, and other human-only authority. Routine craft conformance and
 implementation choices do not create new approval cards.
 
+A creator's craft self-check may support design conformance but never counts as
+an independent pass. `Review` must disclose whether the reviewer contributed
+materially to the direction, source, or implementation; gate-critical or
+repeatedly returned work still requires a genuinely independent or human pass
+under the existing core policy.
+
 ## Routing predicate
 
 The core must require `game-art-production` when any of these observable
@@ -179,7 +207,8 @@ conditions applies:
   component system, 2D interface asset family, or shared visual master is in
   scope;
 - reference-interface reconstruction, flattened-composite decomposition,
-  source separation, visual integration, or bulk art production is required;
+  UI/2D source separation, visual integration, or bulk UI/2D asset production
+  is required;
 - a returned interactive UI/2D candidate needs design, source, assembly,
   import, or runtime root-cause analysis;
 - a gate or release review needs interactive UI/2D production evidence not
@@ -205,28 +234,96 @@ a mandatory professional handoff.
 
 ## Input contract
 
-The art path consumes repository truth already owned by the core. Its minimum
-input is:
+Every operation consumes repository truth already owned by the core: task ID,
+lane, status, planned player-visible outcome, development mode, allowed and
+protected paths/behavior, integration owner, recovery boundary, applicable
+acceptance, stop conditions, and evidence budget.
 
-- task ID, lane, status, planned visible outcome, and development mode;
-- frozen baseline, applicable art bible, references, and allowed deviations;
-- allowed paths, protected paths/behavior, integrator, and recovery boundary;
-- `Interactive visual scope` and `Interaction/render contract`;
-- `Assembly precheck`, `Required asset inventory`, `Asset-family packages`,
+`Design` additionally requires:
+
+- target player, platform, viewing distance, viewport, interaction pace, and
+  accessibility constraints;
+- product identity, intended emotion, attention order, UI/2D scope, and the
+  player problem the surface must solve;
+- external reference or explicit category/product quality bar, including what
+  must match, what may differ, and prohibited copying;
+- affected screens, player flows, authoritative interaction semantics, content
+  extremes, and human-owned boundaries;
+- the unresolved visual direction or visual-system decision to retire.
+
+`Produce` additionally requires:
+
+- the selected and core-recorded Direction or Production design baseline,
+  applicable art bible/references, allowed deviations, and hard return
+  conditions;
+- `Interactive visual scope`, `Interaction/render contract`, `Assembly
+  precheck`, `Required asset inventory`, `Asset-family packages`,
   `Representative proof`, and `Bulk or parallel unlock`;
-- applicable visual acceptance criteria, target platforms/viewports,
-  performance/provenance constraints, stop/replan triggers, and evidence budget;
-- detected local capabilities and the project adapter commands.
+- target platforms/viewports, performance/provenance constraints, detected
+  capabilities, and project adapter commands.
 
-The first release reuses these existing task fields. It does not require a
-project schema migration or a new mandatory visual-status field.
+`Review` additionally requires the exact maturity and product-quality claim,
+the frozen comparison baseline, actual target-project artifact, applicable
+states/viewports, hard return conditions, and disclosure of the reviewer's
+contribution to design or implementation.
 
-If the input lacks a human-owned visual direction, scope, or protected
-boundary, the art Skill returns a single blocking clarification to the core. If
-the missing item is reversible implementation knowledge, it performs an
-isolated precheck instead of reopening product planning.
+The first release reuses existing task fields and acceptance records. It does
+not require a project schema migration or a new mandatory visual-status field.
+Mode-specific output is transient until the core maps it into those sources.
 
-## Art production loop
+If gameplay rules, interaction semantics, authoritative state ownership,
+protected UX behavior, product scope, or another human/domain-owned boundary is
+missing, the art Skill returns one blocking clarification to the core rather
+than inventing it. If only reversible visual implementation knowledge is
+missing, `Produce` runs an isolated precheck instead of reopening product
+planning.
+
+## Design protocol
+
+`Design` creates the smallest decision-ready visual system that can guide
+production. It does not produce bulk assets or grant direction approval.
+
+1. **Freeze the professional brief.** State the player/platform context,
+   product identity, emotion, attention order, screen/state scope, interaction
+   semantics, content extremes, external reference or quality bar, allowed
+   differences, accessibility/performance constraints, and hard return
+   conditions. A style prompt or mood board is not this brief.
+2. **Choose the lightest honest design medium and explore the real decision.**
+   Reuse the capability handshake and use available or replaceable project-
+   native, code, vector, procedural, generated, or manual sources; optional
+   tools never become direction authority. When a human-owned direction choice
+   remains, create 2-3 mutually exclusive UI/2D direction candidates for one
+   dominant-risk representative surface. Put the recommendation first.
+   Candidates must differ in hierarchy, composition, shape/component language,
+   palette, typography/icon treatment, material/detail strategy, and feedback
+   character, not merely color or decoration. If the direction is already
+   owned by a frozen wider art system, produce one conforming candidate instead
+   of manufacturing a new choice.
+3. **Inspect at intended size.** Compare the candidate at target dimensions and
+   representative content density. A direction image may authorize visual
+   intent only; it cannot prove component, state, source, import, runtime, or
+   integrated quality.
+4. **Run a non-authoritative feasibility precheck.** Test the dominant layout,
+   source-separation, component, typography, scaling, performance, or import
+   risk in task-owned scratch. Reject an infeasible direction but never let the
+   precheck choose product direction or grant approval.
+5. **Form the production-design candidate.** After a direction is selected,
+   define the grid/shared space, attention hierarchy, components and states,
+   palette, typography, icons, shape/material language, motion/feedback rules,
+   extremes, editable-source/layer boundaries, export/import contract,
+   provenance, tolerances, placeholder boundary, and representative runtime
+   proof required before bulk work.
+
+Return a `Direction` or `Production design` candidate plus its inspection entry,
+rejection conditions, and next authorized proof. The core records any human
+choice and freezes the design; the art Skill does neither automatically.
+
+When a human direction choice is required, the first bounded Design pass ends
+with the Direction candidates. After the core records the decision, a second
+bounded Design pass forms the Production design. Do not wait/poll inside the
+active turn or pre-produce all rejected directions.
+
+## Produce protocol
 
 ### 1. Capability handshake
 
@@ -255,9 +352,11 @@ player action
 -> required component, layer, variant, and asset family
 ```
 
-One authoritative state source may feed multiple world, HUD, overlay, audio,
-or feedback renderers. The map must expose contradictory duplicate state,
-missing renderers, unreachable variants, and feedback with no player cause.
+One authoritative state source may feed multiple UI, HUD, overlay,
+accessibility, or preview renderers. Audio/gameplay feedback may be named as an
+integration dependency but is not produced by the UI/2D art protocol. The map
+must expose contradictory duplicate state, missing renderers, unreachable
+variants, and feedback with no player cause.
 
 ### 3. Runtime-derived decomposition
 
@@ -283,17 +382,19 @@ use one explicit spatial master: viewport/canvas/world space, actual target
 dimensions, safe area, anchors, scale rules, and z-order/contact expectations.
 
 Build the cheapest representative actual-size assembly before final-detail or
-bulk work. For UI/2D this is a layered project-native component or editable
-assembly; for an engine scene it may be an engine-native greybox. It must test
-real component boundaries, critical states, source separation, and spatial
-relationships. A composite screenshot does not pass this precheck.
+bulk work: a layered editable assembly, project-native UI component, or
+engine-native UI/2D greybox. It must test real component boundaries, critical
+states, source separation, and spatial relationships. A composite screenshot
+does not pass this precheck.
 
 ### 5. Representative production slice
 
 Produce the smallest slice that exposes the dominant art and integration risks.
 It must:
 
-- run inside the actual target project or its project-native fixture;
+- run inside the actual project named by the current task; during Skill release
+  evaluation that project may itself be the fixture, but its evidence cannot be
+  reused to accept another game project;
 - accept the applicable real input path;
 - render from the authoritative state;
 - cover the critical normal, transition, failure, disabled, selected, or
@@ -349,22 +450,54 @@ source quality, import/pipeline, tool/environment, or acceptance/evidence, then
 return a bounded repair, replan, capability-enabling, alternative-candidate, or
 abandon recommendation to the core.
 
+## Review protocol
+
+`Review` is read-only. Reuse the capability handshake for the observation path
+and inspect the actual target-project result at normal player pace, target
+size/device, and applicable states. If the claimed result cannot be observed,
+return the exact review blocker and grant no conformance or quality result.
+Separate four claims:
+
+- objective validity;
+- conformance to the frozen Direction or Production design;
+- product quality against the declared player/platform/reference bar;
+- integration with surrounding gameplay and experience.
+
+Passing one claim never implies the next. Review hierarchy, identity,
+readability, affordance, interaction-to-visual causality, shared-space contact,
+component/state continuity, source separation, feedback, content extremes,
+accessibility, performance, and provenance that apply to the scope.
+
+Return exactly `Pass`, `Pass with bounded non-blocking findings`, or `Returned`
+when inspection is possible; return `Blocked` only when the claimed experience
+cannot be observed. Include the claim reviewed, observable evidence, retained
+passing parts, hard conditions for passage, reviewer-contribution disclosure,
+and next owner. A creator's self-check can support conformance but cannot
+satisfy an independent review requirement. The reviewer does not implement the
+repair or grant gate, golden, producer, or lifecycle passage.
+
 ## Output contract
 
-The art Skill returns one consolidated result with these fields:
+The art Skill returns one transient consolidated handoff with these fields:
 
-- `Art result`: `Implemented`, `Reviewed`, `Returned`, or `Blocked`; `Reviewed`
-  is read-only and grants no gate or lifecycle passage;
-- `Artifact maturity`: `Greybox` or `Production candidate`; `Accepted` may be
-  echoed only when the input already names the core-recorded acceptance or
-  approval evidence and is never self-promoted by the art Skill;
-- `Player-visible outcome`: what now works in the actual project;
+- `Operation`: `Design`, `Produce`, or `Review`;
+- `Professional result`: `Proposed` or `Blocked` for `Design`; `Implemented`,
+  `Returned`, or `Blocked` for `Produce`; or `Pass`, `Pass with bounded
+  non-blocking findings`, `Returned`, or `Blocked` for `Review`;
+- `Maturity claim`: exactly `Direction`, `Production design`, `Runtime golden`,
+  or `Integrated acceptance`, using the existing visual-production meanings;
+- `Fidelity disclosure`: the scoped regions/assets that are `Placeholder`,
+  `Greybox`, `Working`, or `Final`; fidelity never grants maturity or passage;
+- `Outcome or claim`: the intended player-visible result for `Design`, what now
+  works in the actual project for `Produce`, or the exact claim inspected for
+  `Review`;
 - `Changed paths`: product, editable source, export, import, and configuration
-  paths changed within the allowed boundary;
+  paths changed within the allowed boundary, or `None` for read-only review;
 - `Coverage`: scoped actions, states, renderers, components, and asset families
   covered or missing;
-- `Runtime proof`: project-native artifact and the input/state/viewports it
-  demonstrates;
+- `Runtime proof`: the actual target-project artifact and input/state/viewports
+  it demonstrates when the claim requires runtime; `Design` records only its
+  scratch feasibility precheck and explicitly says runtime proof is pending;
 - `Source and recovery`: canonical editable source, export/import route, and
   recoverable checkpoint;
 - `Bulk unlock`: passed, locked, or not applicable, with the evidence basis;
@@ -373,24 +506,43 @@ The art Skill returns one consolidated result with these fields:
 - `Recommended next delta`: one bounded continuation, correction, approval, or
   stop action.
 
-The core consumes this return and performs all durable lifecycle/state updates.
-The art Skill does not maintain a parallel status file.
+The core consumes the return and maps it to existing repository vocabulary:
 
-## Maturity and completion
+| Transient art result | Core-owned mapping |
+| --- | --- |
+| Design `Proposed` (Direction or Production design candidate) | Keep the task non-Ready until the applicable owner/human choice is recorded and the existing design contract is frozen; the candidate grants no passage |
+| `Implemented` | Keep or move the task to `Implementing` under the existing first-product-mutation rule; run applicable acceptance before any close |
+| Review `Pass` or bounded pass | Record only the applicable conformance/review evidence; grant no gate, golden, producer, or human passage that the reviewer does not own |
+| `Returned` | For Standard/Full, use the existing `Result: Candidate returned — ...` recipe and normally keep `Implementing` while repair criteria remain frozen; Fast continues its direct repair loop |
+| `Blocked` | Move to `Clarifying` only for a genuinely missing/changed human or domain-owned boundary; otherwise preserve the current executable status, completed work, exact blocker, fallback, and recovery point |
 
-`Greybox` proves structure, state, interaction, assembly, and replacement
-boundaries. It is not final art.
+The art Skill does not write a parallel result/status file or introduce a
+`Returned`, `Reviewed`, `Blocked`, or art-specific lifecycle state.
 
-`Production candidate` has complete editable sources, asset coverage,
-export/import, project-native integration, runtime behavior, and professional
-conformance for the promised scope. It still lacks an applicable independent,
-golden, producer, or gate decision.
+## Maturity, fidelity, and completion
 
-`Accepted` is a core-owned lifecycle result. It means all applicable objective
-checks, runtime inspection, professional conformance, source/recovery
-requirements, and independent or human decisions have passed and are recorded
-by the core. The art Skill may report that a production candidate is ready for
-this promotion, but cannot grant it.
+Use the existing visual maturity model without aliases:
+
+- `Direction`: mood, reference, hierarchy, and composition intent; not
+  implementation-ready.
+- `Production design`: frozen visual system, components/states, source/layer
+  requirements, tolerances, and representative proof contract;
+  implementation-ready only for the declared slice.
+- `Runtime golden`: the actual target-project result passes at target size and
+  relevant states; it does not imply integrated-module or gate acceptance.
+- `Integrated acceptance`: the complete scoped experience passes applicable
+  design, runtime, performance, independent, producer, and human authority.
+
+The art Skill may assess Direction, Production design, and Runtime golden
+against their evidence. It may echo Integrated acceptance only when the input
+already identifies the core-recorded acceptance; otherwise it can only report
+readiness or a review recommendation, never grant that maturity.
+
+Fidelity is a separate disclosure within a maturity claim. `Placeholder` and
+`Greybox` prove only their declared structure or interaction boundary;
+`Working` means replacement/polish remains; `Final` means the scoped source is
+intended for acceptance but does not itself prove Runtime golden, Integrated
+acceptance, or task `Accepted` status.
 
 An art-related task can close only when:
 
@@ -399,7 +551,7 @@ An art-related task can close only when:
 2. editable source, export, import, provenance, and recovery are valid;
 3. real project input produces the promised visible result at the target
    runtime/viewports;
-4. the result reaches the maturity promised by the task and passes all
+4. the result reaches the existing maturity promised by the task and passes all
    applicable acceptance facets;
 5. unresolved final-fidelity work is either completed or explicitly outside the
    accepted scope, never hidden under a lower-maturity artifact.
@@ -410,25 +562,47 @@ capability, reference quality, runtime evidence, and subjective authority.
 
 ## Skill structure
 
-The first implementation should use progressive disclosure:
+The first implementation starts with the smallest structure justified by the
+observed baseline failures:
 
 ```text
 skills/game-art-production/
 ├── SKILL.md
 ├── agents/openai.yaml
 └── references/
-    ├── visual-brief.md
+    ├── visual-design.md
     ├── interactive-ui-2d.md
-    ├── asset-production.md
-    ├── runtime-assembly.md
     └── visual-review.md
 ```
 
-`SKILL.md` contains only routing assumptions, the mandatory production loop,
-input/output contract, maturity rules, stop conditions, and reference-selection
-guide. Keep it below 500 lines and substantially smaller than the current core.
-Each detailed reference is one level from `SKILL.md` and is loaded only for the
-applicable craft path.
+`SKILL.md` contains only the three-mode router, shared authority/safety rules,
+input/output mapping, maturity/fidelity rules, stop conditions, and reference-
+selection guide. `visual-design.md` owns Design, `interactive-ui-2d.md` owns
+Produce, and `visual-review.md` owns Review. Each is one level from `SKILL.md`
+and only the selected operation's reference loads by default.
+
+`visual-review.md` contains only UI/2D craft-specific inspection and return
+criteria. It must reuse, not duplicate or weaken, the core's general independent
+review, experience-quality, authority, and gate semantics.
+
+Keep source production, asset families, shared-space assembly, import, and
+runtime integration together in `interactive-ui-2d.md` initially. Split a new
+reference only when a failing retrieval/behavior test or repeated independent
+use demonstrates a real boundary; do not create files merely to mirror an art
+department org chart.
+
+Context efficiency is a release gate:
+
+- the normal non-art route must not load the art Skill and must not grow from
+  its 1.7.2 route-specific baseline;
+- after extraction, the common Design route's total loaded words must not
+  exceed the corresponding 1.7.2 planning-plus-visual path;
+- after extraction, the common Produce route's total loaded words must be lower
+  than the 1.7.2 core-plus-execution-plus-visual path;
+- Review loads its reference only for an actual review request or applicable
+  gate evidence;
+- temporary additive duplication may exist on the development branch but
+  cannot ship in 1.8.0.
 
 Do not create `README`, installation, changelog, or duplicate quick-reference
 files inside the Skill. Add scripts only after a repeated deterministic need is
@@ -451,7 +625,7 @@ temporarily so a missing route cannot weaken stable behavior.
 
 ### Phase 2: evidence-based extraction
 
-After routing, no-tool fallback, real-fixture production, authority, maturity,
+After routing, no-tool fallback, artifact-fixture production, authority, maturity,
 and regression tests pass, move detailed art design, decomposition, source,
 assembly, import, and visual-review procedures to the art Skill.
 
@@ -460,7 +634,8 @@ The core keeps only these visual sentinels:
 - route applicable work to `game-art-production`;
 - never accept a flattened composite as runtime UI;
 - never unlock bulk art before representative assembly/runtime proof;
-- never call greybox or an unaccepted candidate final art;
+- never use a fidelity label, source candidate, or self-check as maturity or
+  lifecycle acceptance;
 - keep task, gate, approval, and lifecycle authority in the core;
 - require actual project runtime evidence for player-visible completion.
 
@@ -473,7 +648,8 @@ Skill instructions cannot provide operating-system access control. Enforce the
 boundary through the existing task contract and deterministic checks where
 practical:
 
-- compare changed paths with allowed/protected paths;
+- capture the pre-existing dirty-worktree baseline and compare only task-
+  introduced changes with allowed/protected paths;
 - assign shared files to one integrator;
 - keep trials in task-owned scratch and promote only acceptance evidence;
 - preserve unrelated dirty-worktree changes;
@@ -481,10 +657,30 @@ practical:
 - reject state changes created outside the core return/close path;
 - keep 1.7.2 installable as the rollback version until 1.8.0 is accepted.
 
-If the art Skill is undiscoverable in an installed candidate, the explicit
-core route must fail visibly rather than silently falling back to incomplete
-art behavior. Because all three Skills ship in one plugin, this is an
-installation-integrity failure, not a project planning problem.
+Treat three capability environments distinctly:
+
+1. **Intact 1.8 plugin:** `game-art-production` is a required bundled
+   professional protocol for its positive UI/2D predicate, not an optional
+   external accelerator.
+2. **Installed 1.8 plugin missing the bundled Skill:** fail the integrity check
+   visibly before claiming art-path completion, preserve completed work, and
+   repair/reinstall the plugin. Do not send the project back to product planning
+   or silently substitute incomplete policy.
+3. **Repository-only environment with no plugin/other Skills:** the compact
+   interactive-visual loop retained in project `AGENTS.md` remains a
+   self-contained fallback. It may produce and verify bounded UI/2D work with
+   base tools, but must not pretend that the missing dedicated professional
+   protocol or unavailable subjective authority ran.
+
+Image generation, Figma/design applications, browser/computer control, and
+third-party art Skills remain optional techniques in every environment. Their
+absence selects an available/replaceable path or an exact recoverable fidelity
+blocker; it does not invalidate frozen planning.
+
+Release the plugin and policy as 1.8.0 and bootstrap new projects with the
+1.8.0 semantic contract. Existing compatible 1.6/1.7 projects use the current
+policy and existing task fields without forced migration; compatibility guards
+and fixtures must prove this behavior.
 
 ## Test strategy
 
@@ -492,43 +688,66 @@ Skill changes follow RED-GREEN-REFACTOR. No art Skill instructions or core
 behavior changes are written before a failing baseline scenario demonstrates
 the behavior gap.
 
-### Baseline RED scenarios
+### Baseline RED evidence
 
-At minimum, capture these failures or pressures against the 1.7.2 control:
+The existing deterministic eval corpus proves that 1.7.2 contains policy text
+for composites, optional capabilities, Fast work, and stop-loss. It is a
+regression surface, not evidence that an executing agent produces the right art
+artifact. Do not count a regex/policy match as RED.
 
-1. A polished flattened UI composition is offered under time pressure as a
-   finished interface; the agent must instead derive components/states, build a
-   project-native actual-size representative slice, and withhold completion.
-2. An image generator or external art Skill is unavailable; the agent must use
-   an honest replaceable route, preserve final-fidelity boundaries, and avoid
-   reopening frozen planning or claiming accepted art.
-3. A visual task is returned twice for the same spatial/state root cause under
-   sunk-cost pressure; the agent must stop tuning and select one bounded root-
-   cause response.
-4. A routine Fast UI repair reuses accepted baselines; the art path must not add
-   a plan, separate reviewer, approval, exhaustive state matrix, or bulk
-   workflow.
+Before authoring the new Skill, run the 1.7.2 control on the same isolated,
+project-native UI/2D fixtures that will evaluate the candidate:
 
-Use the existing deterministic eval corpus as the durable contract surface.
-Use isolated fresh-context forward tests for release evidence when the runtime
-supports them and their creation is explicitly authorized; runtime projects
-must not depend on multi-agent support.
+1. **Design fixture:** an `original_design` task with frozen player flow,
+   platform, content extremes, quality bar, and human-owned boundaries but an
+   unresolved UI/2D visual direction. Capture whether the control produces a
+   decision-ready professional brief, materially distinct direction candidates
+   only when a real choice exists, an implementable Production design, honest
+   maturity, and no duplicate task/approval system.
+2. **Composite-to-runtime fixture:** a frozen direction represented initially by
+   a polished flattened composition. Require the control to derive interaction
+   states/components/asset families, create editable separated sources, assemble
+   them in one shared space, integrate them into the target fixture, respond to
+   real input/authoritative state, capture required states, and withhold bulk or
+   completion until the representative runtime proof passes.
+
+Preserve the raw request, starting repository, loaded Skills/references,
+tool/capability availability, source/output tree, runtime artifacts, task-state
+diff, elapsed cycles, and reviewer findings. Score actual behavior and artifacts,
+not the agent's explanation of what it intended to do.
+
+Run pressure variants for unavailable optional generation, a returned same-root
+candidate, and an accepted-baseline Fast repair. These preserve existing
+behavior but do not justify the new Skill unless the real artifact/control
+fails.
+
+If 1.7.2 completes both primary fixtures at the required quality and equal or
+lower workflow/context burden, stop: do not author `game-art-production` merely
+to reorganize files. Otherwise record the exact observed failure before writing
+the minimum Skill guidance that addresses it.
+
+Use isolated fresh-context forward tests only when their creation is explicitly
+authorized. Runtime projects must not depend on multi-agent support.
 
 ### Verification layers
 
 1. **Structure and deployment:** manifest discovery, Skill validation,
    `agents/openai.yaml`, version/cachebuster, installation, links, secrets, and
    atomic bundle integrity.
-2. **Routing:** positive art predicates load the Skill; negative Fast and
-   non-visual cases do not; absence fails visibly.
-3. **Authority and behavior:** no second task/status/gate, no unauthorized path
-   writes, no false maturity, no premature bulk unlock, preserved convergence,
-   approval, timeout, and return semantics.
-4. **Real artifact:** a project-native interactive UI/2D fixture demonstrates
-   actual input, authoritative state, multiple states, component/layer
-   separation, shared-space assembly, editable sources, export/import, runtime
-   captures, and recovery. Run the same fixture without optional generation
-   capability to verify the honest fallback.
+2. **Routing:** Design, Produce, and Review positive predicates load only their
+   required reference; negative Fast and non-visual cases do not; a damaged
+   bundled installation fails visibly while repository-only fallback remains
+   truthful.
+3. **Authority and behavior:** transient art results map to existing task
+   vocabulary; no second task/status/gate, unauthorized path writes, maturity/
+   fidelity conflation, premature bulk unlock, self-approved independent pass,
+   or regression in convergence, approval, timeout, and return semantics.
+4. **Real artifact fixture:** the two primary control/candidate fixtures prove
+   Design and Produce behavior, actual input, authoritative state, multiple
+   states, component/layer separation, shared-space assembly, editable sources,
+   export/import, runtime captures, and recovery. Run the production fixture
+   without optional generation capability to verify the honest fallback. A
+   release fixture proves Skill behavior but can never close a real game task.
 5. **Regression and platform:** all current policy, convergence, eval, doctor,
    installer, MCP, Windows argument/UTF-8, macOS, and Linux checks remain green.
 
@@ -539,10 +758,25 @@ subjective image quality.
 ## Success measures
 
 Compare the candidate with the 1.7.2 control on the same fixtures and at least
-one new real production task. Publish only when all hard contracts pass and the
-candidate shows no material regression in workflow burden.
+one new real production task. That production task requires evidence from its
+actual target project; fixture evidence cannot grant its Runtime golden or
+close. Publish only when these hard gates pass:
 
-Track:
+- every existing 1.7.2 behavior, compatibility, installation, and platform
+  contract remains green;
+- the candidate corrects the recorded artifact-level RED failure without a new
+  task, state, plan, or routine approval layer;
+- Fast and non-art routes add no mandatory work or loaded context;
+- common Design does not exceed its 1.7.2 route context and common Produce is
+  lower than its 1.7.2 route context after extraction;
+- the target-project pilot reaches its promised maturity with editable sources,
+  real input/state/runtime proof, recovery, and applicable independent/human
+  evidence;
+- no lower-fidelity artifact, fixture, source image, self-check, or automated
+  result is reported as higher maturity or lifecycle acceptance.
+
+The following measures support the human producer's release judgment rather
+than acting as invented universal thresholds:
 
 - elapsed work and production cycles to first valid runtime visual slice;
 - number of same-root return/repair cycles;
@@ -557,7 +791,9 @@ Track:
 
 No fixed artistic score is required. The quality bar is the frozen external
 reference or explicit product baseline plus runtime inspection and applicable
-subjective authority.
+subjective authority. The human producer explicitly decides whether the
+side-by-side quality/efficiency evidence justifies promotion after the hard
+gates pass.
 
 ## Risks and mitigations
 
@@ -606,12 +842,14 @@ new Codex task after local plugin update so discovered Skill metadata is fresh.
 ## Rollout
 
 1. Branch from the stable 1.7.2 main line and freeze all existing contracts.
-2. Add failing baseline scenarios and record the observed behavior.
-3. Add the minimal `game-art-production` structure and route without removing
-   visual rules from the core.
-4. Pass routing, authority, maturity, fallback, convergence, and Fast-lane
-   behavior tests.
-5. Build and inspect the real interactive UI/2D fixture.
+2. Run both artifact-level fixtures with the 1.7.2 control, preserve raw
+   evidence, and stop the split if no relevant failure or burden is observed.
+3. Only after RED, add the minimal `game-art-production` structure and route
+   without removing visual rules from the core.
+4. Pass three-operation routing, authority/result mapping, maturity/fidelity,
+   fallback, convergence, independence, context, and Fast-lane behavior tests.
+5. Run and inspect the same Design and composite-to-runtime fixtures with the
+   candidate.
 6. Apply the candidate to one new real production task and compare quality,
    iteration, approvals, and time-to-runtime with 1.7.2 evidence.
 7. Extract only proven duplicate art detail from the core and rerun the full
@@ -627,24 +865,36 @@ new Codex task after local plugin update so discovered Skill metadata is fresh.
 
 - The plugin discovers `game-production-system`, `game-art-production`, and
   `game-approval-ui` from one versioned installation.
-- Positive art predicates reliably load the art Skill; routine Fast and
-  non-visual work remains light.
-- Art execution creates no additional project task, status, gate, approval, or
-  mandatory schema migration.
+- Design, Produce, and Review predicates reliably load only the applicable art
+  reference; routine Fast and non-visual work remains light.
+- Art design, production, and review create no additional project task, status,
+  gate, approval, or mandatory schema migration.
+- Design can form a decision-ready direction and Production design without
+  requiring a pre-existing frozen direction or granting its approval.
+- Transient Proposed/Implemented/Pass/Returned/Blocked results map to existing
+  task, review, and returned-candidate contracts without new lifecycle states.
 - A flattened visual composition cannot pass as runtime UI or as sufficient
   component/state/asset coverage.
-- The real fixture proves actual input, authoritative state, shared-space
-  assembly, project-native components, editable sources, export/import,
-  multiple required states, runtime captures, and recovery.
+- The candidate fixtures prove professional direction formation plus actual
+  input, authoritative state, shared-space assembly, project-native components,
+  editable sources, export/import, multiple required states, runtime captures,
+  and recovery; they grant no acceptance to another game project.
+- One new real production task reaches its promised maturity from its own
+  target-project runtime and applicable independent/human evidence.
 - Bulk production remains locked until representative assembly and runtime
   proof pass.
 - Missing optional art capability produces an honest replaceable result or a
   bounded final-fidelity blocker, not false completion or unnecessary
   replanning.
-- Greybox, production candidate, and accepted maturity cannot be conflated.
+- Direction, Production design, Runtime golden, and Integrated acceptance keep
+  their existing meanings; fidelity labels cannot promote them or task status.
 - Two ineffective same-root cycles invoke bounded root-cause handling.
 - Existing 1.7.2 approval, timeout, return, convergence, evidence, installer,
   platform, compatibility, and standalone-execution contracts remain green.
+- An intact plugin requires the bundled art protocol, a damaged plugin fails
+  integrity visibly, repository-only execution remains truthfully self-
+  contained, and optional external techniques remain non-blocking.
 - After proven extraction, the core contains only routing and sentinel visual
-  invariants, and the normal non-art execution context does not grow.
+  invariants; non-art context does not grow and the common Produce route is
+  smaller than its 1.7.2 route-specific baseline.
 - Learning/upload behavior remains absent and cannot block production.
