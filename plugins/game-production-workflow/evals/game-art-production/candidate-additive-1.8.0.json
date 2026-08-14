@@ -4,6 +4,10 @@
   "candidateCommit": "2c26db33dadd2e23e06f7e2eea6604143a38ad7a",
   "result": "BoundedReturn",
   "task6Unlocked": false,
+  "committedEvidence": {
+    "location": "plugins/game-production-workflow/evals/game-art-production/candidate-additive-1.8.0-evidence.json",
+    "hash": "sha256:670406e582f33e18c742ce901c620667d4924d8ff7b41a2a2e6d9e48cc6c4bea"
+  },
   "fixtureResults": [
     {
       "fixtureId": "design-direction",
@@ -20,39 +24,21 @@
       },
       "routeFiles": [
         {
-          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "path": "plugins/game-production-workflow/skills/game-production-system/SKILL.md",
           "sha256": "sha256:8fd8968c3fa199b0a8b28402e71f46b8de1ecc7153f01889a34732f3bb3bfb9a",
           "wordCount": 4158,
           "contextBucket": "reference"
         },
         {
-          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "path": "plugins/game-production-workflow/skills/game-art-production/SKILL.md",
           "sha256": "sha256:5e8c56e40633a8d310ad126c4dd26aed11e89d3c481967ef18344c7eeb9419ba",
           "wordCount": 497,
           "contextBucket": "reference"
         },
         {
-          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/references/visual-design.md",
+          "path": "plugins/game-production-workflow/skills/game-art-production/references/visual-design.md",
           "sha256": "sha256:832d580fa982fd574f4a16b09cba0f0c12c2eab1eecc03260e4ccb8b16954b37",
           "wordCount": 466,
-          "contextBucket": "reference"
-        },
-        {
-          "path": "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md",
-          "sha256": "sha256:bdec2bfc891a6bd3f0a62d9d872ece4c6c3678f75bef7a5a2916cb1a53cc6910",
-          "wordCount": 1855,
-          "contextBucket": "reference"
-        },
-        {
-          "path": "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/systematic-debugging/SKILL.md",
-          "sha256": "sha256:808fc5717aa88ad65efff312b11c186294d3e6ee301afb584e2f86599b137787",
-          "wordCount": 1440,
-          "contextBucket": "reference"
-        },
-        {
-          "path": "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/verification-before-completion/SKILL.md",
-          "sha256": "sha256:2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3",
-          "wordCount": 580,
           "contextBucket": "reference"
         }
       ],
@@ -61,21 +47,21 @@
         "bodyWords": 599,
         "referenceWords": 8996,
         "files": [
-          "AGENTS.md",
-          "production/project.json",
-          "production/PROJECT.md",
-          "production/TASK.md",
-          "production/ACCEPTANCE.md",
-          "docs/ART_BIBLE.md",
-          "web/index.html",
-          "web/styles.css",
-          "web/app.mjs",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/references/visual-design.md",
-          "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md",
-          "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/systematic-debugging/SKILL.md",
-          "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/verification-before-completion/SKILL.md"
+          "candidate-workspace://design-direction/AGENTS.md",
+          "candidate-workspace://design-direction/production/project.json",
+          "candidate-workspace://design-direction/production/PROJECT.md",
+          "candidate-workspace://design-direction/production/TASK.md",
+          "candidate-workspace://design-direction/production/ACCEPTANCE.md",
+          "candidate-workspace://design-direction/docs/ART_BIBLE.md",
+          "candidate-workspace://design-direction/web/index.html",
+          "candidate-workspace://design-direction/web/styles.css",
+          "candidate-workspace://design-direction/web/app.mjs",
+          "plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "plugins/game-production-workflow/skills/game-art-production/references/visual-design.md",
+          "external-plugin://browser/control-in-app-browser/26.810.41047/SKILL.md",
+          "external-plugin://superpowers/systematic-debugging/6.2.0/SKILL.md",
+          "external-plugin://superpowers/verification-before-completion/6.2.0/SKILL.md"
         ]
       },
       "cycles": 2,
@@ -150,37 +136,37 @@
       },
       "routeFiles": [
         {
-          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "path": "plugins/game-production-workflow/skills/game-production-system/SKILL.md",
           "sha256": "sha256:8fd8968c3fa199b0a8b28402e71f46b8de1ecc7153f01889a34732f3bb3bfb9a",
           "wordCount": 40,
           "contextBucket": "metadata"
         },
         {
-          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "path": "plugins/game-production-workflow/skills/game-art-production/SKILL.md",
           "sha256": "sha256:5e8c56e40633a8d310ad126c4dd26aed11e89d3c481967ef18344c7eeb9419ba",
           "wordCount": 35,
           "contextBucket": "metadata"
         },
         {
-          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "path": "plugins/game-production-workflow/skills/game-production-system/SKILL.md",
           "sha256": "sha256:8fd8968c3fa199b0a8b28402e71f46b8de1ecc7153f01889a34732f3bb3bfb9a",
           "wordCount": 4116,
           "contextBucket": "body"
         },
         {
-          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "path": "plugins/game-production-workflow/skills/game-art-production/SKILL.md",
           "sha256": "sha256:5e8c56e40633a8d310ad126c4dd26aed11e89d3c481967ef18344c7eeb9419ba",
           "wordCount": 460,
           "contextBucket": "body"
         },
         {
-          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/references/execution.md",
+          "path": "plugins/game-production-workflow/skills/game-production-system/references/execution.md",
           "sha256": "sha256:4480f51617322904c4684bd463c8265a74857387612268cb6d8cbe0b2d2aef10",
           "wordCount": 1468,
           "contextBucket": "reference"
         },
         {
-          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md",
+          "path": "plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md",
           "sha256": "sha256:94e723b0d9dc1cc18c7a2a7d2c7df5eb7f2860089fd6b7a56283db84e624330e",
           "wordCount": 523,
           "contextBucket": "reference"
@@ -191,10 +177,10 @@
         "bodyWords": 4576,
         "referenceWords": 1991,
         "files": [
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/references/execution.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md"
+          "plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "plugins/game-production-workflow/skills/game-production-system/references/execution.md",
+          "plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md"
         ]
       },
       "cycles": 2,
@@ -450,75 +436,30 @@
       "hash": "sha256:c07cb360c4f633989c2c826f23bcedaf8fa18f80be4ac26e9ea4ab7ee1654b91"
     }
   ],
-  "evidenceBundles": [
+  "historicalRawBundles": [
     {
       "fixtureId": "design-direction",
       "variant": "primary",
-      "rawBundle": {
-        "location": ".tmp/game-art-evals/candidate-design-direction",
-        "hash": "sha256:7d9b6f1aebfa569a6b765a8240d38a814c8c30b6e21d889409043ad2e52656d2",
-        "outputTreeHash": "sha256:e27662608fd2d03498c7d75acb4283e8067d56773c60244694117ee21a7f9c3b"
-      },
-      "runRecord": {
-        "location": ".tmp/game-art-evals/candidate-design-direction/artifacts/candidate-run-record.json",
-        "hash": "sha256:4b4b5ec0068ce7fe8c6089a05e194f2851a2cb346124250160118c1fe0252385"
-      },
-      "deterministicOutput": {
-        "location": ".tmp/game-art-evals/candidate-design-direction/artifacts/runtime-observation.json",
-        "hash": "sha256:bd1303791e8005297bbe92840975168042818802ee909c4911582afc1bd66b81"
-      },
-      "independentReview": {
-        "location": ".tmp/game-art-evals/candidate-design-direction/artifacts/independent-review.json",
-        "hash": "sha256:9a7a3869fbed9200544a92ed5457e455874260312c67b7dec749827cb32aa1eb"
-      },
-      "inputCausalityEvidence": {
-        "location": ".tmp/game-art-evals/candidate-design-direction/artifacts/input-causality-evidence.json",
-        "hash": "sha256:b5ced052fe14ac7aa69861faa306f038a9ab3ea4765982f787a131a77bbcd1bf"
-      }
+      "authoritative": false,
+      "location": ".tmp/game-art-evals/candidate-design-direction",
+      "hash": "sha256:7d9b6f1aebfa569a6b765a8240d38a814c8c30b6e21d889409043ad2e52656d2",
+      "outputTreeHash": "sha256:e27662608fd2d03498c7d75acb4283e8067d56773c60244694117ee21a7f9c3b"
     },
     {
       "fixtureId": "composite-runtime",
       "variant": "primary",
-      "rawBundle": {
-        "location": ".tmp/game-art-evals/candidate-composite-runtime",
-        "hash": "sha256:530768cdb2611486d5ea6c35e90e905d66098fcb8f5f19a24cb1d467ea5f4635",
-        "outputTreeHash": "sha256:837a35630d45c16aaf85dbed0d7dc7025b2f14aa6fc0ca57d0e88aa5186cec9c"
-      },
-      "runRecord": {
-        "location": ".tmp/game-art-evals/candidate-composite-runtime/artifacts/candidate-run-record.json",
-        "hash": "sha256:a6b4b8af4fee10693c1bbf10d208a5584839fc4481ad492c505f1661b3b13e75"
-      },
-      "deterministicOutput": {
-        "location": ".tmp/game-art-evals/candidate-composite-runtime/artifacts/runtime-observation.json",
-        "hash": "sha256:397937d3ada48defb8b85bdf75b05b55dff0ac20248b746fe70a83091b0355d4"
-      },
-      "independentReview": {
-        "location": ".tmp/game-art-evals/candidate-composite-runtime/artifacts/independent-review.json",
-        "hash": "sha256:dc5c76fdfe4e72efe4f986621e610851b8b9b35be2e31eed24847664287e8ff2"
-      },
-      "inputCausalityEvidence": null
+      "authoritative": false,
+      "location": ".tmp/game-art-evals/candidate-composite-runtime",
+      "hash": "sha256:530768cdb2611486d5ea6c35e90e905d66098fcb8f5f19a24cb1d467ea5f4635",
+      "outputTreeHash": "sha256:837a35630d45c16aaf85dbed0d7dc7025b2f14aa6fc0ca57d0e88aa5186cec9c"
     },
     {
       "fixtureId": "composite-runtime",
       "variant": "no-optional-generation",
-      "rawBundle": {
-        "location": ".tmp/game-art-evals/candidate-composite-runtime-no-generation",
-        "hash": "sha256:d567a7f4a90659e60ee4cd8e2b4c720998aa6bbab850d12818bca5c9a1767ff5",
-        "outputTreeHash": "sha256:722411822d889d8e8b696a8e95dc594de2a3022aefc404dad1ebbfaab8869cd6"
-      },
-      "runRecord": {
-        "location": ".tmp/game-art-evals/candidate-composite-runtime-no-generation/artifacts/candidate-run-record.json",
-        "hash": "sha256:3cbca7cc0b4c2c44dd89c44f7468c7ffa6c3f732284a56f711201fb836c74d0a"
-      },
-      "deterministicOutput": {
-        "location": ".tmp/game-art-evals/candidate-composite-runtime-no-generation/artifacts/runtime-proof.json",
-        "hash": "sha256:2519d22408a997e403b3791beb6de88ab324f71bb9d4c6c96127101a3d02d629"
-      },
-      "independentReview": {
-        "location": ".tmp/game-art-evals/candidate-composite-runtime-no-generation/artifacts/independent-review.json",
-        "hash": "sha256:5ab2a5a9f06a9820b035cab5255599197277bcd50e0e8a472a03825073f3cea6"
-      },
-      "inputCausalityEvidence": null
+      "authoritative": false,
+      "location": ".tmp/game-art-evals/candidate-composite-runtime-no-generation",
+      "hash": "sha256:d567a7f4a90659e60ee4cd8e2b4c720998aa6bbab850d12818bca5c9a1767ff5",
+      "outputTreeHash": "sha256:722411822d889d8e8b696a8e95dc594de2a3022aefc404dad1ebbfaab8869cd6"
     }
   ],
   "evaluationContractMismatches": [
@@ -636,25 +577,25 @@
         "bodyWords": 5175,
         "referenceWords": 10987,
         "files": [
-          "AGENTS.md",
-          "production/project.json",
-          "production/PROJECT.md",
-          "production/TASK.md",
-          "production/ACCEPTANCE.md",
-          "docs/ART_BIBLE.md",
-          "web/index.html",
-          "web/styles.css",
-          "web/app.mjs",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/references/visual-design.md",
-          "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md",
-          "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/systematic-debugging/SKILL.md",
-          "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/verification-before-completion/SKILL.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/references/execution.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md"
+          "candidate-workspace://design-direction/AGENTS.md",
+          "candidate-workspace://design-direction/production/project.json",
+          "candidate-workspace://design-direction/production/PROJECT.md",
+          "candidate-workspace://design-direction/production/TASK.md",
+          "candidate-workspace://design-direction/production/ACCEPTANCE.md",
+          "candidate-workspace://design-direction/docs/ART_BIBLE.md",
+          "candidate-workspace://design-direction/web/index.html",
+          "candidate-workspace://design-direction/web/styles.css",
+          "candidate-workspace://design-direction/web/app.mjs",
+          "plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "plugins/game-production-workflow/skills/game-art-production/references/visual-design.md",
+          "external-plugin://browser/control-in-app-browser/26.810.41047/SKILL.md",
+          "external-plugin://superpowers/systematic-debugging/6.2.0/SKILL.md",
+          "external-plugin://superpowers/verification-before-completion/6.2.0/SKILL.md",
+          "plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "plugins/game-production-workflow/skills/game-production-system/references/execution.md",
+          "plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md"
         ]
       }
     },
@@ -667,25 +608,25 @@
         "bodyWords": 9751,
         "referenceWords": 13982,
         "files": [
-          "AGENTS.md",
-          "production/project.json",
-          "production/PROJECT.md",
-          "production/TASK.md",
-          "production/ACCEPTANCE.md",
-          "docs/ART_BIBLE.md",
-          "web/index.html",
-          "web/styles.css",
-          "web/app.mjs",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/references/visual-design.md",
-          "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md",
-          "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/systematic-debugging/SKILL.md",
-          "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/verification-before-completion/SKILL.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/references/execution.md",
-          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md",
+          "candidate-workspace://design-direction/AGENTS.md",
+          "candidate-workspace://design-direction/production/project.json",
+          "candidate-workspace://design-direction/production/PROJECT.md",
+          "candidate-workspace://design-direction/production/TASK.md",
+          "candidate-workspace://design-direction/production/ACCEPTANCE.md",
+          "candidate-workspace://design-direction/docs/ART_BIBLE.md",
+          "candidate-workspace://design-direction/web/index.html",
+          "candidate-workspace://design-direction/web/styles.css",
+          "candidate-workspace://design-direction/web/app.mjs",
+          "plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "plugins/game-production-workflow/skills/game-art-production/references/visual-design.md",
+          "external-plugin://browser/control-in-app-browser/26.810.41047/SKILL.md",
+          "external-plugin://superpowers/systematic-debugging/6.2.0/SKILL.md",
+          "external-plugin://superpowers/verification-before-completion/6.2.0/SKILL.md",
+          "plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "plugins/game-production-workflow/skills/game-production-system/references/execution.md",
+          "plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md",
           "plugins/game-production-workflow/skills/game-production-system/SKILL.md",
           "plugins/game-production-workflow/skills/game-production-system/references/execution.md",
           "plugins/game-production-workflow/skills/game-production-system/scripts/doctor.mjs",

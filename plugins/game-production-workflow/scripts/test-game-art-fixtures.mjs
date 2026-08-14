@@ -4,6 +4,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import {
+  candidateEvidenceRelative,
+  candidateSummaryRelative,
+  controlSummaryRelative,
+  validateCandidateDocuments,
+  validateCandidateRepository,
+} from "./game-art-candidate-evidence.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const pluginRoot = path.resolve(scriptDirectory, "..");
@@ -11,7 +18,6 @@ const repositoryRoot = path.resolve(pluginRoot, "../..");
 const evalRoot = path.join(pluginRoot, "evals/game-art-production");
 const cliPath = path.join(scriptDirectory, "game-art-fixture.mjs");
 const controlSummaryPath = path.join(evalRoot, "control-1.7.2.json");
-const candidateSummaryPath = path.join(evalRoot, "candidate-additive-1.8.0.json");
 const ids = ["design-direction", "composite-runtime"];
 const expectedStarterFiles = {
   "design-direction": [
@@ -409,17 +415,18 @@ if (controlSummary.splitDecision === "Proceed") {
   assert(controlSummary.observedFailures.length > 0, "Proceed requires observed artifact failures");
 }
 
-assert(fs.existsSync(candidateSummaryPath), "missing additive 1.8.0 candidate summary");
-const candidateSummary = JSON.parse(fs.readFileSync(candidateSummaryPath, "utf8"));
+const validatedCandidate = validateCandidateRepository(repositoryRoot);
+const { summary: candidateSummary, evidence: candidateEvidence } = validatedCandidate;
 assert.deepEqual(Object.keys(candidateSummary).sort(), [
   "approvalEvidence",
   "burden",
   "candidateCommit",
+  "committedEvidence",
   "comparison",
   "decisionBasis",
   "evaluationContractMismatches",
-  "evidenceBundles",
   "fixtureResults",
+  "historicalRawBundles",
   "label",
   "observedFailures",
   "result",
@@ -427,377 +434,15 @@ assert.deepEqual(Object.keys(candidateSummary).sort(), [
   "sharedRootCauseClassification",
   "task6Unlocked",
 ]);
-assert.equal(candidateSummary.schemaVersion, 1);
-assert.equal(candidateSummary.label, "candidate-additive-1.8.0");
-assert.equal(candidateSummary.candidateCommit, "2c26db33dadd2e23e06f7e2eea6604143a38ad7a");
 assert.equal(candidateSummary.result, "BoundedReturn");
 assert.equal(candidateSummary.task6Unlocked, false);
-assert.match(candidateSummary.decisionBasis, /genuine keyboard\/controller-equivalent input-to-visual causality remains unproven/i);
-assert.match(candidateSummary.decisionBasis, /Task 6 is not unlocked/i);
+assert.equal(candidateSummary.fixtureResults.find(({ fixtureId }) => fixtureId === "design-direction").objectiveResult.status, "Blocked");
+assert.equal(candidateSummary.fixtureResults.find(({ variant }) => variant === "no-optional-generation").objectiveResult.status, "Pass");
 
-const candidateEvidenceRoot = path.join(repositoryRoot, ".tmp/game-art-evals");
-const candidateRouteRoots = [repositoryRoot, "/Users/qxl/.codex/plugins/cache"];
-const candidateEvidenceSpecs = [
-  {
-    fixtureId: "design-direction",
-    variant: "primary",
-    rootName: "candidate-design-direction",
-    deterministicFile: "runtime-observation.json",
-    inputCausalityFile: "input-causality-evidence.json",
-  },
-  {
-    fixtureId: "composite-runtime",
-    variant: "primary",
-    rootName: "candidate-composite-runtime",
-    deterministicFile: "runtime-observation.json",
-    inputCausalityFile: null,
-  },
-  {
-    fixtureId: "composite-runtime",
-    variant: "no-optional-generation",
-    rootName: "candidate-composite-runtime-no-generation",
-    deterministicFile: "runtime-proof.json",
-    inputCausalityFile: null,
-  },
-];
-const candidateEvidenceKey = ({ fixtureId, variant }) => `${fixtureId}/${variant}`;
-const isPathContained = (root, target) => {
-  const relative = path.relative(root, target);
-  return relative === "" || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative));
-};
-const assertTrustedExistingPath = (target, roots, expectedType, label) => {
-  const absoluteTarget = path.resolve(target);
-  const absoluteRoots = roots.map((root) => path.resolve(root));
-  const syntacticRoot = absoluteRoots.find((root) => isPathContained(root, absoluteTarget));
-  assert(syntacticRoot, `${label}: path escapes trusted roots: ${target}`);
-  assert(fs.existsSync(absoluteTarget), `${label}: missing trusted path: ${target}`);
-  let cursor = syntacticRoot;
-  const relativeParts = path.relative(syntacticRoot, absoluteTarget).split(path.sep).filter(Boolean);
-  for (const part of relativeParts) {
-    cursor = path.join(cursor, part);
-    assert(!fs.lstatSync(cursor).isSymbolicLink(), `${label}: symbolic link substitution: ${cursor}`);
-  }
-  const realRoot = fs.realpathSync(syntacticRoot);
-  const realTarget = fs.realpathSync(absoluteTarget);
-  assert(isPathContained(realRoot, realTarget), `${label}: real path escapes trusted root: ${target}`);
-  const stat = fs.statSync(realTarget);
-  assert(expectedType === "directory" ? stat.isDirectory() : stat.isFile(), `${label}: wrong trusted path type: ${target}`);
-  return realTarget;
-};
-const normalizeEvidenceHash = (hash) => hash.startsWith("sha256:") ? hash : `sha256:${hash}`;
-const loadedContextFromRecord = (spec, runRecord, primaryProduceRun) => {
-  if (spec.fixtureId === "design-direction") {
-    return {
-      metadataWords: runRecord.loadedFiles.metadata.reduce((sum, entry) => sum + entry.wordCountAtLoad, 0),
-      bodyWords: runRecord.loadedFiles.body.reduce((sum, entry) => sum + entry.wordCountAtLoad, 0),
-      referenceWords: runRecord.loadedFiles.reference.reduce((sum, entry) => sum + entry.wordCount, 0),
-      files: [...runRecord.loadedFiles.metadata, ...runRecord.loadedFiles.body, ...runRecord.loadedFiles.reference].map((entry) => entry.path),
-    };
-  }
-  if (spec.variant === "primary") {
-    return {
-      metadataWords: runRecord.loadedFiles.metadata.reduce((sum, entry) => sum + entry.wordCount, 0),
-      bodyWords: runRecord.loadedFiles.body.reduce((sum, entry) => sum + entry.wordCount, 0),
-      referenceWords: runRecord.loadedFiles.reference.reduce((sum, entry) => sum + entry.wordCount, 0),
-      files: [...new Set([...runRecord.loadedFiles.metadata, ...runRecord.loadedFiles.body, ...runRecord.loadedFiles.reference].map((entry) => entry.path))],
-    };
-  }
-  const metadataByHash = new Map(primaryProduceRun.loadedFiles.metadata.map((entry) => [entry.sha256, entry.wordCount]));
-  const bodyByHash = new Map(primaryProduceRun.loadedFiles.body.map((entry) => [entry.sha256, entry.wordCount]));
-  const skillFiles = runRecord.loadedFiles.filter((entry) => entry.path.endsWith("/SKILL.md"));
-  const referenceFiles = runRecord.loadedFiles.filter((entry) => !entry.path.endsWith("/SKILL.md"));
-  return {
-    metadataWords: skillFiles.reduce((sum, entry) => sum + metadataByHash.get(entry.sha256), 0),
-    bodyWords: skillFiles.reduce((sum, entry) => sum + bodyByHash.get(entry.sha256), 0),
-    referenceWords: referenceFiles.reduce((sum, entry) => sum + entry.wordCount, 0),
-    files: runRecord.loadedFiles.map((entry) => entry.path),
-  };
-};
-const routeFilesFromRecord = (spec, runRecord) => {
-  if (spec.fixtureId === "design-direction") {
-    return runRecord.loadedFiles.reference.map((entry) => ({
-      path: entry.path,
-      sha256: normalizeEvidenceHash(entry.sha256),
-      wordCount: entry.wordCount,
-      contextBucket: "reference",
-    }));
-  }
-  if (spec.variant === "primary") {
-    return ["metadata", "body", "reference"].flatMap((contextBucket) => runRecord.loadedFiles[contextBucket].map((entry) => ({
-      path: entry.path,
-      sha256: normalizeEvidenceHash(entry.sha256),
-      wordCount: entry.wordCount,
-      contextBucket,
-    })));
-  }
-  return runRecord.loadedFiles.map((entry) => ({
-    path: entry.path,
-    sha256: normalizeEvidenceHash(entry.sha256),
-    wordCount: entry.wordCount,
-    contextBucket: entry.path.endsWith("/SKILL.md") ? "metadata+body" : "reference",
-  }));
-};
-const validateCandidateEvidenceBindings = (summary) => {
-  const evidence = {};
-  for (const spec of candidateEvidenceSpecs) {
-    const key = candidateEvidenceKey(spec);
-    const expectedRootLocation = `.tmp/game-art-evals/${spec.rootName}`;
-    const bundle = summary.evidenceBundles.find((entry) => candidateEvidenceKey(entry) === key);
-    const fixture = summary.fixtureResults.find((entry) => candidateEvidenceKey(entry) === key);
-    assert(bundle, `${key}: missing evidence bundle`);
-    assert(fixture, `${key}: missing fixture result`);
-    assert.equal(bundle.rawBundle.location, expectedRootLocation, `${key}: non-canonical raw bundle location`);
-    const rawBundleRoot = assertTrustedExistingPath(
-      path.join(repositoryRoot, bundle.rawBundle.location),
-      [candidateEvidenceRoot],
-      "directory",
-      `${key} raw bundle`,
-    );
-    const expectedRecords = {
-      runRecord: `${expectedRootLocation}/artifacts/candidate-run-record.json`,
-      deterministicOutput: `${expectedRootLocation}/artifacts/${spec.deterministicFile}`,
-      independentReview: `${expectedRootLocation}/artifacts/independent-review.json`,
-      inputCausalityEvidence: spec.inputCausalityFile ? `${expectedRootLocation}/artifacts/${spec.inputCausalityFile}` : null,
-    };
-    const records = {};
-    for (const [recordName, expectedLocation] of Object.entries(expectedRecords)) {
-      const record = bundle[recordName];
-      if (expectedLocation === null) {
-        assert.equal(record, null, `${key}: unexpected ${recordName}`);
-        records[recordName] = null;
-        continue;
-      }
-      assert(record, `${key}: missing ${recordName}`);
-      assert.equal(record.location, expectedLocation, `${key}: non-canonical ${recordName} location`);
-      const recordPath = assertTrustedExistingPath(
-        path.join(repositoryRoot, record.location),
-        [rawBundleRoot],
-        "file",
-        `${key} ${recordName}`,
-      );
-      records[recordName] = JSON.parse(fs.readFileSync(recordPath, "utf8"));
-      assert.equal(record.hash, semanticHash(records[recordName]), `${key}: stale ${recordName} hash`);
-    }
-    const lockPath = assertTrustedExistingPath(path.join(rawBundleRoot, "fixture-lock.json"), [rawBundleRoot], "file", `${key} fixture lock`);
-    const lock = JSON.parse(fs.readFileSync(lockPath, "utf8"));
-    assert.equal(bundle.rawBundle.hash, fixtureApi.hashTree(rawBundleRoot), `${key}: stale raw bundle hash`);
-    assert.equal(bundle.rawBundle.outputTreeHash, fixtureApi.hashTree(rawBundleRoot, ["fixture-lock.json"]), `${key}: stale output tree hash`);
-    assert.equal(fixture.outputTreeHash, bundle.rawBundle.outputTreeHash, `${key}: output hash is not bound to bundle`);
-    assert.equal(fixture.fixtureDefinitionHash, lock.fixtureDefinitionHash, `${key}: fixture-definition hash is not bound to lock`);
-    assert.equal(fixture.sourceTreeHash, lock.sourceTreeHash, `${key}: source hash is not bound to lock`);
-    assert.equal(fixture.label, lock.label, `${key}: label is not bound to lock`);
-    assert.equal(records.runRecord.candidateCommit, summary.candidateCommit, `${key}: run commit differs from candidate commit`);
-    if (records.independentReview.candidateCommit) {
-      assert.equal(records.independentReview.candidateCommit, summary.candidateCommit, `${key}: review commit differs from candidate commit`);
-    }
-    evidence[key] = { spec, fixture, bundle, rawBundleRoot, lock, ...records };
-  }
-
-  const primaryProduceRun = evidence["composite-runtime/primary"].runRecord;
-  for (const item of Object.values(evidence)) {
-    const expectedRoutes = routeFilesFromRecord(item.spec, item.runRecord);
-    assert.deepEqual(item.fixture.routeFiles, expectedRoutes, `${candidateEvidenceKey(item.spec)}: route bindings differ from run record`);
-    assert.deepEqual(
-      item.fixture.loadedContext,
-      loadedContextFromRecord(item.spec, item.runRecord, primaryProduceRun),
-      `${candidateEvidenceKey(item.spec)}: context counts differ from run records`,
-    );
-    for (const routeFile of item.fixture.routeFiles) {
-      const routePath = path.isAbsolute(routeFile.path) ? routeFile.path : path.join(repositoryRoot, routeFile.path);
-      const trustedRoute = assertTrustedExistingPath(routePath, candidateRouteRoots, "file", `${candidateEvidenceKey(item.spec)} route`);
-      assert.equal(fileHash(trustedRoute), routeFile.sha256, `${candidateEvidenceKey(item.spec)}: stale route hash`);
-    }
-    for (const contextFile of item.fixture.loadedContext.files) {
-      const contextPath = path.isAbsolute(contextFile)
-        ? contextFile
-        : contextFile.startsWith("plugins/")
-          ? path.join(repositoryRoot, contextFile)
-          : path.join(item.rawBundleRoot, contextFile);
-      const contextRoots = path.isAbsolute(contextFile) || contextFile.startsWith("plugins/")
-        ? candidateRouteRoots
-        : [item.rawBundleRoot];
-      assertTrustedExistingPath(contextPath, contextRoots, "file", `${candidateEvidenceKey(item.spec)} loaded context`);
-    }
-  }
-  return evidence;
-};
-const validateCandidateGateSemantics = (summary, evidence) => {
-  const design = evidence["design-direction/primary"];
-  const produce = evidence["composite-runtime/primary"];
-  const noGeneration = evidence["composite-runtime/no-optional-generation"];
-  const expectedObjectiveStatuses = new Map([
-    ["design-direction/primary", design.inputCausalityEvidence.result === "Blocked" ? "Blocked" : "Pass"],
-    ["composite-runtime/primary", produce.independentReview.status === "Pass" ? "Pass" : "Blocked"],
-    ["composite-runtime/no-optional-generation", /^Pass/.test(noGeneration.independentReview.status) ? "Pass" : "Blocked"],
-  ]);
-  assert.deepEqual(Object.keys(produce.deterministicOutput.stateMatrix).sort(), ["controller-focus", "empty", "equip", "error", "full"]);
-  assert.deepEqual(Object.keys(noGeneration.deterministicOutput.runtime).sort(), ["close", "controllerFocus", "empty", "equip", "error", "full", "reopen"]);
-  assert.equal(noGeneration.deterministicOutput.staticChecks.conceptRuntimeReference, false);
-  for (const item of Object.values(evidence)) {
-    const key = candidateEvidenceKey(item.spec);
-    assert.equal(item.fixture.objectiveResult.status, expectedObjectiveStatuses.get(key), `${key}: objective status contradicts raw evidence`);
-    assert.equal(item.fixture.subjectiveReview.status, item.independentReview.status, `${key}: subjective status contradicts review`);
-    assert.deepEqual(item.fixture.subjectiveReview.failedCriteria, item.independentReview.failedCriteria, `${key}: failed criteria contradict review`);
-    const runCycles = typeof item.runRecord.cycles === "number" ? item.runRecord.cycles : item.runRecord.cycles.count;
-    const runElapsed = typeof item.runRecord.elapsedMinutes === "number" ? item.runRecord.elapsedMinutes : item.runRecord.cycles.elapsedMinutes;
-    assert.equal(item.fixture.cycles, runCycles, `${key}: cycles contradict run record`);
-    assert.equal(item.fixture.elapsedMinutes, runElapsed, `${key}: elapsed time contradicts run record`);
-  }
-  assert.equal(design.fixture.subjectiveReview.reviewerIndependence, design.independentReview.reviewerIndependence);
-  assert.equal(produce.fixture.subjectiveReview.reviewerIndependence, produce.independentReview.reviewerIndependence);
-  assert.match(noGeneration.independentReview.independenceDeclaration, new RegExp(`^${noGeneration.fixture.subjectiveReview.reviewerIndependence}`));
-
-  const retainedCriterion = "Actual keyboard/controller interaction-to-visual causality";
-  const expectedFailureEvidence = [
-    design.inputCausalityEvidence.blockingEvidenceResult,
-    design.inputCausalityEvidence.systematicDiagnosis.phase1RootCauseInvestigation.rejectedAsPassageEvidence,
-    design.inputCausalityEvidence.systematicDiagnosis.phase3Hypothesis.minimalTestOutcome,
-  ];
-  assert.deepEqual(summary.observedFailures, [{
-    fixtureId: "design-direction",
-    variant: "primary",
-    criterion: retainedCriterion,
-    evidence: expectedFailureEvidence,
-  }], "candidate failures must be derived from the Design causality record");
-  assert.equal(summary.sharedRootCauseClassification.criterion, retainedCriterion);
-  assert.equal(summary.sharedRootCauseClassification.classification, "Environment evidence limitation");
-  assert.equal(
-    summary.sharedRootCauseClassification.attribution,
-    design.inputCausalityEvidence.systematicDiagnosis.phase3Hypothesis.statement,
-  );
-  assert.deepEqual(summary.sharedRootCauseClassification.notAttributedTo, [
-    "game-art-production Skill wording",
-    "candidate runtime",
-  ]);
-  assert.equal(
-    summary.sharedRootCauseClassification.candidateArtifactRepairBatchUsed,
-    design.inputCausalityEvidence.systematicDiagnosis.phase4Implementation.candidateArtifactRepairBatchUsed,
-  );
-  assert.equal(summary.sharedRootCauseClassification.sameRootCycles, design.fixture.cycles);
-  assert.deepEqual(summary.sharedRootCauseClassification.evidence, [
-    design.inputCausalityEvidence.systematicDiagnosis.phase2PatternAnalysis.workingPath,
-    design.inputCausalityEvidence.systematicDiagnosis.phase2PatternAnalysis.candidateStructure,
-    design.inputCausalityEvidence.systematicDiagnosis.phase3Hypothesis.minimalTestOutcome,
-  ]);
-  assert.equal(summary.sharedRootCauseClassification.recovery, design.inputCausalityEvidence.recovery);
-
-  const expectedApprovals = candidateEvidenceSpecs.map((spec) => {
-    const key = candidateEvidenceKey(spec);
-    const item = evidence[key];
-    const before = JSON.parse(fs.readFileSync(path.join(evalRoot, spec.fixtureId, "starter/production/project.json"), "utf8")).humanApprovals;
-    const after = JSON.parse(fs.readFileSync(path.join(item.rawBundleRoot, "production/project.json"), "utf8")).humanApprovals;
-    const identity = { fixtureId: spec.fixtureId, variant: spec.variant, before, after, addedOrChangedCount: approvalChangeCount(before, after) };
-    return { ...identity, hash: semanticHash(identity) };
-  });
-  assert.deepEqual(summary.approvalEvidence, expectedApprovals, "approval evidence must be derived from project records");
-  for (const item of Object.values(evidence)) {
-    const approval = expectedApprovals.find((entry) => candidateEvidenceKey(entry) === candidateEvidenceKey(item.spec));
-    assert.equal(item.fixture.approvalChanges, approval.addedOrChangedCount);
-  }
-
-  for (const item of Object.values(evidence)) {
-    const key = candidateEvidenceKey(item.spec);
-    const mismatch = summary.evaluationContractMismatches.find((entry) => candidateEvidenceKey(entry) === key);
-    assert(mismatch, `${key}: missing evaluation-contract mismatch`);
-    const fixtureContract = fixtureApi.loadFixture(pluginRoot, item.spec.fixtureId);
-    const expectedMissingEvidence = fixtureContract.requiredArtifacts
-      .filter((relative) => {
-        const artifact = path.join(item.rawBundleRoot, relative);
-        return !fs.existsSync(artifact) || fs.statSync(artifact).size === 0;
-      })
-      .map((relative) => `${relative}: missing or empty`);
-    assert.deepEqual(mismatch.evidence, expectedMissingEvidence, `${key}: exact-path mismatch does not match the hidden verifier contract`);
-    assert.equal(mismatch.excludedFromGateBasis, true);
-    for (const alternative of mismatch.producedAlternatives) {
-      const wildcardIndex = alternative.indexOf("*");
-      if (wildcardIndex === -1) {
-        assertTrustedExistingPath(path.join(item.rawBundleRoot, alternative), [item.rawBundleRoot], "file", `${key} produced alternative`);
-        continue;
-      }
-      const directory = path.join(item.rawBundleRoot, path.dirname(alternative));
-      const trustedDirectory = assertTrustedExistingPath(directory, [item.rawBundleRoot], "directory", `${key} alternative directory`);
-      const suffix = path.basename(alternative).slice(1);
-      const matches = fs.readdirSync(trustedDirectory).filter((entry) => entry.endsWith(suffix));
-      assert(matches.length > 0, `${key}: produced-alternative glob has no matches: ${alternative}`);
-      for (const match of matches) {
-        assertTrustedExistingPath(path.join(trustedDirectory, match), [item.rawBundleRoot], "file", `${key} produced alternative`);
-      }
-    }
-  }
-
-  const aggregateBurden = (items) => ({
-    cycles: items.reduce((sum, item) => sum + item.fixture.cycles, 0),
-    elapsedMinutes: items.reduce((sum, item) => sum + item.fixture.elapsedMinutes, 0),
-    approvals: items.reduce((sum, item) => sum + item.fixture.approvalChanges, 0),
-    loadedContext: {
-      metadataWords: items.reduce((sum, item) => sum + item.fixture.loadedContext.metadataWords, 0),
-      bodyWords: items.reduce((sum, item) => sum + item.fixture.loadedContext.bodyWords, 0),
-      referenceWords: items.reduce((sum, item) => sum + item.fixture.loadedContext.referenceWords, 0),
-      files: items.flatMap((item) => item.fixture.loadedContext.files),
-    },
-  });
-  const primaryItems = [design, produce];
-  const allItems = [design, produce, noGeneration];
-  assert.deepEqual(summary.burden.primaryFixtures, aggregateBurden(primaryItems), "primary burden must be derived from raw runs");
-  assert.deepEqual(summary.burden.allRuns, aggregateBurden(allItems), "all-run burden must be derived from raw runs");
-  const controlBurden = controlSummary.burden;
-  const primaryBurden = summary.burden.primaryFixtures;
-  assert.deepEqual(
-    Object.fromEntries(Object.entries(summary.comparison.primaryBurdenDelta).filter(([key]) => key !== "interpretation")),
-    {
-      cycles: primaryBurden.cycles - controlBurden.cycles,
-      elapsedMinutes: primaryBurden.elapsedMinutes - controlBurden.elapsedMinutes,
-      approvals: primaryBurden.approvals - controlBurden.approvals,
-      metadataWords: primaryBurden.loadedContext.metadataWords - controlBurden.loadedContext.metadataWords,
-      bodyWords: primaryBurden.loadedContext.bodyWords - controlBurden.loadedContext.bodyWords,
-      referenceWords: primaryBurden.loadedContext.referenceWords - controlBurden.loadedContext.referenceWords,
-    },
-    "burden delta must be derived from candidate and control totals",
-  );
-
-  const retainedFailures = controlSummary.observedFailures.filter((failure) => failure.criterion === retainedCriterion).map((failure) => failure.criterion);
-  const correctedFailures = controlSummary.observedFailures.filter((failure) => failure.criterion !== retainedCriterion).map((failure) => failure.criterion);
-  assert.deepEqual(summary.comparison.retainedControlFailures, retainedFailures);
-  assert.deepEqual(summary.comparison.correctedControlFailures, correctedFailures);
-  assert.equal(summary.comparison.controlSummary.hash, semanticHash(controlSummary));
-  assert.equal(summary.comparison.lifecycleOrApprovalBurdenAdded, false);
-
-  const primaryPassed = primaryItems.every((item) => item.fixture.objectiveResult.status === "Pass");
-  const expectedResult = primaryPassed ? "CandidatePass" : "BoundedReturn";
-  assert.equal(summary.result, expectedResult, "terminal result contradicts primary raw evidence");
-  assert.equal(summary.task6Unlocked, primaryPassed, "Task 6 truth contradicts primary raw evidence");
-  if (!primaryPassed) {
-    assert(summary.decisionBasis.startsWith("BoundedReturn, not CandidatePass."), "blocked evidence cannot claim CandidatePass");
-    assert.match(summary.decisionBasis, /genuine keyboard\/controller-equivalent input-to-visual causality remains unproven/i);
-    assert.match(summary.decisionBasis, /Task 6 is not unlocked/i);
-    assert.match(design.fixture.terminalClaim, /causality remains unproven/i);
-  }
-};
-const candidateSymlinkProbeRoot = path.join(candidateEvidenceRoot, `candidate-summary-symlink-${process.pid}`);
-fs.rmSync(candidateSymlinkProbeRoot, { recursive: true, force: true });
-fs.mkdirSync(candidateSymlinkProbeRoot, { recursive: true });
-try {
-  const candidateSymlinkProbe = path.join(candidateSymlinkProbeRoot, "fixture-lock-link.json");
-  let candidateSymlinksSupported = true;
-  try {
-    fs.symlinkSync(path.join(candidateEvidenceRoot, "candidate-design-direction/fixture-lock.json"), candidateSymlinkProbe, "file");
-  } catch (error) {
-    if (["EPERM", "EACCES", "ENOTSUP"].includes(error.code)) candidateSymlinksSupported = false;
-    else throw error;
-  }
-  if (candidateSymlinksSupported) {
-    assert.throws(
-      () => assertTrustedExistingPath(candidateSymlinkProbe, [candidateEvidenceRoot], "file", "candidate symlink probe"),
-      /symbolic link substitution/,
-    );
-  }
-} finally {
-  fs.rmSync(candidateSymlinkProbeRoot, { recursive: true, force: true });
-}
 const candidateMutations = [
   {
-    name: "nonexistent raw bundle",
-    mutate(summary) { summary.evidenceBundles[0].rawBundle.location = ".tmp/game-art-evals/nonexistent-design-evidence"; },
+    name: "noncanonical historical raw bundle",
+    mutate(summary) { summary.historicalRawBundles[0].location = ".tmp/game-art-evals/nonexistent-design-evidence"; },
   },
   {
     name: "candidate-pass narrative while Design is blocked",
@@ -808,8 +453,8 @@ const candidateMutations = [
     mutate(summary) { summary.observedFailures[0].evidence[0] = "Genuine Retry/Exit/focus visual causality was demonstrated."; },
   },
   {
-    name: "traversing raw bundle path",
-    mutate(summary) { summary.evidenceBundles[0].rawBundle.location = ".tmp/game-art-evals/../candidate-design-direction"; },
+    name: "traversing historical raw bundle path",
+    mutate(summary) { summary.historicalRawBundles[0].location = ".tmp/game-art-evals/../candidate-design-direction"; },
   },
   {
     name: "nonexistent route path",
@@ -825,199 +470,60 @@ const acceptedCandidateMutations = candidateMutations.flatMap(({ name, mutate })
   const mutation = structuredClone(candidateSummary);
   mutate(mutation);
   try {
-    const mutationEvidence = validateCandidateEvidenceBindings(mutation);
-    validateCandidateGateSemantics(mutation, mutationEvidence);
+    validateCandidateDocuments({
+      repositoryRoot,
+      summary: mutation,
+      evidence: candidateEvidence,
+      controlSummary,
+    });
     return [name];
   } catch {
     return [];
   }
 });
 assert.deepEqual(acceptedCandidateMutations, [], `candidate contract accepted mutations: ${acceptedCandidateMutations.join(", ")}`);
-const boundCandidateEvidence = validateCandidateEvidenceBindings(candidateSummary);
-validateCandidateGateSemantics(candidateSummary, boundCandidateEvidence);
 
-const candidateKeys = [
-  ["design-direction", "primary"],
-  ["composite-runtime", "primary"],
-  ["composite-runtime", "no-optional-generation"],
-];
-assert.equal(candidateSummary.fixtureResults.length, candidateKeys.length);
-for (const [fixtureId, variant] of candidateKeys) {
-  const result = candidateSummary.fixtureResults.find((entry) => entry.fixtureId === fixtureId && entry.variant === variant);
-  assert(result, `missing candidate fixture result: ${fixtureId}/${variant}`);
-  assert.deepEqual(Object.keys(result).sort(), [
-    "approvalChanges",
-    "capabilities",
-    "cycles",
-    "elapsedMinutes",
-    "fixtureDefinitionHash",
-    "fixtureId",
-    "label",
-    "loadedContext",
-    "maturity",
-    "objectiveResult",
-    "outputTreeHash",
-    "routeFiles",
-    "sourceTreeHash",
-    "subjectiveReview",
-    "terminalClaim",
-    "variant",
-  ]);
-  assert.match(result.fixtureDefinitionHash, /^sha256:[a-f0-9]{64}$/);
-  assert.match(result.sourceTreeHash, /^sha256:[a-f0-9]{64}$/);
-  assert.match(result.outputTreeHash, /^sha256:[a-f0-9]{64}$/);
-  assert.equal(result.approvalChanges, 0);
-  assert(Number.isInteger(result.cycles) && result.cycles > 0);
-  assert(Number.isInteger(result.elapsedMinutes) && result.elapsedMinutes > 0);
-  assert.deepEqual(Object.keys(result.loadedContext).sort(), ["bodyWords", "files", "metadataWords", "referenceWords"]);
-  for (const routeFile of result.routeFiles) {
-    assert.deepEqual(Object.keys(routeFile).sort(), ["contextBucket", "path", "sha256", "wordCount"]);
-    assert.match(routeFile.sha256, /^sha256:[a-f0-9]{64}$/);
-    assert(Number.isInteger(routeFile.wordCount) && routeFile.wordCount > 0);
-    assert(result.loadedContext.files.includes(routeFile.path));
-    const routePath = path.isAbsolute(routeFile.path) ? routeFile.path : path.join(repositoryRoot, routeFile.path);
-    assert(fs.existsSync(routePath), `missing route evidence: ${routeFile.path}`);
-    assert.equal(fileHash(routePath), routeFile.sha256);
+const portableRoot = path.join(repositoryRoot, ".tmp", `candidate-portable-${process.pid}`);
+const portableRootLink = `${portableRoot}-root-link`;
+const portableEvidenceReal = `${portableRoot}-evidence-real`;
+fs.rmSync(portableRoot, { recursive: true, force: true });
+fs.rmSync(portableRootLink, { recursive: true, force: true });
+fs.rmSync(portableEvidenceReal, { recursive: true, force: true });
+try {
+  const portableFiles = [
+    candidateSummaryRelative,
+    candidateEvidenceRelative,
+    controlSummaryRelative,
+    ...new Set(candidateEvidence.records.flatMap((record) => record.routeIdentity.map(({ path: routePath }) => routePath))),
+  ];
+  for (const relative of portableFiles) {
+    const source = path.join(repositoryRoot, relative);
+    const destination = path.join(portableRoot, relative);
+    fs.mkdirSync(path.dirname(destination), { recursive: true });
+    fs.copyFileSync(source, destination);
   }
-  assert(["Pass", "Blocked"].includes(result.objectiveResult.status));
-  assert(Array.isArray(result.objectiveResult.checks) && result.objectiveResult.checks.length > 0);
-  assert.match(result.subjectiveReview.status, /^Pass/);
-  assert.equal(result.subjectiveReview.reviewerIndependence, "Independent");
-  assert.match(result.terminalClaim, /\S/);
-}
+  assert.equal(fs.existsSync(path.join(portableRoot, ".tmp/game-art-evals")), false, "portable fixture must not copy ignored raw evidence");
+  validateCandidateRepository(portableRoot);
 
-const designCandidate = candidateSummary.fixtureResults.find((entry) => entry.fixtureId === "design-direction");
-const primaryProduceCandidate = candidateSummary.fixtureResults.find((entry) => entry.fixtureId === "composite-runtime" && entry.variant === "primary");
-const noGenerationCandidate = candidateSummary.fixtureResults.find((entry) => entry.variant === "no-optional-generation");
-assert.equal(designCandidate.objectiveResult.status, "Blocked");
-assert(designCandidate.objectiveResult.checks.some((check) => check.id === "genuine-input-to-visual-causality" && check.status === "Blocked"));
-assert.equal(designCandidate.maturity.bulkUnlock, "Locked");
-assert.equal(primaryProduceCandidate.objectiveResult.status, "Pass");
-assert.equal(noGenerationCandidate.objectiveResult.status, "Pass");
-assert.equal(noGenerationCandidate.capabilities.imageGeneration, "unavailable");
-assert.equal(noGenerationCandidate.capabilities.imageEditing, "unavailable");
-assert(noGenerationCandidate.objectiveResult.checks.some((check) => check.id === "replaceable-no-generation-route" && check.status === "Pass"));
-assert.equal(
-  noGenerationCandidate.loadedContext.bodyWords,
-  primaryProduceCandidate.loadedContext.bodyWords,
-  "same-hash Skill bodies must exclude the same four frontmatter delimiter tokens",
-);
-
-assert.equal(candidateSummary.observedFailures.length, 1);
-assert.deepEqual(Object.keys(candidateSummary.observedFailures[0]).sort(), ["criterion", "evidence", "fixtureId", "variant"]);
-assert.equal(candidateSummary.observedFailures[0].fixtureId, "design-direction");
-assert.equal(candidateSummary.observedFailures[0].variant, "primary");
-assert.equal(candidateSummary.observedFailures[0].criterion, "Actual keyboard/controller interaction-to-visual causality");
-assert(Array.isArray(candidateSummary.observedFailures[0].evidence) && candidateSummary.observedFailures[0].evidence.length > 0);
-
-assert.deepEqual(Object.keys(candidateSummary.sharedRootCauseClassification).sort(), [
-  "attribution",
-  "candidateArtifactRepairBatchUsed",
-  "classification",
-  "criterion",
-  "evidence",
-  "id",
-  "notAttributedTo",
-  "recovery",
-  "sameRootCycles",
-]);
-assert.equal(candidateSummary.sharedRootCauseClassification.id, "unavailable-browser-input-bridge");
-assert.equal(candidateSummary.sharedRootCauseClassification.criterion, candidateSummary.observedFailures[0].criterion);
-assert.equal(candidateSummary.sharedRootCauseClassification.classification, "Environment evidence limitation");
-assert.match(candidateSummary.sharedRootCauseClassification.attribution, /browser automation\/input-bridge availability/i);
-assert.deepEqual(candidateSummary.sharedRootCauseClassification.notAttributedTo, [
-  "game-art-production Skill wording",
-  "candidate runtime",
-]);
-assert.equal(candidateSummary.sharedRootCauseClassification.candidateArtifactRepairBatchUsed, false);
-assert.equal(candidateSummary.sharedRootCauseClassification.sameRootCycles, 2);
-
-assert.equal(candidateSummary.evaluationContractMismatches.length, candidateKeys.length);
-for (const mismatch of candidateSummary.evaluationContractMismatches) {
-  assert.deepEqual(Object.keys(mismatch).sort(), [
-    "criterion",
-    "evidence",
-    "excludedFromGateBasis",
-    "fixtureId",
-    "objectiveCheckId",
-    "producedAlternatives",
-    "variant",
-  ]);
-  assert.equal(mismatch.objectiveCheckId, "required-artifacts");
-  assert.equal(mismatch.excludedFromGateBasis, true);
-  assert(Array.isArray(mismatch.evidence) && mismatch.evidence.length > 0);
-  assert(Array.isArray(mismatch.producedAlternatives) && mismatch.producedAlternatives.length > 0);
-  assert(!candidateSummary.observedFailures.some((failure) => failure.evidence.some((entry) => mismatch.evidence.includes(entry))));
-}
-assert.match(candidateSummary.decisionBasis, /Exact-path evaluation-contract mismatches are excluded from the gate basis/);
-
-assert.equal(candidateSummary.approvalEvidence.length, candidateKeys.length);
-for (const approval of candidateSummary.approvalEvidence) {
-  assert.deepEqual(Object.keys(approval).sort(), ["addedOrChangedCount", "after", "before", "fixtureId", "hash", "variant"]);
-  const { hash, ...identity } = approval;
-  assert.equal(hash, semanticHash(identity));
-  assert.equal(approval.addedOrChangedCount, approvalChangeCount(approval.before, approval.after));
-  assert.equal(approval.addedOrChangedCount, 0);
-}
-
-assert.equal(candidateSummary.evidenceBundles.length, candidateKeys.length);
-for (const bundle of candidateSummary.evidenceBundles) {
-  assert.deepEqual(Object.keys(bundle).sort(), [
-    "deterministicOutput",
-    "fixtureId",
-    "independentReview",
-    "inputCausalityEvidence",
-    "rawBundle",
-    "runRecord",
-    "variant",
-  ]);
-  assert.deepEqual(Object.keys(bundle.rawBundle).sort(), ["hash", "location", "outputTreeHash"]);
-  for (const recordName of ["runRecord", "deterministicOutput", "independentReview"]) {
-    assert.deepEqual(Object.keys(bundle[recordName]).sort(), ["hash", "location"]);
+  let symlinksSupported = true;
+  try {
+    fs.symlinkSync(portableRoot, portableRootLink, "dir");
+  } catch (error) {
+    if (["EPERM", "EACCES", "ENOTSUP"].includes(error.code)) symlinksSupported = false;
+    else throw error;
   }
-  if (bundle.fixtureId === "design-direction") {
-    assert.deepEqual(Object.keys(bundle.inputCausalityEvidence).sort(), ["hash", "location"]);
-  } else {
-    assert.equal(bundle.inputCausalityEvidence, null);
+  if (symlinksSupported) {
+    assert.throws(() => validateCandidateRepository(portableRootLink), /repository root: symbolic link substitution/);
+    const portableEvidenceDirectory = path.dirname(path.join(portableRoot, candidateEvidenceRelative));
+    fs.renameSync(portableEvidenceDirectory, portableEvidenceReal);
+    fs.symlinkSync(portableEvidenceReal, portableEvidenceDirectory, "dir");
+    assert.throws(() => validateCandidateRepository(portableRoot), /symbolic link substitution/);
   }
-
-  const rawBundleRoot = path.join(repositoryRoot, bundle.rawBundle.location);
-  assert(fs.existsSync(rawBundleRoot), `missing raw evidence bundle: ${bundle.rawBundle.location}`);
-  assert.equal(fixtureApi.hashTree(rawBundleRoot), bundle.rawBundle.hash);
-  assert.equal(fixtureApi.hashTree(rawBundleRoot, ["fixture-lock.json"]), bundle.rawBundle.outputTreeHash);
-  for (const recordName of ["runRecord", "deterministicOutput", "independentReview", "inputCausalityEvidence"]) {
-    const record = bundle[recordName];
-    if (!record) continue;
-    const recordPath = path.join(repositoryRoot, record.location);
-    assert(fs.existsSync(recordPath), `missing bound evidence: ${record.location}`);
-    assert.equal(semanticHash(JSON.parse(fs.readFileSync(recordPath, "utf8"))), record.hash);
-  }
+} finally {
+  fs.rmSync(portableRootLink, { recursive: true, force: true });
+  fs.rmSync(portableRoot, { recursive: true, force: true });
+  fs.rmSync(portableEvidenceReal, { recursive: true, force: true });
 }
-
-assert.deepEqual(Object.keys(candidateSummary.burden).sort(), ["allRuns", "primaryFixtures"]);
-for (const burden of [candidateSummary.burden.primaryFixtures, candidateSummary.burden.allRuns]) {
-  assert.deepEqual(Object.keys(burden).sort(), ["approvals", "cycles", "elapsedMinutes", "loadedContext"]);
-  assert.deepEqual(Object.keys(burden.loadedContext).sort(), ["bodyWords", "files", "metadataWords", "referenceWords"]);
-}
-assert.equal(candidateSummary.burden.primaryFixtures.cycles, designCandidate.cycles + primaryProduceCandidate.cycles);
-assert.equal(candidateSummary.burden.primaryFixtures.elapsedMinutes, designCandidate.elapsedMinutes + primaryProduceCandidate.elapsedMinutes);
-assert.equal(candidateSummary.burden.allRuns.cycles, candidateSummary.fixtureResults.reduce((sum, entry) => sum + entry.cycles, 0));
-assert.equal(candidateSummary.burden.allRuns.elapsedMinutes, candidateSummary.fixtureResults.reduce((sum, entry) => sum + entry.elapsedMinutes, 0));
-assert.equal(candidateSummary.burden.allRuns.approvals, 0);
-
-assert.deepEqual(Object.keys(candidateSummary.comparison).sort(), [
-  "controlSummary",
-  "correctedControlFailures",
-  "lifecycleOrApprovalBurdenAdded",
-  "primaryBurdenDelta",
-  "retainedControlFailures",
-]);
-assert.equal(candidateSummary.comparison.controlSummary.location, "plugins/game-production-workflow/evals/game-art-production/control-1.7.2.json");
-assert.equal(candidateSummary.comparison.controlSummary.hash, semanticHash(controlSummary));
-assert.equal(candidateSummary.comparison.controlSummary.splitDecision, "Proceed");
-assert.equal(candidateSummary.comparison.correctedControlFailures.length, 3);
-assert.deepEqual(candidateSummary.comparison.retainedControlFailures, ["Actual keyboard/controller interaction-to-visual causality"]);
-assert.equal(candidateSummary.comparison.lifecycleOrApprovalBurdenAdded, false);
 
 assert.throws(
   () => fixtureApi.parseFixtureArguments(["prepare", "--fixture", "design-direction", "--label", "test", "--output", ".tmp/relative"]),
