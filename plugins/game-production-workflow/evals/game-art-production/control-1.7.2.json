@@ -1,0 +1,340 @@
+{
+  "schemaVersion": 1,
+  "policyCommit": "1d77557",
+  "policyVersion": "1.7.2+codex.20260814064925",
+  "fixtureResults": [
+    {
+      "schemaVersion": 1,
+      "fixtureId": "design-direction",
+      "label": "control-1.7.2",
+      "policyVersion": "1.7.2",
+      "capabilities": {
+        "gameProductionSystem": "1.7.2",
+        "imageGenerationAvailable": true,
+        "imageEditingAvailable": true,
+        "browserRuntimeInspection": true,
+        "externalArtDirectionSelected": false
+      },
+      "sourceTreeHash": "sha256:9263408b47f3df7faa539fa6559b92838309d402a1c89c9424611ea776f7ba7e",
+      "outputTreeHash": "sha256:0f976e279d292491030f51489d021cb49c407ba46920d95376178cb3ce2c0743",
+      "taskStateBefore": {
+        "gate": "G0",
+        "currentTask": "ART-DIRECTION-001",
+        "status": "Clarifying",
+        "nextAction": "Produce bounded original direction candidates in the greybox shell for human selection"
+      },
+      "taskStateAfter": {
+        "gate": "G0",
+        "currentTask": "ART-DIRECTION-001",
+        "status": "Clarifying",
+        "nextAction": "Human art direction reviews the integrated Signal Forge runtime candidate and explicitly selects, returns, or bounds it"
+      },
+      "loadedContext": {
+        "metadataWords": 84,
+        "bodyWords": 5923,
+        "referenceWords": 8691,
+        "files": [
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/SKILL.md#frontmatter",
+          "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md#frontmatter",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/SKILL.md#body",
+          "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md#body",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/execution.md",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/visual-production.md",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/experience-review.md",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/scripts/check.ps1#lines-1-90",
+          "browser-runtime://documentation/core",
+          "browser-runtime://documentation/local-web-development",
+          "browser-runtime://documentation/screenshots",
+          "browser-runtime://capability/viewport"
+        ]
+      },
+      "cycles": 2,
+      "elapsedMinutes": 16,
+      "objectiveChecks": [
+        {
+          "id": "source-lock",
+          "status": "Pass",
+          "evidence": [
+            "starter tree: matches lock",
+            "fixture definition: matches lock"
+          ]
+        },
+        {
+          "id": "task-state-claims",
+          "status": "Pass",
+          "evidence": [
+            "source claim: matches lock",
+            "before claim: matches lock",
+            "after claim: matches repository"
+          ]
+        },
+        {
+          "id": "required-artifacts",
+          "status": "Fail",
+          "evidence": [
+            "artifacts/design-direction.md: missing or empty",
+            "artifacts/source-export-import.md: missing or empty",
+            "artifacts/runtime-captures/1280x720-success.svg: missing or empty",
+            "artifacts/runtime-captures/1280x720-failure.svg: missing or empty",
+            "artifacts/runtime-captures/390x844-reward-overflow.svg: missing or empty",
+            "artifacts/runtime-captures/390x844-controller-focus.svg: missing or empty"
+          ]
+        },
+        {
+          "id": "output-tree-claim",
+          "status": "Pass",
+          "evidence": [
+            "output tree: matches observation"
+          ]
+        },
+        {
+          "id": "prohibited-claims",
+          "status": "Pass",
+          "evidence": [
+            "terminal claim contains no prohibited artistic passage"
+          ]
+        }
+      ],
+      "subjectiveReview": {
+        "status": "Pending",
+        "reviewerIndependence": "Unassessed",
+        "findings": []
+      },
+      "terminalClaim": "A bounded original direction candidate and honest runtime evidence are produced and recoverable. The task remains Clarifying at G0; no human selection, independent quality passage, producer acceptance, gate passage, or full keyboard-runtime proof is claimed."
+    },
+    {
+      "schemaVersion": 1,
+      "fixtureId": "composite-runtime",
+      "label": "control-1.7.2",
+      "policyVersion": "1.7.2",
+      "capabilities": {
+        "gameProductionSystem": "1.7.2",
+        "imageGenerationAvailable": true,
+        "imageEditingAvailable": true,
+        "browserRuntimeInspection": true,
+        "projectNativeComponentsRequired": true
+      },
+      "sourceTreeHash": "sha256:b1dbaca1b28c58df2aceaca54ede285303fd8151e990f5b83c8e2bed5ce8a848",
+      "outputTreeHash": "sha256:5404b20d371b1ab5ca0025cf511a7367d22600865a9539e03a693e2c483f5e09",
+      "taskStateBefore": {
+        "gate": "G1",
+        "currentTask": "ART-RUNTIME-001",
+        "status": "Ready",
+        "nextAction": "Replace the flattened inventory concept with the first project-native representative runtime slice"
+      },
+      "taskStateAfter": {
+        "gate": "G1",
+        "currentTask": "ART-RUNTIME-001",
+        "status": "Implementing",
+        "nextAction": "Observe the native runtime at 1280x720 in an allowed browser, capture all five states, and obtain independent visual and experience review"
+      },
+      "loadedContext": {
+        "metadataWords": 120,
+        "bodyWords": 6465,
+        "referenceWords": 3464,
+        "files": [
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/verification-before-completion/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/verification-before-completion/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/execution.md",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/visual-production.md",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/experience-review.md",
+          "local-web-development",
+          "screenshots",
+          "viewport"
+        ]
+      },
+      "cycles": 2,
+      "elapsedMinutes": 26,
+      "objectiveChecks": [
+        {
+          "id": "source-lock",
+          "status": "Pass",
+          "evidence": [
+            "starter tree: matches lock",
+            "fixture definition: matches lock"
+          ]
+        },
+        {
+          "id": "task-state-claims",
+          "status": "Pass",
+          "evidence": [
+            "source claim: matches lock",
+            "before claim: matches lock",
+            "after claim: matches repository"
+          ]
+        },
+        {
+          "id": "required-artifacts",
+          "status": "Fail",
+          "evidence": [
+            "web/components/inventory-panel.mjs: missing or empty",
+            "web/assets/inventory-frame.svg: missing or empty",
+            "web/assets/inventory-icons.svg: missing or empty",
+            "artifacts/source-export-import.md: missing or empty",
+            "artifacts/runtime-captures/empty.svg: missing or empty",
+            "artifacts/runtime-captures/full.svg: missing or empty",
+            "artifacts/runtime-captures/error.svg: missing or empty",
+            "artifacts/runtime-captures/equip.svg: missing or empty",
+            "artifacts/runtime-captures/controller-focus.svg: missing or empty"
+          ]
+        },
+        {
+          "id": "output-tree-claim",
+          "status": "Pass",
+          "evidence": [
+            "output tree: matches observation"
+          ]
+        },
+        {
+          "id": "local-state-verifier",
+          "status": "Pass",
+          "evidence": [
+            "PASS trusted authoritative inventory state contract"
+          ]
+        },
+        {
+          "id": "prohibited-claims",
+          "status": "Pass",
+          "evidence": [
+            "terminal claim contains no prohibited artistic passage"
+          ]
+        }
+      ],
+      "subjectiveReview": {
+        "status": "Pending",
+        "reviewerIndependence": "Unassessed",
+        "findings": []
+      },
+      "terminalClaim": "A source-complete, editable, project-native implementation candidate passes the authoritative state contract and deterministic assembly checks. Runtime proof, artistic passage, independent review, human acceptance, and gate passage are not claimed."
+    }
+  ],
+  "evidenceBundles": [
+    {
+      "fixtureId": "design-direction",
+      "rawBundle": {
+        "location": ".tmp/game-art-evals/control-design-direction",
+        "hash": "sha256:b4a03dd591683f516946eda97a67244bc64a22aa6a78cc8da1ad6efd7975732d",
+        "outputTreeHash": "sha256:0f976e279d292491030f51489d021cb49c407ba46920d95376178cb3ce2c0743"
+      },
+      "result": {
+        "location": ".tmp/game-art-evals/control-design-direction/result.json",
+        "hash": "sha256:b7e04d1584b548b297afce467e50f3591914c9bf1508ff4c6dbb9382688d5665"
+      },
+      "independentReview": {
+        "location": ".tmp/game-art-evals/control-design-direction/artifacts/independent-review.json",
+        "hash": "sha256:51a372519c20b7c85e0ac0c8e587c623615b806bc69d033d7fbd00d66589af4e",
+        "status": "Returned",
+        "reviewerIndependence": "Independent",
+        "contributionDisclosure": "No contribution to production artifacts"
+      }
+    },
+    {
+      "fixtureId": "composite-runtime",
+      "rawBundle": {
+        "location": ".tmp/game-art-evals/control-composite-runtime",
+        "hash": "sha256:76fe51433efb6e3e164138d6762d23988cf3f847de3b7f2928be04ac48994587",
+        "outputTreeHash": "sha256:5404b20d371b1ab5ca0025cf511a7367d22600865a9539e03a693e2c483f5e09"
+      },
+      "result": {
+        "location": ".tmp/game-art-evals/control-composite-runtime/result.json",
+        "hash": "sha256:ac6ff3745835b9dcedac7801737bd5aca13e57b19ffbdead9d472fa9a8397601"
+      },
+      "independentReview": {
+        "location": ".tmp/game-art-evals/control-composite-runtime/artifacts/independent-review.json",
+        "hash": "sha256:4416b13cd3b7a3087d179aeecea8a8c2b9edd5cf533203811ff78bb1033dc81c",
+        "status": "Returned",
+        "reviewerIndependence": "Independent",
+        "contributionDisclosure": "No contribution to production artifacts"
+      }
+    }
+  ],
+  "observedFailures": [
+    {
+      "fixtureId": "design-direction",
+      "criterion": "Every declared direction, source handoff, and runtime capture artifact exists and is non-empty.",
+      "evidence": [
+        "result.json objective check required-artifacts: Fail",
+        "artifacts/design-direction.md: missing or empty",
+        "artifacts/source-export-import.md: missing or empty",
+        "artifacts/runtime-captures/1280x720-success.svg: missing or empty",
+        "artifacts/runtime-captures/1280x720-failure.svg: missing or empty",
+        "artifacts/runtime-captures/390x844-reward-overflow.svg: missing or empty",
+        "artifacts/runtime-captures/390x844-controller-focus.svg: missing or empty"
+      ]
+    },
+    {
+      "fixtureId": "design-direction",
+      "criterion": "Reward-overflow content, controller focus, and actual input causality are visibly demonstrated at 390x844.",
+      "evidence": [
+        "artifacts/independent-review.json status: Returned",
+        "The reward-overflow capture shows shell controls instead of the eight-row integrated result panel and action containment.",
+        "The controller-focus capture does not visually distinguish focus from the ordinary primary-action treatment.",
+        "artifacts/SOURCE-HANDOFF.md records that Enter, Space, and Tab input remained unobserved."
+      ]
+    },
+    {
+      "fixtureId": "composite-runtime",
+      "criterion": "Every separated source, native component, handoff note, and runtime capture exists and is non-empty.",
+      "evidence": [
+        "result.json objective check required-artifacts: Fail",
+        "web/components/inventory-panel.mjs: missing or empty",
+        "web/assets/inventory-frame.svg: missing or empty",
+        "web/assets/inventory-icons.svg: missing or empty",
+        "artifacts/source-export-import.md: missing or empty",
+        "All five declared artifacts/runtime-captures/*.svg state captures are missing or empty."
+      ]
+    },
+    {
+      "fixtureId": "composite-runtime",
+      "criterion": "The project-native panel and actual keyboard and pointer causality are reviewed in the running experience at 1280x720.",
+      "evidence": [
+        "artifacts/independent-review.json status: Returned",
+        "artifacts/control-run-record.json runtimeObservation.status: blocked",
+        "artifacts/control-run-record.json runtimeObservation.captures is empty",
+        "No runtime-captures directory or five-state target-size evidence is present."
+      ]
+    }
+  ],
+  "burden": {
+    "cycles": 4,
+    "elapsedMinutes": 42,
+    "approvals": 0,
+    "loadedContext": {
+      "metadataWords": 204,
+      "bodyWords": 12388,
+      "referenceWords": 12155,
+      "files": [
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/SKILL.md#frontmatter",
+        "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md#frontmatter",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/SKILL.md#body",
+        "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md#body",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/execution.md",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/visual-production.md",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/experience-review.md",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/scripts/check.ps1#lines-1-90",
+        "browser-runtime://documentation/core",
+        "browser-runtime://documentation/local-web-development",
+        "browser-runtime://documentation/screenshots",
+        "browser-runtime://capability/viewport",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/SKILL.md",
+        "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md",
+        "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/verification-before-completion/SKILL.md",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/SKILL.md",
+        "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md",
+        "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/verification-before-completion/SKILL.md",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/execution.md",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/visual-production.md",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/experience-review.md",
+        "local-web-development",
+        "screenshots",
+        "viewport"
+      ]
+    }
+  },
+  "splitDecision": "Proceed",
+  "decisionBasis": "Proceed because both primary fixtures have objective required-artifact failures, not because of policy wording or architectural preference. Design-direction omits all six fixture-declared artifacts and its independent review Returned the portrait overflow, controller-focus, and input-causality evidence. Composite-runtime passes the trusted authoritative state verifier but omits all nine fixture-declared native-source and runtime-capture artifacts; runtime observation was blocked and its independent review Returned the integrated experience. The two runs consumed four cycles, 42 elapsed minutes, zero new approvals, and 204 metadata, 12,388 body, and 12,155 reference words. Generated result records retain subjectiveReview as Pending/Unassessed because the verifier does not ingest the later review files; the separate immutable independent reviews are both Returned, and neither record has been rewritten."
+}

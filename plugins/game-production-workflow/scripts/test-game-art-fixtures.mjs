@@ -10,6 +10,7 @@ const pluginRoot = path.resolve(scriptDirectory, "..");
 const repositoryRoot = path.resolve(pluginRoot, "../..");
 const evalRoot = path.join(pluginRoot, "evals/game-art-production");
 const cliPath = path.join(scriptDirectory, "game-art-fixture.mjs");
+const controlSummaryPath = path.join(evalRoot, "control-1.7.2.json");
 const ids = ["design-direction", "composite-runtime"];
 const expectedStarterFiles = {
   "design-direction": [
@@ -173,6 +174,137 @@ assert(fs.existsSync(cliPath), "missing game art fixture CLI");
 const fixtureApi = await import(pathToFileURL(cliPath));
 for (const name of ["parseFixtureArguments", "loadFixture", "hashTree", "prepareFixture", "verifyFixture"]) {
   assert.equal(typeof fixtureApi[name], "function", `missing exported CLI function: ${name}`);
+}
+
+assert(fs.existsSync(controlSummaryPath), "missing 1.7.2 control summary");
+const controlSummary = JSON.parse(fs.readFileSync(controlSummaryPath, "utf8"));
+assert.deepEqual(Object.keys(controlSummary).sort(), [
+  "burden",
+  "decisionBasis",
+  "evidenceBundles",
+  "fixtureResults",
+  "observedFailures",
+  "policyCommit",
+  "policyVersion",
+  "schemaVersion",
+  "splitDecision",
+]);
+assert.equal(controlSummary.schemaVersion, 1);
+assert.equal(controlSummary.policyCommit, "1d77557");
+assert.equal(controlSummary.policyVersion, "1.7.2+codex.20260814064925");
+assert.match(controlSummary.decisionBasis, /\S/);
+assert(["Stop", "Proceed"].includes(controlSummary.splitDecision));
+
+const expectedControlIdentities = {
+  "design-direction": {
+    sourceTreeHash: "sha256:9263408b47f3df7faa539fa6559b92838309d402a1c89c9424611ea776f7ba7e",
+    outputTreeHash: "sha256:0f976e279d292491030f51489d021cb49c407ba46920d95376178cb3ce2c0743",
+    rawBundleHash: "sha256:b4a03dd591683f516946eda97a67244bc64a22aa6a78cc8da1ad6efd7975732d",
+    resultHash: "sha256:b7e04d1584b548b297afce467e50f3591914c9bf1508ff4c6dbb9382688d5665",
+    independentReviewHash: "sha256:51a372519c20b7c85e0ac0c8e587c623615b806bc69d033d7fbd00d66589af4e",
+    independentReviewStatus: "Returned",
+  },
+  "composite-runtime": {
+    sourceTreeHash: "sha256:b1dbaca1b28c58df2aceaca54ede285303fd8151e990f5b83c8e2bed5ce8a848",
+    outputTreeHash: "sha256:5404b20d371b1ab5ca0025cf511a7367d22600865a9539e03a693e2c483f5e09",
+    rawBundleHash: "sha256:76fe51433efb6e3e164138d6762d23988cf3f847de3b7f2928be04ac48994587",
+    resultHash: "sha256:ac6ff3745835b9dcedac7801737bd5aca13e57b19ffbdead9d472fa9a8397601",
+    independentReviewHash: "sha256:4416b13cd3b7a3087d179aeecea8a8c2b9edd5cf533203811ff78bb1033dc81c",
+    independentReviewStatus: "Returned",
+  },
+};
+
+assert.equal(controlSummary.fixtureResults.length, ids.length);
+assert.deepEqual(controlSummary.fixtureResults.map((result) => result.fixtureId).sort(), [...ids].sort());
+for (const result of controlSummary.fixtureResults) {
+  assert.deepEqual(Object.keys(result).sort(), [
+    "capabilities",
+    "cycles",
+    "elapsedMinutes",
+    "fixtureId",
+    "label",
+    "loadedContext",
+    "objectiveChecks",
+    "outputTreeHash",
+    "policyVersion",
+    "schemaVersion",
+    "sourceTreeHash",
+    "subjectiveReview",
+    "taskStateAfter",
+    "taskStateBefore",
+    "terminalClaim",
+  ]);
+  assert.equal(result.schemaVersion, 1);
+  assert.equal(result.label, "control-1.7.2");
+  assert.equal(result.policyVersion, "1.7.2");
+  assert.equal(result.sourceTreeHash, expectedControlIdentities[result.fixtureId].sourceTreeHash);
+  assert.equal(result.outputTreeHash, expectedControlIdentities[result.fixtureId].outputTreeHash);
+  assert.deepEqual(Object.keys(result.loadedContext).sort(), ["bodyWords", "files", "metadataWords", "referenceWords"]);
+  assert(Array.isArray(result.objectiveChecks) && result.objectiveChecks.length > 0);
+  assert.equal(result.subjectiveReview.status, "Pending");
+  assert.equal(result.subjectiveReview.reviewerIndependence, "Unassessed");
+}
+
+assert.equal(controlSummary.evidenceBundles.length, ids.length);
+assert.deepEqual(controlSummary.evidenceBundles.map((bundle) => bundle.fixtureId).sort(), [...ids].sort());
+for (const bundle of controlSummary.evidenceBundles) {
+  assert.deepEqual(Object.keys(bundle).sort(), ["fixtureId", "independentReview", "rawBundle", "result"]);
+  assert.deepEqual(Object.keys(bundle.rawBundle).sort(), ["hash", "location", "outputTreeHash"]);
+  assert.deepEqual(Object.keys(bundle.result).sort(), ["hash", "location"]);
+  assert.deepEqual(Object.keys(bundle.independentReview).sort(), [
+    "contributionDisclosure",
+    "hash",
+    "location",
+    "reviewerIndependence",
+    "status",
+  ]);
+  assert.equal(bundle.rawBundle.location, `.tmp/game-art-evals/control-${bundle.fixtureId}`);
+  assert.equal(bundle.result.location, `${bundle.rawBundle.location}/result.json`);
+  assert.equal(bundle.independentReview.location, `${bundle.rawBundle.location}/artifacts/independent-review.json`);
+  for (const hash of [bundle.rawBundle.hash, bundle.result.hash, bundle.independentReview.hash]) {
+    assert.match(hash, /^sha256:[a-f0-9]{64}$/);
+  }
+  const result = controlSummary.fixtureResults.find((entry) => entry.fixtureId === bundle.fixtureId);
+  assert.equal(bundle.rawBundle.outputTreeHash, result.outputTreeHash);
+  assert.equal(bundle.rawBundle.hash, expectedControlIdentities[bundle.fixtureId].rawBundleHash);
+  assert.equal(bundle.result.hash, expectedControlIdentities[bundle.fixtureId].resultHash);
+  assert.equal(bundle.independentReview.hash, expectedControlIdentities[bundle.fixtureId].independentReviewHash);
+  assert.equal(bundle.independentReview.status, expectedControlIdentities[bundle.fixtureId].independentReviewStatus);
+  assert.match(bundle.independentReview.reviewerIndependence, /\S/);
+  assert.match(bundle.independentReview.contributionDisclosure, /\S/);
+
+  const rawBundleRoot = path.join(repositoryRoot, bundle.rawBundle.location);
+  if (fs.existsSync(rawBundleRoot)) {
+    const resultPath = path.join(repositoryRoot, bundle.result.location);
+    const reviewPath = path.join(repositoryRoot, bundle.independentReview.location);
+    const fileHash = (file) => `sha256:${crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex")}`;
+    assert.equal(fixtureApi.hashTree(rawBundleRoot), bundle.rawBundle.hash);
+    assert.equal(fileHash(resultPath), bundle.result.hash);
+    assert.equal(fileHash(reviewPath), bundle.independentReview.hash);
+    assert.deepEqual(JSON.parse(fs.readFileSync(resultPath, "utf8")), result);
+    assert.equal(JSON.parse(fs.readFileSync(reviewPath, "utf8")).status, bundle.independentReview.status);
+  }
+}
+
+assert.deepEqual(Object.keys(controlSummary.burden).sort(), ["approvals", "cycles", "elapsedMinutes", "loadedContext"]);
+assert.deepEqual(Object.keys(controlSummary.burden.loadedContext).sort(), ["bodyWords", "files", "metadataWords", "referenceWords"]);
+for (const field of ["cycles", "elapsedMinutes", "approvals"]) {
+  assert(Number.isFinite(controlSummary.burden[field]) && controlSummary.burden[field] >= 0);
+}
+for (const field of ["metadataWords", "bodyWords", "referenceWords"]) {
+  assert(Number.isFinite(controlSummary.burden.loadedContext[field]) && controlSummary.burden.loadedContext[field] >= 0);
+}
+assert(Array.isArray(controlSummary.burden.loadedContext.files));
+assert(Array.isArray(controlSummary.observedFailures));
+for (const failure of controlSummary.observedFailures) {
+  assert.deepEqual(Object.keys(failure).sort(), ["criterion", "evidence", "fixtureId"]);
+  assert(ids.includes(failure.fixtureId));
+  assert.match(failure.criterion, /\S/);
+  assert(Array.isArray(failure.evidence) && failure.evidence.length > 0);
+  assert(failure.evidence.every((entry) => typeof entry === "string" && /\S/.test(entry)));
+}
+if (controlSummary.splitDecision === "Proceed") {
+  assert(controlSummary.observedFailures.length > 0, "Proceed requires observed artifact failures");
 }
 
 assert.throws(
