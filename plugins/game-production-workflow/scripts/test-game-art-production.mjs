@@ -18,18 +18,16 @@ for (const relativePath of requiredFiles) {
 }
 
 const skill = fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf8");
+const expectedDescription = "Use when interactive UI/2D game work needs a new or materially changed visual direction, screen, HUD, component/state system, flattened-composite decomposition, editable source production, project-native integration, runtime visual proof, or professional visual review.";
+const expectedFrontmatter = `---
+name: game-art-production
+description: ${expectedDescription}
+---
+`;
 const frontmatterMatch = skill.match(/^---\n([\s\S]*?)\n---\n/);
 assert(frontmatterMatch, "SKILL.md must start with YAML frontmatter");
-
-const frontmatterKeys = [...frontmatterMatch[1].matchAll(/^([a-z_]+):/gm)].map((match) => match[1]);
-assert.deepEqual(frontmatterKeys, ["name", "description"], "frontmatter must contain only name and description");
-assert.match(frontmatterMatch[1], /^name: game-art-production$/m);
-
-const descriptionMatch = frontmatterMatch[1].match(/^description: (.+)$/m);
-assert(descriptionMatch, "frontmatter must contain a single-line description");
-assert(descriptionMatch[1].length <= 500, "description must be at most 500 characters");
-assert.match(descriptionMatch[1], /interactive UI\/2D game work/i);
-assert.match(descriptionMatch[1], /screen|HUD|component\/state|runtime visual proof/i);
+assert.equal(frontmatterMatch[0], expectedFrontmatter, "frontmatter must be the exact required two-key block");
+assert(expectedDescription.length <= 500, "required description must remain at most 500 characters");
 
 assert.match(skill, /\| `Design` \| `references\/visual-design\.md` \|/);
 assert.match(skill, /\| `Produce` \| `references\/interactive-ui-2d\.md` \|/);
@@ -57,6 +55,17 @@ assert.match(skill, /Not established[\s\S]*absence/i);
 assert.match(skill, /Not applicable[\s\S]*absence/i);
 assert.match(skill, /must not[\s\S]{0,200}(?:create|own)[\s\S]{0,200}(?:TASK|PLAN)[\s\S]{0,200}(?:status|gate|approval)/i);
 assert.match(skill, /must not[\s\S]{0,200}self[- ]approve[\s\S]{0,200}(?:golden|final)/i);
+
+const visualDesign = fs.readFileSync(path.join(skillRoot, "references/visual-design.md"), "utf8");
+assert.match(visualDesign, /Professional result:[^\n]*Production-design candidate/i);
+assert.match(visualDesign, /Maturity assessment:[^\n]*core-supplied current maturity[^\n]*normally `Direction`[^\n]*until[^\n]*core[^\n]*freeze/i);
+assert.match(visualDesign, /never report `Production design`[^\n]*before[^\n]*freeze/i);
+assert.match(visualDesign, /do not replace[^\n]*established maturity[^\n]*`Not established`/i);
+
+const interactiveUi2d = fs.readFileSync(path.join(skillRoot, "references/interactive-ui-2d.md"), "utf8");
+assert.match(interactiveUi2d, /select one dominant root cause or subsystem/i);
+assert.match(interactiveUi2d, /one bounded repair batch total for the operation/i);
+assert.doesNotMatch(interactiveUi2d, /one bounded repair batch per root cause\/subsystem/i);
 
 const agentMetadata = fs.readFileSync(path.join(skillRoot, "agents/openai.yaml"), "utf8");
 assert.equal(agentMetadata, `interface:

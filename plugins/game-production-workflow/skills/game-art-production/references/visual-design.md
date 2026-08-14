@@ -17,4 +17,6 @@ Require the player/platform context, viewing distance and viewport, product iden
 
 ## Return
 
-Return `Proposed` with either a `Direction` candidate or a `Production design` candidate, intended-size inspection, rejection conditions, source/reproducibility record, feasibility evidence, unresolved risks, and the next authorized proof. When a human choice remains, stop after the bounded Direction candidates. When selected direction has not been core-recorded, do not pre-produce rejected alternatives or form Production design. Use `Blocked` only for a genuinely missing boundary or observation capability and preserve the brief, candidates, and recovery point.
+Report `Professional result: Proposed` and identify the artifact as a `Direction candidate` or, after core supplies the recorded selection, a `Production-design candidate`; candidate type does not set maturity. Maturity assessment: preserve the core-supplied current maturity, normally `Direction`, until the core records the freeze. Never report `Production design` before that freeze, and do not replace an established maturity with `Not established`.
+
+Include intended-size inspection, rejection conditions, source/reproducibility, feasibility evidence, risks, and next authorized proof. When a human choice remains, stop after the bounded Direction candidates; do not pre-produce rejected alternatives. Use `Blocked` only for a genuinely missing boundary or observation capability and preserve the brief, candidates, and recovery point.
