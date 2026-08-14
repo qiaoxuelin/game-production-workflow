@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "systemVersion": "1.7.2",
+  "projectId": "inventory-runtime-eval",
+  "developmentMode": "original_design",
+  "projectTrack": "desktop_game",
+  "businessModel": "premium",
+  "validationMode": "product_first",
+  "qualityFocus": ["gui", "art"],
+  "platform": ["desktop"],
+  "engine": "browser-native HTML/CSS/JavaScript",
+  "canonicalClient": "web",
+  "gitPolicy": "single_repo",
+  "components": [
+    {
+      "name": "inventory-runtime-eval",
+      "path": ".",
+      "role": "canonical",
+      "gitRequired": true
+    }
+  ],
+  "referenceClients": [],
+  "sharedContracts": ["web/state.mjs"],
+  "gate": "G1",
+  "currentTask": "ART-RUNTIME-001",
+  "status": "Ready",
+  "blockers": [],
+  "nextAction": "Replace the flattened inventory concept with the first project-native representative runtime slice",
+  "humanApprovals": {
+    "G0": {
+      "decision": "approved",
+      "decidedBy": "Fixture author",
+      "decidedAt": "2026-08-14",
+      "source": "production/PROJECT.md",
+      "scope": "Inventory direction and interaction/render contract"
+    },
+    "G1": null,
+    "goldenVisual": null,
+    "G2": null,
+    "G3": null
+  },
+  "updatedAt": "2026-08-14"
+}

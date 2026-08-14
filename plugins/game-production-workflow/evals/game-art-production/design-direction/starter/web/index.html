@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Result Screen Direction Greybox</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <aside class="case-panel" aria-label="Fixture cases">
+      <strong>Greybox cases</strong>
+      <button data-case="success">Success</button>
+      <button data-case="failure">Failure</button>
+      <button data-case="reward-overflow">Reward overflow</button>
+      <button data-case="retry">Retry feedback</button>
+      <button data-case="controller-focus">Keyboard/controller focus</button>
+      <button data-viewport="desktop">1280×720</button>
+      <button data-viewport="mobile">390×844</button>
+    </aside>
+    <main id="viewport" class="viewport desktop" aria-live="polite">
+      <section class="result" aria-labelledby="outcome">
+        <p class="eyebrow">Run complete</p>
+        <h1 id="outcome">Success</h1>
+        <p id="score">Score 12,480</p>
+        <ul id="rewards" aria-label="Rewards"></ul>
+        <div class="actions">
+          <button id="retry">Retry</button>
+          <button id="exit">Exit</button>
+        </div>
+        <p id="feedback" role="status"></p>
+      </section>
+    </main>
+    <script type="module" src="./app.mjs"></script>
+  </body>
+</html>

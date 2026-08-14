@@ -26,6 +26,7 @@ $approvalTestPath = Join-Path $plugin "scripts/test-server.mjs"
 $policyTestPath = Join-Path $plugin "scripts/test-production-policy.mjs"
 $convergenceTestPath = Join-Path $plugin "scripts/test-convergence-policy.mjs"
 $skillEvalTestPath = Join-Path $plugin "scripts/test-skill-evals.mjs"
+$gameArtFixtureTestPath = Join-Path $plugin "scripts/test-game-art-fixtures.mjs"
 $skillEvalCorpusPath = Join-Path $plugin "evals/game-production-system.json"
 $doctorTestPath = Join-Path $plugin "scripts/test-doctor.mjs"
 $installTestPath = Join-Path $plugin "scripts/test-install.mjs"
@@ -55,6 +56,7 @@ foreach ($required in @(
     $policyTestPath,
     $convergenceTestPath,
     $skillEvalTestPath,
+    $gameArtFixtureTestPath,
     $skillEvalCorpusPath,
     $doctorTestPath,
     $installTestPath
@@ -200,6 +202,8 @@ Assert-True ($LASTEXITCODE -eq 0) "Production policy structure test failed."
 Assert-True ($LASTEXITCODE -eq 0) "Returned-candidate convergence test failed."
 & $node.Source $skillEvalTestPath
 Assert-True ($LASTEXITCODE -eq 0) "Game-production behavior evaluation corpus failed."
+& $node.Source $gameArtFixtureTestPath
+Assert-True ($LASTEXITCODE -eq 0) "Game-art fixture harness test failed."
 & $node.Source $doctorTestPath
 Assert-True ($LASTEXITCODE -eq 0) "Production capability doctor test failed."
 & $node.Source $installTestPath

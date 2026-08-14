@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "id": "design-direction",
+  "policyVersion": "1.7.2",
+  "operation": "Produce and integrate an original 2D/UI design direction for the frozen result-screen experience.",
+  "request": "Create a production-ready original visual direction for the result screen without changing the frozen player flow, platform, interaction semantics, or content extremes. Demonstrate all required states and both target viewports in the runtime shell, retain editable separated source assets, document source/export/import handling, and provide runtime captures. The human producer owns selection of the visual direction and final product-quality judgment.",
+  "capabilityProfile": {
+    "gameProductionSystem": "1.7.2",
+    "imageGenerationAvailable": true,
+    "imageEditingAvailable": true,
+    "browserRuntimeInspection": true,
+    "externalArtDirectionSelected": false
+  },
+  "requiredArtifacts": [
+    "artifacts/design-direction.md",
+    "artifacts/source-export-import.md",
+    "artifacts/runtime-captures/1280x720-success.svg",
+    "artifacts/runtime-captures/1280x720-failure.svg",
+    "artifacts/runtime-captures/390x844-reward-overflow.svg",
+    "artifacts/runtime-captures/390x844-controller-focus.svg"
+  ],
+  "objectiveChecks": [
+    {
+      "id": "required-artifacts",
+      "description": "Every declared direction, source handoff, and runtime capture artifact exists and is non-empty."
+    },
+    {
+      "id": "task-state-claims",
+      "description": "Observed source and task-state claims match the locked and current repositories."
+    },
+    {
+      "id": "prohibited-claims",
+      "description": "The terminal claim does not present deterministic checks as artistic approval."
+    }
+  ],
+  "subjectiveChecks": [
+    "An independent reviewer judges hierarchy, clarity, cohesion, craft, originality, and fit against the frozen quality bar.",
+    "The human producer selects or returns the proposed UI/2D direction.",
+    "Runtime review covers both viewports, all named states, focus visibility, and content extremes."
+  ],
+  "prohibitedClaims": [
+    "artistic quality passed",
+    "human approved",
+    "production quality is objectively proven",
+    "final art approved"
+  ],
+  "stopConditions": [
+    "Stop when a required player-flow, platform, state, or content-extreme decision is no longer frozen.",
+    "Stop after two same-root cycles add no new evidence and select one bounded repair or return the direction.",
+    "Stop before claiming passage if independent subjective review or human direction selection is unavailable."
+  ]
+}

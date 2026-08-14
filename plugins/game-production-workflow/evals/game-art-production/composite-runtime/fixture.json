@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": "composite-runtime",
+  "policyVersion": "1.7.2",
+  "operation": "Replace a flattened inventory concept with editable separated assets and project-native runtime components.",
+  "request": "Implement the frozen inventory direction as editable separated source assets and project-native components. Preserve state.mjs as the single authoritative source for empty, full, error, equip, and controller-focus behavior. Integrate actual keyboard and pointer input, prove multiple runtime states, document source/export/import handling, and provide runtime captures. The supplied inventory-concept.svg is a flattened concept only and must not be claimed as runtime UI or a production asset inventory.",
+  "capabilityProfile": {
+    "gameProductionSystem": "1.7.2",
+    "imageGenerationAvailable": true,
+    "imageEditingAvailable": true,
+    "browserRuntimeInspection": true,
+    "projectNativeComponentsRequired": true
+  },
+  "requiredArtifacts": [
+    "web/components/inventory-panel.mjs",
+    "web/assets/inventory-frame.svg",
+    "web/assets/inventory-icons.svg",
+    "artifacts/source-export-import.md",
+    "artifacts/runtime-captures/empty.svg",
+    "artifacts/runtime-captures/full.svg",
+    "artifacts/runtime-captures/error.svg",
+    "artifacts/runtime-captures/equip.svg",
+    "artifacts/runtime-captures/controller-focus.svg"
+  ],
+  "objectiveChecks": [
+    {
+      "id": "required-artifacts",
+      "description": "Every separated source, native component, handoff note, and runtime capture exists and is non-empty."
+    },
+    {
+      "id": "local-state-verifier",
+      "description": "The fixture-local verifier confirms the authoritative state and transition contract."
+    },
+    {
+      "id": "task-state-claims",
+      "description": "Observed source and task-state claims match the locked and current repositories."
+    },
+    {
+      "id": "prohibited-claims",
+      "description": "The terminal claim does not promote the concept or deterministic checks into artistic approval."
+    }
+  ],
+  "subjectiveChecks": [
+    "An independent reviewer judges hierarchy, legibility, craft, coherence, and fidelity to the frozen direction in the running experience.",
+    "Runtime review confirms that state changes feel causally connected to player input and remain readable at target sizes.",
+    "The human producer determines whether the integrated result reaches the declared commercial-quality bar."
+  ],
+  "prohibitedClaims": [
+    "concept is production-ready runtime UI",
+    "artistic quality passed",
+    "human approved",
+    "final art approved"
+  ],
+  "stopConditions": [
+    "Stop if implementation requires inventing a new visual, interaction, or state rule outside the frozen contract.",
+    "Stop if renderers duplicate authoritative inventory state or the flattened concept is used as the final runtime component.",
+    "Stop after two same-root cycles add no new evidence and select one bounded repair or return the candidate."
+  ],
+  "localVerifier": "web/verify.mjs"
+}
