@@ -129,6 +129,32 @@ Assert-True ($parseFailures.Count -eq 0) (
     ($parseFailures -join [Environment]::NewLine)
 )
 
+$legacyEncodingFailures = @()
+foreach ($script in Get-ChildItem -LiteralPath $repo -Recurse -Filter *.ps1 -File) {
+    $bytes = [System.IO.File]::ReadAllBytes($script.FullName)
+    $hasNonAscii = $false
+    foreach ($byte in $bytes) {
+        if ($byte -gt 127) {
+            $hasNonAscii = $true
+            break
+        }
+    }
+    $hasUtf8Bom = (
+        $bytes.Length -ge 3 -and
+        $bytes[0] -eq 0xEF -and
+        $bytes[1] -eq 0xBB -and
+        $bytes[2] -eq 0xBF
+    )
+    if ($hasNonAscii -and -not $hasUtf8Bom) {
+        $legacyEncodingFailures += $script.FullName
+    }
+}
+Assert-True ($legacyEncodingFailures.Count -eq 0) (
+    'PowerShell scripts containing non-ASCII text require a UTF-8 BOM for Windows PowerShell 5.1:' +
+    [Environment]::NewLine +
+    ($legacyEncodingFailures -join [Environment]::NewLine)
+)
+
 $brokenLinks = @()
 foreach ($markdown in Get-ChildItem -LiteralPath $repo -Recurse -Filter *.md -File) {
     $content = Get-Content -Raw -Encoding utf8 $markdown.FullName
