@@ -343,9 +343,9 @@ standalone for production.
 3. Run the capability handshake, select the next player-visible slice, edit the
    actual product source, run the project adapter, inspect the result, repair one
    root cause, and leave a recoverable checkpoint.
-4. For interactive visual work, execute the player-action-to-runtime chain and
-   keep bulk production locked until assembly and representative runtime proof
-   pass.
+4. For interactive visuals, reject flattened-composite finality, keep
+   maturity/fidelity claims truthful, require actual target-project evidence and
+   representative assembly/runtime proof before bulk unlock.
 5. A governance-only edit is not a production cycle. Return to `Clarifying`
    only for a genuinely missing human-owned boundary; use an isolated product
    precheck for reversible implementation uncertainty.

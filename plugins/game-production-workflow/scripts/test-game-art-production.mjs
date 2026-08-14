@@ -6,6 +6,12 @@ import { fileURLToPath } from "node:url";
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(scriptDirectory, "../skills/game-art-production");
 const coreRoot = path.resolve(scriptDirectory, "../skills/game-production-system");
+const wordCount = (text) => text.trim().split(/\s+/u).length;
+const routeBaselines = Object.freeze({
+  nonArtProduce: 5586,
+  design: 9462,
+  produce: 6877,
+});
 const requiredFiles = [
   "SKILL.md",
   "agents/openai.yaml",
@@ -21,6 +27,15 @@ for (const relativePath of requiredFiles) {
 const skill = fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf8");
 const coreSkill = fs.readFileSync(path.join(coreRoot, "SKILL.md"), "utf8");
 const execution = fs.readFileSync(path.join(coreRoot, "references/execution.md"), "utf8");
+const workflow = fs.readFileSync(path.join(coreRoot, "references/workflow.md"), "utf8");
+const visualProduction = fs.readFileSync(
+  path.join(coreRoot, "references/visual-production.md"),
+  "utf8",
+);
+const experienceReview = fs.readFileSync(
+  path.join(coreRoot, "references/experience-review.md"),
+  "utf8",
+);
 const projectInstructions = fs.readFileSync(
   path.join(coreRoot, "assets/project-template/AGENTS.md"),
   "utf8",
@@ -34,11 +49,23 @@ description: ${expectedDescription}
 const frontmatterMatch = skill.match(/^---\n([\s\S]*?)\n---\n/);
 assert(frontmatterMatch, "SKILL.md must start with YAML frontmatter");
 assert.equal(frontmatterMatch[0], expectedFrontmatter, "frontmatter must be the exact required two-key block");
+const discoveryEntries = frontmatterMatch[1]
+  .split("\n")
+  .filter((line) => /^description\s*:/u.test(line));
+assert.equal(discoveryEntries.length, 1, "frontmatter must contain exactly one discovery entry");
 assert(expectedDescription.length <= 500, "required description must remain at most 500 characters");
 
-assert.match(skill, /\| `Design` \| `references\/visual-design\.md` \|/);
-assert.match(skill, /\| `Produce` \| `references\/interactive-ui-2d\.md` \|/);
-assert.match(skill, /\| `Review` \| `references\/visual-review\.md` \|/);
+const operationManifest = skill.match(
+  /\| Operation \| Load \|\n\| --- \| --- \|\n((?:\|.*\n){3})/u,
+)?.[1];
+assert(operationManifest, "art Skill must declare a three-operation static manifest");
+const manifestRows = [...operationManifest.matchAll(/^\| `([^`]+)` \| `([^`]+)` \|$/gmu)]
+  .map(([, operation, reference]) => [operation, reference]);
+assert.deepEqual(manifestRows, [
+  ["Design", "references/visual-design.md"],
+  ["Produce", "references/interactive-ui-2d.md"],
+  ["Review", "references/visual-review.md"],
+], "each art operation must permit only its named reference");
 
 const startRoute = coreSkill.match(
   /### Start a substantial feature([\s\S]*?)### Execute a ready task/,
@@ -48,6 +75,11 @@ assert.match(
   startRoute,
   /unresolved\s+interactive UI\/2D direction[\s\S]*game-art-production[\s\S]*`Design`/i,
   "unresolved interactive UI/2D direction must route to Design",
+);
+assert.match(
+  startRoute,
+  /must\s+not load for routine accepted-baseline Fast repairs or non-art\/non-visual work/i,
+  "accepted-baseline Fast repairs and non-art work must stay off the art route",
 );
 
 const executeRoute = coreSkill.match(
@@ -59,6 +91,10 @@ assert.match(
   /`Ready`\s+or\s+`Implementing`[\s\S]*interactive UI\/2D[\s\S]*game-art-production[\s\S]*`Produce`/i,
   "matching Ready/Implementing interactive UI/2D work must route to Produce",
 );
+assert.match(executeRoute, /flattened-composite finality/i);
+assert.match(executeRoute, /maturity\/fidelity claims truthful/i);
+assert.match(executeRoute, /actual target-project evidence/i);
+assert.match(executeRoute, /representative assembly\/runtime proof[\s\S]*before bulk/i);
 
 const diagnoseRoute = coreSkill
   .split(/\r?\n/)
@@ -78,12 +114,22 @@ assert.match(
 );
 
 const interactiveExecution = execution.match(
-  /## Interactive visual execution\n\n([\s\S]*?)\n\nDo not treat/,
+  /## Interactive visual execution\n\n([\s\S]*?)\n\n## Optional external-Skill interoperability/,
 )?.[1];
 assert.match(
   interactiveExecution ?? "",
   /^For matching interactive UI\/2D work, use `game-art-production` `Produce`/i,
   "interactive visual execution must begin with the additive Produce route",
+);
+assert.match(interactiveExecution ?? "", /flattened composite[\s\S]*never[\s\S]*final/i);
+assert.match(
+  interactiveExecution ?? "",
+  /Bulk\s+production unlocks\s+only[\s\S]*assembly precheck[\s\S]*runtime proof/i,
+);
+assert.match(interactiveExecution ?? "", /maturity[\s\S]*fidelity[\s\S]*truthful/i);
+assert.match(
+  interactiveExecution ?? "",
+  /actual\s+target project[\s\S]*real\s+input[\s\S]*authoritative\s+state[\s\S]*evidence/i,
 );
 
 assert.match(
@@ -187,6 +233,55 @@ const interactiveUi2d = fs.readFileSync(path.join(skillRoot, "references/interac
 assert.match(interactiveUi2d, /select one dominant root cause or subsystem/i);
 assert.match(interactiveUi2d, /one bounded repair batch total for the operation/i);
 assert.doesNotMatch(interactiveUi2d, /one bounded repair batch per root cause\/subsystem/i);
+assert.match(interactiveUi2d, /canonical editable source[\s\S]*rollback checkpoint/i);
+assert.match(
+  interactiveUi2d,
+  /Precheck shared space[\s\S]*spatial master[\s\S]*actual-size layered or project-native assembly/i,
+);
+assert.match(interactiveUi2d, /applicable real input and authoritative state/i);
+assert.match(interactiveUi2d, /actual target project[\s\S]*actual runtime proof/i);
+
+const candidateRoutes = {
+  nonArtProduce: wordCount(coreSkill) + wordCount(execution),
+  design: wordCount(coreSkill) + wordCount(workflow) + wordCount(skill) + wordCount(visualDesign),
+  produce: wordCount(coreSkill) + wordCount(execution) + wordCount(skill) + wordCount(interactiveUi2d),
+};
+assert(
+  candidateRoutes.nonArtProduce <= routeBaselines.nonArtProduce,
+  `non-art Produce route exceeds baseline: ${candidateRoutes.nonArtProduce} > ${routeBaselines.nonArtProduce}`,
+);
+assert(
+  candidateRoutes.design <= routeBaselines.design,
+  `Design route exceeds baseline: ${candidateRoutes.design} > ${routeBaselines.design}`,
+);
+assert(
+  candidateRoutes.produce < routeBaselines.produce,
+  `Produce route must improve on baseline: ${candidateRoutes.produce} >= ${routeBaselines.produce}`,
+);
+
+assert.match(
+  coreSkill,
+  /Character, environment, 3D, animation, VFX, technical-art, and broad visual[\s\S]*visual-production\.md/i,
+  "non-UI/2D visual domains must remain routed to visual-production.md",
+);
+assert.match(visualProduction, /asset-family split[\s\S]*shared masters/i);
+assert.match(visualProduction, /editor scene for 3D/i);
+assert.match(visualProduction, /For animation and VFX[\s\S]*anticipation[\s\S]*settle\/recovery/i);
+assert.match(visualProduction, /For technical art[\s\S]*deterministic engine import/i);
+assert.match(
+  visualProduction,
+  /shared masters[\s\S]*state or\s+content variants[\s\S]*runtime purpose/i,
+);
+assert.match(
+  visualProduction,
+  /Runtime golden:[\s\S]*actual engine result passes at target size and relevant\s+states/i,
+);
+assert.match(experienceReview, /actual runtime artifact[\s\S]*hard\s+return conditions/i);
+assert.match(experienceReview, /target size\/device and normal player pace/i);
+assert.match(
+  experienceReview,
+  /automated success as a substitute for normal-scale runtime judgment/i,
+);
 
 const agentMetadata = fs.readFileSync(path.join(skillRoot, "agents/openai.yaml"), "utf8");
 assert.equal(agentMetadata, `interface:

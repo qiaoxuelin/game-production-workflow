@@ -120,29 +120,16 @@ the core-owned task; it creates no parallel task, plan, status, gate, approval,
 or close authority, while external generation, design, and browser tools remain
 optional capability techniques, never lifecycle prerequisites.
 
-Do not treat a composed design image as an asset inventory or runtime UI. For
-each representative slice, execute this causal chain:
-
-**player action → interface state → required feedback/layer → asset family →
-source/export/import boundary → assembly precheck → runtime proof**
-
-1. Derive interface states from actual controls and game transitions, including
-   applicable default, press/drag, success, failure, cancel, disabled, loading,
-   recovery, viewport, content-extreme, and accessibility states.
-2. For each state, name the authoritative game/UI state source, renderer,
-   ownership/lifetime, input boundary, camera or coordinate space, layer and
-   occlusion behavior, and visual feedback beat.
-3. Establish one shared spatial master for elements that must appear co-located.
-   Check perspective, scale, anchor, contact point, lighting direction, crop,
-   occlusion, and safe area before accepting source candidates as one space.
-4. Derive the required asset inventory from those states. Split asset families
-   by shared master, variants, production method, runtime destination, and
-   acceptance boundary; preserve interactive parts as separate sources.
-5. Build the cheapest actual-size assembly or engine-greybox precheck before
-   polished or bulk assets. It must expose input hit regions, layout, layering,
-   state switching, source separation, and spatial contact.
-6. Build one representative runtime slice on the target viewport/device. Bulk
-   production unlocks only when the assembly precheck and runtime proof pass.
+Treat the referenced interactive UI/2D protocol as required.
+Do not treat a composed design image as an asset inventory or runtime UI; a
+flattened composite is never final. Keep maturity and fidelity truthful. Apply
+the compact sentinel `player action → interface state → asset family → assembly
+→ runtime`.
+Bulk production unlocks only when the assembly precheck and runtime proof pass.
+That proof must cover editable source separation and a representative slice
+integrated in the actual target project, exercised through real input and
+authoritative state, and captured as evidence. Static source, exports, mockups,
+tests, or generated images cannot substitute.
 
 If the accepted direction lacks a reversible detail, use a visible placeholder
 or greybox within its declared boundary and test it. Reopen product authority
