@@ -1031,6 +1031,15 @@ try {
     const taskStateAfter = writeProjectState(runRoot, status, nextAction);
     return writeLifecycleObservation(runRoot, lock, taskStateAfter, declaration);
   };
+  const acceptedReviewerBypasses = [];
+  const expectLifecycleRejection = (name, operation, expectedError) => {
+    try {
+      operation();
+      acceptedReviewerBypasses.push(name);
+    } catch (error) {
+      assert.match(error.message, expectedError, `${name} failed for the wrong reason`);
+    }
+  };
 
   const implementedLifecycle = prepareLifecycleRun("composite-runtime", "implemented-lifecycle");
 
@@ -1094,6 +1103,156 @@ try {
     (entry) => entry.id === "lifecycle-handoff" && entry.status === "Pass",
   ));
 
+  const schema2ConflictingLegacy = {
+    ...validImplementedObservation,
+    professionalResult: "Proposed",
+    result: { professionalResult: "Blocked" },
+  };
+  fs.writeFileSync(
+    path.join(implementedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(schema2ConflictingLegacy, null, 2)}\n`,
+  );
+  expectLifecycleRejection(
+    "schema 2 conflicting legacy declarations",
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /schemaVersion 2.*legacy professionalResult/i,
+  );
+
+  const schema2DuplicateTopLevel = {
+    ...validImplementedObservation,
+    professionalResult: "Implemented",
+  };
+  fs.writeFileSync(
+    path.join(implementedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(schema2DuplicateTopLevel, null, 2)}\n`,
+  );
+  expectLifecycleRejection(
+    "schema 2 duplicate top-level legacy declaration",
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /schemaVersion 2.*legacy professionalResult/i,
+  );
+
+  const schema2DuplicateNested = {
+    ...validImplementedObservation,
+    result: { professionalResult: "Implemented" },
+  };
+  fs.writeFileSync(
+    path.join(implementedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(schema2DuplicateNested, null, 2)}\n`,
+  );
+  expectLifecycleRejection(
+    "schema 2 duplicate nested legacy declaration",
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /schemaVersion 2.*legacy professionalResult/i,
+  );
+
+  const schema1RetainedDeclaredResult = {
+    ...validImplementedObservation,
+    schemaVersion: 1,
+  };
+  fs.writeFileSync(
+    path.join(implementedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(schema1RetainedDeclaredResult, null, 2)}\n`,
+  );
+  expectLifecycleRejection(
+    "schema 1 retained declaredResult",
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /schemaVersion 1.*declaredResult/i,
+  );
+
+  const schema1DuplicateLegacy = {
+    ...validImplementedObservation,
+    schemaVersion: 1,
+    declaredResult: undefined,
+    professionalResult: "Implemented",
+    result: { professionalResult: "Implemented" },
+  };
+  fs.writeFileSync(
+    path.join(implementedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(schema1DuplicateLegacy, null, 2)}\n`,
+  );
+  expectLifecycleRejection(
+    "schema 1 duplicate legacy declarations",
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /schemaVersion 1.*one legacy professionalResult/i,
+  );
+
+  const schema1ConflictingLegacy = {
+    ...schema1DuplicateLegacy,
+    result: { professionalResult: "Blocked" },
+  };
+  fs.writeFileSync(
+    path.join(implementedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(schema1ConflictingLegacy, null, 2)}\n`,
+  );
+  expectLifecycleRejection(
+    "schema 1 conflicting legacy declarations",
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /(?:schemaVersion 1.*one legacy professionalResult|professionalResult declarations conflict)/i,
+  );
+
+  configureImplementedRun(implementedLifecycle.runRoot, implementedLifecycle.lock);
+  replaceTaskField(
+    implementedLifecycle.runRoot,
+    "Next action",
+    "Build and inspect the first native slice.",
+  );
+  const mismatchedLegacyImplemented = {
+    ...validImplementedObservation,
+    schemaVersion: 1,
+    declaredResult: undefined,
+    result: { professionalResult: "Implemented" },
+    outputTreeHash: outputHash(implementedLifecycle.runRoot),
+  };
+  fs.writeFileSync(
+    path.join(implementedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(mismatchedLegacyImplemented, null, 2)}\n`,
+  );
+  expectLifecycleRejection(
+    "schema 1 TASK and project next actions disagree",
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /TASK Next action.*project state/i,
+  );
+
+  const staleImplementedTaskState = writeProjectState(
+    implementedLifecycle.runRoot,
+    "Implementing",
+    "Build and inspect the first native slice.",
+  );
+  const legacyImplementedStaleAction = {
+    ...mismatchedLegacyImplemented,
+    taskStateAfter: staleImplementedTaskState,
+    outputTreeHash: outputHash(implementedLifecycle.runRoot),
+  };
+  fs.writeFileSync(
+    path.join(implementedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(legacyImplementedStaleAction, null, 2)}\n`,
+  );
+  expectLifecycleRejection(
+    "schema 1 Implemented result repeats first-slice production",
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /Implemented.*pre-production Next action/i,
+  );
+  configureImplementedRun(implementedLifecycle.runRoot, implementedLifecycle.lock);
+
+  const validLegacyImplemented = {
+    ...validImplementedObservation,
+    schemaVersion: 1,
+    declaredResult: undefined,
+    result: { professionalResult: "Implemented" },
+  };
+  fs.writeFileSync(
+    path.join(implementedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(validLegacyImplemented, null, 2)}\n`,
+  );
+  const validLegacyImplementedResult = fixtureApi.verifyFixture({
+    pluginRoot,
+    runRoot: implementedLifecycle.runRoot,
+  });
+  assert(validLegacyImplementedResult.objectiveChecks.some(
+    (entry) => entry.id === "lifecycle-handoff" && entry.status === "Pass",
+  ));
+
   configureImplementedRun(implementedLifecycle.runRoot, implementedLifecycle.lock, {
     declaredResult: { taskResult: "Not started" },
   });
@@ -1154,6 +1313,57 @@ try {
     (entry) => entry.id === "lifecycle-handoff" && entry.status === "Pass",
   ));
 
+  replaceTaskField(proposedLifecycle.runRoot, "Result", "`Not started`");
+  const legacyProposedNotStarted = {
+    ...proposedObservation,
+    schemaVersion: 1,
+    declaredResult: undefined,
+    professionalResult: "Proposed",
+    outputTreeHash: outputHash(proposedLifecycle.runRoot),
+  };
+  fs.writeFileSync(
+    path.join(proposedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(legacyProposedNotStarted, null, 2)}\n`,
+  );
+  expectLifecycleRejection(
+    "schema 1 Proposed result remains Not started",
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: proposedLifecycle.runRoot }),
+    /Proposed.*task Result Proposed/i,
+  );
+
+  const staleProposedNextAction = "Produce the first bounded original direction candidate.";
+  replaceTaskField(
+    proposedLifecycle.runRoot,
+    "Result",
+    "`Proposed — runtime-backed direction candidates await human selection`",
+  );
+  replaceTaskField(proposedLifecycle.runRoot, "Next action", staleProposedNextAction);
+  const staleProposedTaskState = writeProjectState(
+    proposedLifecycle.runRoot,
+    "Clarifying",
+    staleProposedNextAction,
+  );
+  const legacyProposedStaleAction = {
+    ...legacyProposedNotStarted,
+    taskStateAfter: staleProposedTaskState,
+    outputTreeHash: outputHash(proposedLifecycle.runRoot),
+  };
+  fs.writeFileSync(
+    path.join(proposedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(legacyProposedStaleAction, null, 2)}\n`,
+  );
+  expectLifecycleRejection(
+    "schema 1 Proposed result repeats first-candidate production",
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: proposedLifecycle.runRoot }),
+    /Proposed.*pre-production Next action/i,
+  );
+
+  writeTaskHandoff(proposedLifecycle.runRoot, {
+    Result: "`Proposed — runtime-backed direction candidates await human selection`",
+    "Next action": proposedNextAction,
+  });
+  writeProjectState(proposedLifecycle.runRoot, "Clarifying", proposedNextAction);
+
   const legacyProposedObservation = {
     ...proposedObservation,
     schemaVersion: 1,
@@ -1185,6 +1395,12 @@ try {
     () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
     /declaredResult/i,
     "professional results in legacy ad hoc locations must use declaredResult",
+  );
+
+  assert.deepEqual(
+    acceptedReviewerBypasses,
+    [],
+    `trusted verifier accepted lifecycle bypasses: ${acceptedReviewerBypasses.join(", ")}`,
   );
 
   const sourceTestPlugin = path.join(sourceTestRepository, "plugins/game-production-workflow");

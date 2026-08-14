@@ -310,7 +310,18 @@ function validateDeclaredResult(value) {
 }
 
 function extractDeclaredResult(observation) {
+  const hasTopLevelLegacy = Object.hasOwn(observation, "professionalResult");
+  const hasNestedLegacy = Boolean(
+    observation.result &&
+    typeof observation.result === "object" &&
+    !Array.isArray(observation.result) &&
+    Object.hasOwn(observation.result, "professionalResult"),
+  );
+
   if (observation.schemaVersion === 2) {
+    if (hasTopLevelLegacy || hasNestedLegacy) {
+      throw new Error("observation schemaVersion 2 permits only declaredResult; legacy professionalResult fields are forbidden");
+    }
     if (!observation.declaredResult) {
       throw new Error("observation schemaVersion 2 requires declaredResult");
     }
@@ -318,23 +329,22 @@ function extractDeclaredResult(observation) {
     return { value: observation.declaredResult, complete: true };
   }
 
-  if (observation.declaredResult !== undefined) {
-    validateDeclaredResult(observation.declaredResult);
-    return { value: observation.declaredResult, complete: true };
+  if (Object.hasOwn(observation, "declaredResult")) {
+    throw new Error("observation schemaVersion 1 must not contain declaredResult");
   }
 
-  const legacyValues = [
-    observation.professionalResult,
-    observation.result?.professionalResult,
-  ].filter((value) => value !== undefined);
-  if (legacyValues.length === 0) return null;
-  if (legacyValues.some((value) => !resultValues.has(value))) {
+  if (hasTopLevelLegacy && hasNestedLegacy) {
+    throw new Error("observation schemaVersion 1 permits only one legacy professionalResult declaration");
+  }
+  if (!hasTopLevelLegacy && !hasNestedLegacy) return null;
+
+  const legacyValue = hasTopLevelLegacy
+    ? observation.professionalResult
+    : observation.result.professionalResult;
+  if (!resultValues.has(legacyValue)) {
     throw new Error("legacy observation professionalResult is invalid");
   }
-  if (new Set(legacyValues).size !== 1) {
-    throw new Error("legacy observation professionalResult declarations conflict");
-  }
-  return { value: { professionalResult: legacyValues[0] }, complete: false };
+  return { value: { professionalResult: legacyValue }, complete: false };
 }
 
 function unquoteTaskValue(value) {
@@ -398,6 +408,11 @@ function classifyAcceptance(value, name) {
   ], name);
 }
 
+function isPreProductionNextAction(value) {
+  const normalized = value.trim().toLocaleLowerCase("en-US").replace(/\s+/gu, " ");
+  return /^(?:assemble|build|create|implement|make|produce|render)\b.*\b(?:first|initial)\b.*\b(?:candidate|slice)\b/u.test(normalized);
+}
+
 function validateLifecycleHandoff(runRoot, observation, taskStateAfter) {
   const declaration = extractDeclaredResult(observation);
   if (!declaration) return null;
@@ -405,6 +420,9 @@ function validateLifecycleHandoff(runRoot, observation, taskStateAfter) {
   const task = readTaskHandoff(runRoot);
   if (task.status !== taskStateAfter.status) {
     throw new Error("lifecycle handoff TASK Status must match taskStateAfter.status");
+  }
+  if (task.nextAction !== taskStateAfter.nextAction) {
+    throw new Error("lifecycle handoff TASK Next action must match project state");
   }
 
   const durable = {
@@ -424,12 +442,17 @@ function validateLifecycleHandoff(runRoot, observation, taskStateAfter) {
         throw new Error(`lifecycle handoff declared ${field} does not match production/TASK.md`);
       }
     }
-    if (
-      declaration.value.nextAction !== task.nextAction ||
-      declaration.value.nextAction !== taskStateAfter.nextAction
-    ) {
+    if (declaration.value.nextAction !== task.nextAction) {
       throw new Error("lifecycle handoff declared nextAction must match TASK and project state");
     }
+  }
+
+  if (
+    !declaration.complete &&
+    ["Implemented", "Proposed"].includes(declaration.value.professionalResult) &&
+    isPreProductionNextAction(task.nextAction)
+  ) {
+    throw new Error(`${declaration.value.professionalResult} professional result cannot retain a pre-production Next action`);
   }
 
   if (declaration.value.professionalResult === "Implemented") {
@@ -458,11 +481,13 @@ function validateLifecycleHandoff(runRoot, observation, taskStateAfter) {
     }
   }
 
-  if (
-    declaration.value.professionalResult === "Proposed" &&
-    taskStateAfter.status !== "Clarifying"
-  ) {
-    throw new Error("Proposed professional result requires Clarifying task status");
+  if (declaration.value.professionalResult === "Proposed") {
+    if (taskStateAfter.status !== "Clarifying") {
+      throw new Error("Proposed professional result requires Clarifying task status");
+    }
+    if (durable.taskResult !== "Proposed") {
+      throw new Error("Proposed professional result requires task Result Proposed");
+    }
   }
 
   return {
