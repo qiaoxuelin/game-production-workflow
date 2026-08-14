@@ -46,6 +46,14 @@ const hasContent = (value) => Array.isArray(value)
     : typeof value === "string" && value.trim().length > 0;
 const operationalFiles = ["fixture-lock.json", "observation.json", "result.json"];
 const outputHash = (runRoot) => fixtureApi.hashTree(runRoot, operationalFiles);
+const canonicalValue = (value) => Array.isArray(value)
+  ? value.map(canonicalValue)
+  : value && typeof value === "object"
+    ? Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonicalValue(value[key])]))
+    : value;
+const semanticHash = (value) => `sha256:${crypto.createHash("sha256")
+  .update(`${JSON.stringify(canonicalValue(value), null, 2)}\n`)
+  .digest("hex")}`;
 
 for (const id of ids) {
   const fixturePath = path.join(evalRoot, id, "fixture.json");
@@ -181,6 +189,7 @@ const controlSummary = JSON.parse(fs.readFileSync(controlSummaryPath, "utf8"));
 assert.deepEqual(Object.keys(controlSummary).sort(), [
   "burden",
   "decisionBasis",
+  "evaluationContractMismatches",
   "evidenceBundles",
   "fixtureResults",
   "observedFailures",
@@ -200,16 +209,16 @@ const expectedControlIdentities = {
     sourceTreeHash: "sha256:9263408b47f3df7faa539fa6559b92838309d402a1c89c9424611ea776f7ba7e",
     outputTreeHash: "sha256:0f976e279d292491030f51489d021cb49c407ba46920d95376178cb3ce2c0743",
     rawBundleHash: "sha256:b4a03dd591683f516946eda97a67244bc64a22aa6a78cc8da1ad6efd7975732d",
-    resultHash: "sha256:b7e04d1584b548b297afce467e50f3591914c9bf1508ff4c6dbb9382688d5665",
-    independentReviewHash: "sha256:51a372519c20b7c85e0ac0c8e587c623615b806bc69d033d7fbd00d66589af4e",
+    resultHash: "sha256:a1e7766c5fde25ec2cf7ce0019eebd31ac4360aa13624e0356f6912757392b3f",
+    independentReviewHash: "sha256:29c3d2a541ea5cba70f390e260682428fa86649636b66ad1c76a5c7389786ef4",
     independentReviewStatus: "Returned",
   },
   "composite-runtime": {
     sourceTreeHash: "sha256:b1dbaca1b28c58df2aceaca54ede285303fd8151e990f5b83c8e2bed5ce8a848",
     outputTreeHash: "sha256:5404b20d371b1ab5ca0025cf511a7367d22600865a9539e03a693e2c483f5e09",
     rawBundleHash: "sha256:76fe51433efb6e3e164138d6762d23988cf3f847de3b7f2928be04ac48994587",
-    resultHash: "sha256:ac6ff3745835b9dcedac7801737bd5aca13e57b19ffbdead9d472fa9a8397601",
-    independentReviewHash: "sha256:4416b13cd3b7a3087d179aeecea8a8c2b9edd5cf533203811ff78bb1033dc81c",
+    resultHash: "sha256:28f9f672f4f6eb3c11f262ac442ac70e70dd286aa945423f86d0a074de925197",
+    independentReviewHash: "sha256:4601987905f3ecdc4cdb2d29d71a9a58bab8125d640c558521824ac54fe95326",
     independentReviewStatus: "Returned",
   },
 };
@@ -251,13 +260,7 @@ for (const bundle of controlSummary.evidenceBundles) {
   assert.deepEqual(Object.keys(bundle).sort(), ["fixtureId", "independentReview", "rawBundle", "result"]);
   assert.deepEqual(Object.keys(bundle.rawBundle).sort(), ["hash", "location", "outputTreeHash"]);
   assert.deepEqual(Object.keys(bundle.result).sort(), ["hash", "location"]);
-  assert.deepEqual(Object.keys(bundle.independentReview).sort(), [
-    "contributionDisclosure",
-    "hash",
-    "location",
-    "reviewerIndependence",
-    "status",
-  ]);
+  assert.deepEqual(Object.keys(bundle.independentReview).sort(), ["hash", "location", "record"]);
   assert.equal(bundle.rawBundle.location, `.tmp/game-art-evals/control-${bundle.fixtureId}`);
   assert.equal(bundle.result.location, `${bundle.rawBundle.location}/result.json`);
   assert.equal(bundle.independentReview.location, `${bundle.rawBundle.location}/artifacts/independent-review.json`);
@@ -269,32 +272,88 @@ for (const bundle of controlSummary.evidenceBundles) {
   assert.equal(bundle.rawBundle.hash, expectedControlIdentities[bundle.fixtureId].rawBundleHash);
   assert.equal(bundle.result.hash, expectedControlIdentities[bundle.fixtureId].resultHash);
   assert.equal(bundle.independentReview.hash, expectedControlIdentities[bundle.fixtureId].independentReviewHash);
-  assert.equal(bundle.independentReview.status, expectedControlIdentities[bundle.fixtureId].independentReviewStatus);
-  assert.match(bundle.independentReview.reviewerIndependence, /\S/);
-  assert.match(bundle.independentReview.contributionDisclosure, /\S/);
+  assert.equal(semanticHash(result), bundle.result.hash);
+
+  const review = bundle.independentReview.record;
+  assert.deepEqual(Object.keys(review).sort(), [
+    "contributionDisclosure",
+    "evidencePaths",
+    "failedCriteria",
+    "findings",
+    "humanDecisionsPending",
+    "retainedPassingParts",
+    "reviewerIndependence",
+    "runtimeCoverage",
+    "schemaVersion",
+    "status",
+    "terminalReviewClaim",
+  ]);
+  assert.equal(review.schemaVersion, 1);
+  assert.equal(review.status, expectedControlIdentities[bundle.fixtureId].independentReviewStatus);
+  assert.equal(review.reviewerIndependence, "Independent");
+  assert.equal(review.contributionDisclosure, "No contribution to production artifacts");
+  for (const field of ["evidencePaths", "failedCriteria", "findings", "humanDecisionsPending", "retainedPassingParts"]) {
+    assert(Array.isArray(review[field]) && review[field].length > 0);
+  }
+  assert.match(review.runtimeCoverage, /\S/);
+  assert.match(review.terminalReviewClaim, /\S/);
+  for (const finding of review.findings) {
+    assert.deepEqual(Object.keys(finding).sort(), ["criterion", "evidence", "severity"]);
+    assert.match(finding.criterion, /\S/);
+    assert(["Blocking", "Non-blocking"].includes(finding.severity));
+    assert(Array.isArray(finding.evidence) && finding.evidence.length > 0);
+  }
+  assert.equal(semanticHash(review), bundle.independentReview.hash);
 
   const rawBundleRoot = path.join(repositoryRoot, bundle.rawBundle.location);
   if (fs.existsSync(rawBundleRoot)) {
     const resultPath = path.join(repositoryRoot, bundle.result.location);
     const reviewPath = path.join(repositoryRoot, bundle.independentReview.location);
-    const fileHash = (file) => `sha256:${crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex")}`;
     assert.equal(fixtureApi.hashTree(rawBundleRoot), bundle.rawBundle.hash);
-    assert.equal(fileHash(resultPath), bundle.result.hash);
-    assert.equal(fileHash(reviewPath), bundle.independentReview.hash);
     assert.deepEqual(JSON.parse(fs.readFileSync(resultPath, "utf8")), result);
-    assert.equal(JSON.parse(fs.readFileSync(reviewPath, "utf8")).status, bundle.independentReview.status);
+    assert.deepEqual(JSON.parse(fs.readFileSync(reviewPath, "utf8")), review);
   }
 }
 
 assert.deepEqual(Object.keys(controlSummary.burden).sort(), ["approvals", "cycles", "elapsedMinutes", "loadedContext"]);
 assert.deepEqual(Object.keys(controlSummary.burden.loadedContext).sort(), ["bodyWords", "files", "metadataWords", "referenceWords"]);
-for (const field of ["cycles", "elapsedMinutes", "approvals"]) {
-  assert(Number.isFinite(controlSummary.burden[field]) && controlSummary.burden[field] >= 0);
-}
+assert.equal(controlSummary.burden.cycles, controlSummary.fixtureResults.reduce((total, result) => total + result.cycles, 0));
+assert.equal(controlSummary.burden.elapsedMinutes, controlSummary.fixtureResults.reduce((total, result) => total + result.elapsedMinutes, 0));
+assert.equal(controlSummary.burden.approvals, 0);
 for (const field of ["metadataWords", "bodyWords", "referenceWords"]) {
-  assert(Number.isFinite(controlSummary.burden.loadedContext[field]) && controlSummary.burden.loadedContext[field] >= 0);
+  assert.equal(
+    controlSummary.burden.loadedContext[field],
+    controlSummary.fixtureResults.reduce((total, result) => total + result.loadedContext[field], 0),
+  );
 }
-assert(Array.isArray(controlSummary.burden.loadedContext.files));
+assert.deepEqual(
+  controlSummary.burden.loadedContext.files,
+  controlSummary.fixtureResults.flatMap((result) => result.loadedContext.files),
+);
+
+assert.equal(controlSummary.evaluationContractMismatches.length, ids.length);
+for (const mismatch of controlSummary.evaluationContractMismatches) {
+  assert.deepEqual(Object.keys(mismatch).sort(), [
+    "criterion",
+    "evidence",
+    "excludedFromSplitBasis",
+    "fixtureId",
+    "objectiveCheckId",
+    "producedAlternatives",
+  ]);
+  assert(ids.includes(mismatch.fixtureId));
+  assert.equal(mismatch.objectiveCheckId, "required-artifacts");
+  assert.equal(mismatch.excludedFromSplitBasis, true);
+  assert(Array.isArray(mismatch.evidence) && mismatch.evidence.length > 0);
+  assert(Array.isArray(mismatch.producedAlternatives) && mismatch.producedAlternatives.length > 0);
+  const result = controlSummary.fixtureResults.find((entry) => entry.fixtureId === mismatch.fixtureId);
+  const objectiveMismatch = result.objectiveChecks.find((check) => check.id === mismatch.objectiveCheckId);
+  assert.equal(objectiveMismatch.status, "Fail");
+  assert.deepEqual(mismatch.evidence, objectiveMismatch.evidence);
+}
+assert(controlSummary.decisionBasis.includes("Exact-path evaluation-contract mismatches are excluded from the split basis."));
+assert(controlSummary.decisionBasis.includes("no claim of greater burden is made because no comparator was measured"));
+
 assert(Array.isArray(controlSummary.observedFailures));
 for (const failure of controlSummary.observedFailures) {
   assert.deepEqual(Object.keys(failure).sort(), ["criterion", "evidence", "fixtureId"]);
@@ -302,6 +361,12 @@ for (const failure of controlSummary.observedFailures) {
   assert.match(failure.criterion, /\S/);
   assert(Array.isArray(failure.evidence) && failure.evidence.length > 0);
   assert(failure.evidence.every((entry) => typeof entry === "string" && /\S/.test(entry)));
+  const review = controlSummary.evidenceBundles.find((bundle) => bundle.fixtureId === failure.fixtureId).independentReview.record;
+  const matchingFinding = review.findings.find((finding) => finding.severity === "Blocking" && finding.criterion === failure.criterion);
+  assert(matchingFinding, `${failure.fixtureId}: substantive failure must resolve to a blocking independent-review finding`);
+  assert.deepEqual(failure.evidence, matchingFinding.evidence);
+  const mismatch = controlSummary.evaluationContractMismatches.find((entry) => entry.fixtureId === failure.fixtureId);
+  assert(!failure.evidence.some((entry) => mismatch.evidence.includes(entry)), `${failure.fixtureId}: exact-path mismatch counted as substantive failure`);
 }
 if (controlSummary.splitDecision === "Proceed") {
   assert(controlSummary.observedFailures.length > 0, "Proceed requires observed artifact failures");
