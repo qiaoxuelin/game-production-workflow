@@ -135,9 +135,19 @@ const repositoryProjectClause = normalizedProjectInstructions.slice(
   repositoryProjectEnd,
 );
 assert.match(repositoryProjectClause, /interaction-to-visual loop/i);
-assert.match(repositoryProjectClause, /must not claim that the dedicated protocol ran/i);
-assert.match(repositoryProjectClause, /must not claim that[^.]*unavailable subjective authority ran/i);
-assert.match(repositoryProjectClause, /must not claim that[^.]*unobserved proof ran/i);
+assert.match(
+  repositoryProjectClause,
+  /must not claim use of the dedicated protocol or unavailable subjective authority/i,
+);
+assert.match(
+  repositoryProjectClause,
+  /must not claim proof(?: or proof results?)? the environment did not observe/i,
+);
+assert.doesNotMatch(
+  repositoryProjectClause,
+  /(?:proof|proof results?)[^.]*\bran\b/i,
+  "proof truthfulness must limit unsupported evidence claims, not whether proof 'ran'",
+);
 
 for (const field of [
   "Operation",

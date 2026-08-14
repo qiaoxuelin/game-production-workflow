@@ -52,8 +52,8 @@ An installed 1.8 plugin missing `game-art-production` is an integrity failure:
 preserve work, repair/reinstall, and grant no art-path completion.
 Repository-only with no plugin uses this interaction-to-visual loop, available or
 replaceable capabilities, base editing, engine primitives, code-native UI, or
-greybox boundaries. It must not claim that the dedicated protocol ran,
-unavailable subjective authority ran, or unobserved proof ran.
+greybox boundaries. It must not claim use of the dedicated protocol or unavailable
+subjective authority. It must not claim proof or proof results the environment did not observe.
 
 ## Design and player-facing quality
 

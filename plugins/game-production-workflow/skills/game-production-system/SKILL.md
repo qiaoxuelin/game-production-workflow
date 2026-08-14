@@ -275,14 +275,14 @@ standalone for production.
    for legacy active tasks without forcing migration. Apply the lane to the
    current work package; retain Full on a Full parent task for milestone
    integration and acceptance.
-3. In `reference_replication`, deconstruct before planning and record the exact
+3. In `reference_replication`, deconstruct before planning and record exact
    baseline, scope, critical points, state matrix, comparison/tolerances, and
    allowed deviations in `TASK.md` or one referenced baseline.
-4. Needed Standard/Full domain-design owners decide
-   gameplay, level, balance, economy, content, art, UX, animation, VFX, and audio
-   rules; technical roles check feasibility without inventing them.
-5. Full invokes production planning and technical architecture. Use
-   `Single-task` only for a bounded outcome without cross-module sequencing;
+4. Before technical implementation, assign only needed Standard/Full domain-design
+   owners. They decide gameplay, level, balance, economy, content, art, UX,
+   animation, VFX, and audio rules; technical roles check feasibility without inventing decisions.
+5. Full invokes production planning/technical-architecture ownership. Use
+   `Single-task` for one bounded outcome without cross-module sequencing;
    otherwise maintain `production/PLAN.md`.
 6. Identify applicable design domains and reuse adopted modules before inventing
    rules; read
@@ -313,7 +313,7 @@ standalone for production.
    unresolved high-impact authority decisions.
 10. Before Full implementation, technical handoff freezes architecture
    boundaries, interfaces, data/asset pipeline, feasibility, verification, and
-   rollback; it needs no human approval unless a human boundary changes.
+   rollback; no human approval unless a human boundary changes.
 11. Freeze minimum executable decisions in `TASK.md` or one baseline; never create
    role reports solely as process evidence.
 12. Mark GUI restoration `Required` only for reconstruction, a material

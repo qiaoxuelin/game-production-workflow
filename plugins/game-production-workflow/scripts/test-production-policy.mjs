@@ -152,6 +152,24 @@ assert.match(
   /character[\s\S]*environment[\s\S]*3D[\s\S]*animation[\s\S]*VFX[\s\S]*technical-art[\s\S]*broad visual[\s\S]*visual-production\.md/i,
   "broader visual crafts must remain on visual-production.md",
 );
+const ownerAssignmentPosition = substantialFeatureRoute.search(
+  /assign only (?:the )?needed (?:Standard\/Full )?domain-design\s+owners/i,
+);
+const ownerInspectionPosition = substantialFeatureRoute.search(
+  /each design owner[\s\S]*inspect(?:s)? applicable references/i,
+);
+const ownerDecisionPosition = substantialFeatureRoute.search(
+  /domain-design\s+owners\.\s+They decide/i,
+);
+assert(ownerAssignmentPosition >= 0, "Standard/Full must assign only needed domain-design owners");
+assert(
+  ownerDecisionPosition > ownerAssignmentPosition,
+  "needed domain-design owners must be assigned before their decisions",
+);
+assert(
+  ownerInspectionPosition > ownerAssignmentPosition,
+  "needed domain-design owners must be assigned before their decisions and inspections",
+);
 for (const [obligation, pattern] of [
   ["identify applicable design domains", /identify applicable design domains/i],
   ["inspect applicable references", /each design owner[\s\S]*inspect(?:s)? applicable references/i],
@@ -286,9 +304,19 @@ const repositoryOnlyClause = normalizedProjectInstructions.slice(
   repositoryOnlyStart,
   repositoryOnlyEnd,
 );
-assert.match(repositoryOnlyClause, /must not claim that the dedicated protocol ran/i);
-assert.match(repositoryOnlyClause, /must not claim that[^.]*unavailable subjective authority ran/i);
-assert.match(repositoryOnlyClause, /must not claim that[^.]*unobserved proof ran/i);
+assert.match(
+  repositoryOnlyClause,
+  /must not claim use of the dedicated protocol or unavailable subjective authority/i,
+);
+assert.match(
+  repositoryOnlyClause,
+  /must not claim proof(?: or proof results?)? the environment did not observe/i,
+);
+assert.doesNotMatch(
+  repositoryOnlyClause,
+  /(?:proof|proof results?)[^.]*\bran\b/i,
+  "proof truthfulness must limit unsupported evidence claims, not whether proof 'ran'",
+);
 assert.match(
   execution,
   /external generation, design, and browser tools[\s\S]*optional capability techniques[\s\S]*never lifecycle prerequisites/i,
