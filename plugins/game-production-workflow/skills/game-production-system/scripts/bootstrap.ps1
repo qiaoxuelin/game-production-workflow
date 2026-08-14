@@ -135,14 +135,15 @@ $skipped = New-Object System.Collections.Generic.List[string]
 $templateFiles = Get-ChildItem -LiteralPath $templateRoot -Recurse -File
 foreach ($templateFile in $templateFiles) {
     $relative = $templateFile.FullName.Substring($templateRoot.Length).TrimStart('\', '/')
-    if ($relative -eq 'production\PLAN.md') {
+    $relativePortable = $relative.Replace('\', '/')
+    if ($relativePortable -eq 'production/PLAN.md') {
         continue
     }
     $destination = Join-Path $resolvedProject $relative
     $destinationDirectory = Split-Path -Parent $destination
 
     if (Test-Path -LiteralPath $destination) {
-        $skipped.Add($relative)
+        $skipped.Add($relativePortable)
         continue
     }
 
@@ -161,13 +162,13 @@ foreach ($templateFile in $templateFiles) {
         $content = $content.Replace('__GIT_POLICY__', $GitPolicy)
         $content = $content.Replace('__DATE__', $today)
         Write-Utf8File -Path $destination -Content $content
-        $created.Add($relative)
+        $created.Add($relativePortable)
     }
 }
 
 $projectStatePath = Join-Path $resolvedProject 'production\project.json'
 if (Test-Path -LiteralPath $projectStatePath) {
-    $skipped.Add('production\project.json')
+    $skipped.Add('production/project.json')
 }
 elseif ($PSCmdlet.ShouldProcess($projectStatePath, 'Create project state')) {
     $state = [ordered]@{
@@ -210,23 +211,23 @@ elseif ($PSCmdlet.ShouldProcess($projectStatePath, 'Create project state')) {
     $json = $state | ConvertTo-Json -Depth 8
     New-Item -ItemType Directory -Path (Split-Path -Parent $projectStatePath) -Force | Out-Null
     Write-Utf8File -Path $projectStatePath -Content ($json + [Environment]::NewLine)
-    $created.Add('production\project.json')
+    $created.Add('production/project.json')
 }
 
 $toolTarget = Join-Path $resolvedProject 'tools\production'
-foreach ($scriptName in @('check.ps1', 'evidence.ps1')) {
+foreach ($scriptName in @('check.ps1', 'evidence.ps1', 'image-inspect.mjs')) {
     $source = Join-Path $PSScriptRoot $scriptName
     $destination = Join-Path $toolTarget $scriptName
 
     if (Test-Path -LiteralPath $destination) {
-        $skipped.Add("tools\production\$scriptName")
+        $skipped.Add("tools/production/$scriptName")
         continue
     }
 
     if ($PSCmdlet.ShouldProcess($destination, 'Install production tool')) {
         New-Item -ItemType Directory -Path $toolTarget -Force | Out-Null
         Copy-Item -LiteralPath $source -Destination $destination
-        $created.Add("tools\production\$scriptName")
+        $created.Add("tools/production/$scriptName")
     }
 }
 

@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
     [string]$ProjectPath,
@@ -61,7 +61,7 @@ function Get-RelativeOrAbsolutePath {
     $pathUri = New-Object System.Uri($Path)
 
     if ($rootUri.IsBaseOf($pathUri)) {
-        return [System.Uri]::UnescapeDataString($rootUri.MakeRelativeUri($pathUri).ToString()).Replace('/', '\')
+        return [System.Uri]::UnescapeDataString($rootUri.MakeRelativeUri($pathUri).ToString())
     }
 
     return $Path
@@ -175,103 +175,66 @@ function Test-Screenshot {
         [switch]$AllowUniform
     )
 
-    Add-Type -AssemblyName System.Drawing
-    $bitmap = New-Object System.Drawing.Bitmap($Path)
+    $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
+    if ($null -eq $nodeCommand) {
+        throw 'Node.js 18+ is required to inspect screenshot evidence.'
+    }
+    $inspectorPath = Join-Path $PSScriptRoot 'image-inspect.mjs'
+    if (-not (Test-Path -LiteralPath $inspectorPath -PathType Leaf)) {
+        throw "Portable PNG inspector is missing: $inspectorPath"
+    }
+
+    $previousErrorActionPreference = $ErrorActionPreference
     try {
-        if ($bitmap.Width -lt 2 -or $bitmap.Height -lt 2) {
-            throw "Screenshot dimensions are invalid: $($bitmap.Width)x$($bitmap.Height)"
-        }
-
-        if (-not [string]::IsNullOrWhiteSpace($ExpectedResolution)) {
-            $match = [Regex]::Match($ExpectedResolution, '^(?<w>\d+)[xX×](?<h>\d+)$')
-            if (-not $match.Success) {
-                throw "Resolution must look like 1280x720: $ExpectedResolution"
-            }
-            $expectedWidth = [int]$match.Groups['w'].Value
-            $expectedHeight = [int]$match.Groups['h'].Value
-            if ($bitmap.Width -ne $expectedWidth -or $bitmap.Height -ne $expectedHeight) {
-                throw "Screenshot is $($bitmap.Width)x$($bitmap.Height), expected ${expectedWidth}x${expectedHeight}."
-            }
-        }
-
-        $minR = 255
-        $minG = 255
-        $minB = 255
-        $maxR = 0
-        $maxG = 0
-        $maxB = 0
-        $luminances = New-Object System.Collections.Generic.List[double]
-        $quantizedColors = @{}
-        $darkSamples = 0
-        $sampleGrid = 32
-
-        for ($gridX = 0; $gridX -lt $sampleGrid; $gridX++) {
-            for ($gridY = 0; $gridY -lt $sampleGrid; $gridY++) {
-                $xFactor = ($gridX + 0.5) / $sampleGrid
-                $yFactor = ($gridY + 0.5) / $sampleGrid
-                $x = [Math]::Min($bitmap.Width - 1, [Math]::Max(0, [int](($bitmap.Width - 1) * $xFactor)))
-                $y = [Math]::Min($bitmap.Height - 1, [Math]::Max(0, [int](($bitmap.Height - 1) * $yFactor)))
-                $pixel = $bitmap.GetPixel($x, $y)
-                $minR = [Math]::Min($minR, $pixel.R)
-                $minG = [Math]::Min($minG, $pixel.G)
-                $minB = [Math]::Min($minB, $pixel.B)
-                $maxR = [Math]::Max($maxR, $pixel.R)
-                $maxG = [Math]::Max($maxG, $pixel.G)
-                $maxB = [Math]::Max($maxB, $pixel.B)
-
-                $luminance = (0.2126 * $pixel.R) + (0.7152 * $pixel.G) + (0.0722 * $pixel.B)
-                $luminances.Add($luminance)
-                if ($luminance -lt 35) {
-                    $darkSamples++
-                }
-
-                $quantizedKey = '{0}-{1}-{2}' -f [int]($pixel.R / 16), [int]($pixel.G / 16), [int]($pixel.B / 16)
-                $quantizedColors[$quantizedKey] = $true
-            }
-        }
-
-        $range = [Math]::Max(
-            [Math]::Max($maxR - $minR, $maxG - $minG),
-            $maxB - $minB
-        )
-
-        $meanLuminance = 0.0
-        foreach ($value in $luminances) {
-            $meanLuminance += $value
-        }
-        $meanLuminance /= $luminances.Count
-
-        $variance = 0.0
-        foreach ($value in $luminances) {
-            $variance += [Math]::Pow($value - $meanLuminance, 2)
-        }
-        $standardDeviation = [Math]::Sqrt($variance / $luminances.Count)
-        $darkPercent = 100.0 * $darkSamples / $luminances.Count
-        $lowInformation = (
-            $range -lt 4 -or
-            ($standardDeviation -lt 12 -and $quantizedColors.Count -lt 16) -or
-            $darkPercent -gt 95
-        )
-
-        if ($lowInformation -and -not $AllowUniform) {
-            throw (
-                'Screenshot has very low visual information and may be blank or invalid ' +
-                "(std=$([Math]::Round($standardDeviation, 1)), colors=$($quantizedColors.Count), dark=$([Math]::Round($darkPercent, 1))%). " +
-                'Use -AllowUniformImage only with an explicit review reason.'
-            )
-        }
-
-        return [ordered]@{
-            width             = $bitmap.Width
-            height            = $bitmap.Height
-            sampleRange       = $range
-            luminanceStdDev   = [Math]::Round($standardDeviation, 2)
-            quantizedColors   = $quantizedColors.Count
-            darkSamplePercent = [Math]::Round($darkPercent, 2)
-        }
+        $ErrorActionPreference = 'Continue'
+        $inspectionOutput = @(& $nodeCommand.Source $inspectorPath $Path 2>&1)
+        $inspectionExitCode = $LASTEXITCODE
     }
     finally {
-        $bitmap.Dispose()
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    if ($inspectionExitCode -ne 0) {
+        throw (
+            'Screenshot inspection failed. Use an 8-bit, non-interlaced PNG. ' +
+            ($inspectionOutput -join [Environment]::NewLine)
+        )
+    }
+    try {
+        $image = ($inspectionOutput -join [Environment]::NewLine) | ConvertFrom-Json
+    }
+    catch {
+        throw "Screenshot inspector returned invalid JSON: $($_.Exception.Message)"
+    }
+
+    if ([int]$image.width -lt 2 -or [int]$image.height -lt 2) {
+        throw "Screenshot dimensions are invalid: $($image.width)x$($image.height)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($ExpectedResolution)) {
+        $match = [Regex]::Match($ExpectedResolution, '^(?<w>\d+)[xX×](?<h>\d+)$')
+        if (-not $match.Success) {
+            throw "Resolution must look like 1280x720: $ExpectedResolution"
+        }
+        $expectedWidth = [int]$match.Groups['w'].Value
+        $expectedHeight = [int]$match.Groups['h'].Value
+        if ([int]$image.width -ne $expectedWidth -or [int]$image.height -ne $expectedHeight) {
+            throw "Screenshot is $($image.width)x$($image.height), expected ${expectedWidth}x${expectedHeight}."
+        }
+    }
+    if ([bool]$image.lowInformation -and -not $AllowUniform) {
+        throw (
+            'Screenshot has very low visual information and may be blank or invalid ' +
+            "(std=$($image.luminanceStdDev), colors=$($image.quantizedColors), dark=$($image.darkSamplePercent)%). " +
+            'Use -AllowUniformImage only with an explicit review reason.'
+        )
+    }
+
+    return [ordered]@{
+        width             = [int]$image.width
+        height            = [int]$image.height
+        sampleRange       = [int]$image.sampleRange
+        luminanceStdDev   = [double]$image.luminanceStdDev
+        quantizedColors   = [int]$image.quantizedColors
+        darkSamplePercent = [double]$image.darkSamplePercent
     }
 }
 

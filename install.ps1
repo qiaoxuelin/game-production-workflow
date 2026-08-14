@@ -7,6 +7,27 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+$gitCommand = Get-Command git -ErrorAction SilentlyContinue
+if (-not $gitCommand) {
+    throw "Git was not found. Install it using the operating-system instructions in README.md, then retry."
+}
+
+$nodeCommand = Get-Command node -ErrorAction SilentlyContinue
+if (-not $nodeCommand) {
+    throw "Node.js 18+ was not found. Install it using the operating-system instructions in README.md, then retry."
+}
+$nodeVersionOutput = @(& $nodeCommand.Source --version 2>$null)
+if ($LASTEXITCODE -ne 0) {
+    throw "Node.js was found but its version could not be read."
+}
+$nodeVersionMatch = [Regex]::Match(
+    [string]($nodeVersionOutput | Select-Object -Last 1),
+    '^v?(?<major>\d+)(?:\.\d+){1,2}'
+)
+if (-not $nodeVersionMatch.Success -or [int]$nodeVersionMatch.Groups['major'].Value -lt 18) {
+    throw "Node.js 18+ is required; found $($nodeVersionOutput | Select-Object -Last 1)."
+}
+
 $codexCommand = Get-Command codex.cmd -ErrorAction SilentlyContinue
 if (-not $codexCommand) {
     $codexCommand = Get-Command codex -ErrorAction SilentlyContinue

@@ -13,6 +13,7 @@ $coreSkillPath = Join-Path $plugin "skills/game-production-system/SKILL.md"
 $approvalSkillPath = Join-Path $plugin "skills/game-approval-ui/SKILL.md"
 $checkerPath = Join-Path $plugin "skills/game-production-system/scripts/check.ps1"
 $bootstrapPath = Join-Path $plugin "skills/game-production-system/scripts/bootstrap.ps1"
+$imageInspectorPath = Join-Path $plugin "skills/game-production-system/scripts/image-inspect.mjs"
 $visualProductionPath = Join-Path $plugin "skills/game-production-system/references/visual-production.md"
 $experienceReviewPath = Join-Path $plugin "skills/game-production-system/references/experience-review.md"
 $taskTemplatePath = Join-Path $plugin "skills/game-production-system/assets/project-template/production/TASK.md"
@@ -20,6 +21,7 @@ $planTemplatePath = Join-Path $plugin "skills/game-production-system/assets/proj
 $mcpPath = Join-Path $plugin ".mcp.json"
 $approvalTestPath = Join-Path $plugin "scripts/test-server.mjs"
 $policyTestPath = Join-Path $plugin "scripts/test-production-policy.mjs"
+$runtimeTestPath = Join-Path $plugin "scripts/test-cross-platform-runtime.mjs"
 
 function Assert-True {
     param([bool]$Condition, [string]$Message)
@@ -33,13 +35,15 @@ foreach ($required in @(
     $approvalSkillPath,
     $checkerPath,
     $bootstrapPath,
+    $imageInspectorPath,
     $visualProductionPath,
     $experienceReviewPath,
     $taskTemplatePath,
     $planTemplatePath,
     $mcpPath,
     $approvalTestPath,
-    $policyTestPath
+    $policyTestPath,
+    $runtimeTestPath
 )) {
     Assert-True (Test-Path -LiteralPath $required -PathType Leaf) "Missing required file: $required"
 }
@@ -125,6 +129,32 @@ Assert-True ($parseFailures.Count -eq 0) (
     ($parseFailures -join [Environment]::NewLine)
 )
 
+$legacyEncodingFailures = @()
+foreach ($script in Get-ChildItem -LiteralPath $repo -Recurse -Filter *.ps1 -File) {
+    $bytes = [System.IO.File]::ReadAllBytes($script.FullName)
+    $hasNonAscii = $false
+    foreach ($byte in $bytes) {
+        if ($byte -gt 127) {
+            $hasNonAscii = $true
+            break
+        }
+    }
+    $hasUtf8Bom = (
+        $bytes.Length -ge 3 -and
+        $bytes[0] -eq 0xEF -and
+        $bytes[1] -eq 0xBB -and
+        $bytes[2] -eq 0xBF
+    )
+    if ($hasNonAscii -and -not $hasUtf8Bom) {
+        $legacyEncodingFailures += $script.FullName
+    }
+}
+Assert-True ($legacyEncodingFailures.Count -eq 0) (
+    'PowerShell scripts containing non-ASCII text require a UTF-8 BOM for Windows PowerShell 5.1:' +
+    [Environment]::NewLine +
+    ($legacyEncodingFailures -join [Environment]::NewLine)
+)
+
 $brokenLinks = @()
 foreach ($markdown in Get-ChildItem -LiteralPath $repo -Recurse -Filter *.md -File) {
     $content = Get-Content -Raw -Encoding utf8 $markdown.FullName
@@ -179,4 +209,19 @@ Assert-True ($LASTEXITCODE -eq 0) "Approval MCP protocol test failed."
 & $node.Source $policyTestPath
 Assert-True ($LASTEXITCODE -eq 0) "Production policy structure test failed."
 
-Write-Host "PASS atomic plugin structure, versions, skills, policy, scripts, links, secret scan, and approval MCP protocol"
+$previousPowerShell = $env:GPW_POWERSHELL
+try {
+    $env:GPW_POWERSHELL = (Get-Process -Id $PID).Path
+    & $node.Source --test $runtimeTestPath
+    Assert-True ($LASTEXITCODE -eq 0) "Cross-platform production-tool runtime test failed."
+}
+finally {
+    if ($null -eq $previousPowerShell) {
+        Remove-Item Env:GPW_POWERSHELL -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:GPW_POWERSHELL = $previousPowerShell
+    }
+}
+
+Write-Host "PASS atomic plugin structure, versions, skills, policy, scripts, links, secret scan, approval MCP protocol, and production-tool runtime"
