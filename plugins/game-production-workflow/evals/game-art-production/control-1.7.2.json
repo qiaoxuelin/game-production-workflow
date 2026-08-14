@@ -212,6 +212,58 @@
       "terminalClaim": "A source-complete, editable, project-native implementation candidate passes the authoritative state contract and deterministic assembly checks. Runtime proof, artistic passage, independent review, human acceptance, and gate passage are not claimed."
     }
   ],
+  "approvalEvidence": [
+    {
+      "fixtureId": "design-direction",
+      "before": {
+        "G0": null,
+        "G1": null,
+        "goldenVisual": null,
+        "G2": null,
+        "G3": null
+      },
+      "after": {
+        "G0": null,
+        "G1": null,
+        "goldenVisual": null,
+        "G2": null,
+        "G3": null
+      },
+      "addedOrChangedCount": 0,
+      "hash": "sha256:94d681b5ddd380b5436b4c6fa21ecf595974dd921b49de2a2638e7cc46160f8c"
+    },
+    {
+      "fixtureId": "composite-runtime",
+      "before": {
+        "G0": {
+          "decision": "approved",
+          "decidedBy": "Fixture author",
+          "decidedAt": "2026-08-14",
+          "source": "production/PROJECT.md",
+          "scope": "Inventory direction and interaction/render contract"
+        },
+        "G1": null,
+        "goldenVisual": null,
+        "G2": null,
+        "G3": null
+      },
+      "after": {
+        "G0": {
+          "decision": "approved",
+          "decidedBy": "Fixture author",
+          "decidedAt": "2026-08-14",
+          "source": "production/PROJECT.md",
+          "scope": "Inventory direction and interaction/render contract"
+        },
+        "G1": null,
+        "goldenVisual": null,
+        "G2": null,
+        "G3": null
+      },
+      "addedOrChangedCount": 0,
+      "hash": "sha256:c147377fc9593dc865069622992e40420545a78db973ad74a1c2ed53855b00cb"
+    }
+  ],
   "evidenceBundles": [
     {
       "fixtureId": "design-direction",

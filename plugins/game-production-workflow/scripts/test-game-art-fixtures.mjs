@@ -54,6 +54,10 @@ const canonicalValue = (value) => Array.isArray(value)
 const semanticHash = (value) => `sha256:${crypto.createHash("sha256")
   .update(`${JSON.stringify(canonicalValue(value), null, 2)}\n`)
   .digest("hex")}`;
+const approvalChangeCount = (before, after) => {
+  const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
+  return [...keys].filter((key) => JSON.stringify(canonicalValue(before[key])) !== JSON.stringify(canonicalValue(after[key]))).length;
+};
 
 for (const id of ids) {
   const fixturePath = path.join(evalRoot, id, "fixture.json");
@@ -187,6 +191,7 @@ for (const name of ["parseFixtureArguments", "loadFixture", "hashTree", "prepare
 assert(fs.existsSync(controlSummaryPath), "missing 1.7.2 control summary");
 const controlSummary = JSON.parse(fs.readFileSync(controlSummaryPath, "utf8"));
 assert.deepEqual(Object.keys(controlSummary).sort(), [
+  "approvalEvidence",
   "burden",
   "decisionBasis",
   "evaluationContractMismatches",
@@ -221,6 +226,10 @@ const expectedControlIdentities = {
     independentReviewHash: "sha256:4601987905f3ecdc4cdb2d29d71a9a58bab8125d640c558521824ac54fe95326",
     independentReviewStatus: "Returned",
   },
+};
+const expectedApprovalHashes = {
+  "design-direction": "sha256:94d681b5ddd380b5436b4c6fa21ecf595974dd921b49de2a2638e7cc46160f8c",
+  "composite-runtime": "sha256:c147377fc9593dc865069622992e40420545a78db973ad74a1c2ed53855b00cb",
 };
 
 assert.equal(controlSummary.fixtureResults.length, ids.length);
@@ -315,11 +324,35 @@ for (const bundle of controlSummary.evidenceBundles) {
   }
 }
 
+assert.equal(controlSummary.approvalEvidence.length, ids.length);
+assert.deepEqual(controlSummary.approvalEvidence.map((entry) => entry.fixtureId).sort(), [...ids].sort());
+for (const approval of controlSummary.approvalEvidence) {
+  assert.deepEqual(Object.keys(approval).sort(), ["addedOrChangedCount", "after", "before", "fixtureId", "hash"]);
+  assert.deepEqual(Object.keys(approval.before).sort(), ["G0", "G1", "G2", "G3", "goldenVisual"]);
+  assert.deepEqual(Object.keys(approval.after).sort(), ["G0", "G1", "G2", "G3", "goldenVisual"]);
+  const { hash, ...identity } = approval;
+  assert.equal(hash, expectedApprovalHashes[approval.fixtureId]);
+  assert.equal(semanticHash(identity), hash);
+  assert.equal(approval.addedOrChangedCount, approvalChangeCount(approval.before, approval.after));
+
+  const rawBundle = controlSummary.evidenceBundles.find((bundle) => bundle.fixtureId === approval.fixtureId);
+  const rawBundleRoot = path.join(repositoryRoot, rawBundle.rawBundle.location);
+  if (fs.existsSync(rawBundleRoot)) {
+    const starterProject = JSON.parse(fs.readFileSync(path.join(evalRoot, approval.fixtureId, "starter/production/project.json"), "utf8"));
+    const runProject = JSON.parse(fs.readFileSync(path.join(rawBundleRoot, "production/project.json"), "utf8"));
+    assert.deepEqual(approval.before, starterProject.humanApprovals);
+    assert.deepEqual(approval.after, runProject.humanApprovals);
+  }
+}
+
 assert.deepEqual(Object.keys(controlSummary.burden).sort(), ["approvals", "cycles", "elapsedMinutes", "loadedContext"]);
 assert.deepEqual(Object.keys(controlSummary.burden.loadedContext).sort(), ["bodyWords", "files", "metadataWords", "referenceWords"]);
 assert.equal(controlSummary.burden.cycles, controlSummary.fixtureResults.reduce((total, result) => total + result.cycles, 0));
 assert.equal(controlSummary.burden.elapsedMinutes, controlSummary.fixtureResults.reduce((total, result) => total + result.elapsedMinutes, 0));
-assert.equal(controlSummary.burden.approvals, 0);
+assert.equal(
+  controlSummary.burden.approvals,
+  controlSummary.approvalEvidence.reduce((total, approval) => total + approval.addedOrChangedCount, 0),
+);
 for (const field of ["metadataWords", "bodyWords", "referenceWords"]) {
   assert.equal(
     controlSummary.burden.loadedContext[field],
