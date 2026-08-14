@@ -1,7 +1,7 @@
 {
   "name": "game-production-workflow",
-  "version": "1.6.0+codex.20260813172112",
-  "description": "Repository-resident game production governance with durable approval UI.",
+  "version": "1.7.0+codex.20260814022545",
+  "description": "Standalone repository-resident game production execution, governance, and durable approvals.",
   "author": {
     "name": "qiaoxuelin",
     "url": "https://github.com/qiaoxuelin"
@@ -19,8 +19,8 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Game Production Workflow",
-    "shortDescription": "Plan game work and collect durable approvals.",
-    "longDescription": "Plan, execute, recover, and accept game work with front-loaded domain ownership, bounded implementation, representative proof, and clickable durable approvals.",
+    "shortDescription": "Design, build, verify, and deliver playable game slices.",
+    "longDescription": "Independently design, produce, integrate, verify, recover, and deliver game work with optional tool acceleration, representative runtime proof, and durable approvals.",
     "developerName": "qiaoxuelin",
     "category": "Productivity",
     "capabilities": [
@@ -28,8 +28,8 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Plan this game task with the lightest safe production lane.",
-      "Continue this governed game project from its repository state.",
+      "Build the next player-visible slice from the accepted game task.",
+      "Plan or recover this governed game project with the lightest safe lane.",
       "Show pending approvals for this game project."
     ]
   }

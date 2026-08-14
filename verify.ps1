@@ -15,11 +15,17 @@ $checkerPath = Join-Path $plugin "skills/game-production-system/scripts/check.ps
 $bootstrapPath = Join-Path $plugin "skills/game-production-system/scripts/bootstrap.ps1"
 $visualProductionPath = Join-Path $plugin "skills/game-production-system/references/visual-production.md"
 $experienceReviewPath = Join-Path $plugin "skills/game-production-system/references/experience-review.md"
+$executionPath = Join-Path $plugin "skills/game-production-system/references/execution.md"
+$doctorPath = Join-Path $plugin "skills/game-production-system/scripts/doctor.mjs"
+$adapterTemplatePath = Join-Path $plugin "skills/game-production-system/assets/project-template/production/adapter.json"
+$nodeInstallerPath = Join-Path $repo "install.mjs"
 $taskTemplatePath = Join-Path $plugin "skills/game-production-system/assets/project-template/production/TASK.md"
 $planTemplatePath = Join-Path $plugin "skills/game-production-system/assets/project-template/production/PLAN.md"
 $mcpPath = Join-Path $plugin ".mcp.json"
 $approvalTestPath = Join-Path $plugin "scripts/test-server.mjs"
 $policyTestPath = Join-Path $plugin "scripts/test-production-policy.mjs"
+$doctorTestPath = Join-Path $plugin "scripts/test-doctor.mjs"
+$installTestPath = Join-Path $plugin "scripts/test-install.mjs"
 
 function Assert-True {
     param([bool]$Condition, [string]$Message)
@@ -35,11 +41,17 @@ foreach ($required in @(
     $bootstrapPath,
     $visualProductionPath,
     $experienceReviewPath,
+    $executionPath,
+    $doctorPath,
+    $adapterTemplatePath,
+    $nodeInstallerPath,
     $taskTemplatePath,
     $planTemplatePath,
     $mcpPath,
     $approvalTestPath,
-    $policyTestPath
+    $policyTestPath,
+    $doctorTestPath,
+    $installTestPath
 )) {
     Assert-True (Test-Path -LiteralPath $required -PathType Leaf) "Missing required file: $required"
 }
@@ -92,8 +104,8 @@ Assert-True ($checkerText -match 'interactive_visual_scope_missing') "Checker mu
 Assert-True ($checkerText -match 'interaction_render_contract_missing') "Checker must require a frozen interaction/render contract for active work."
 Assert-True ($checkerText -match 'visual_bulk_unlock_without_prechecks') "Checker must keep visual bulk work locked until both prechecks pass."
 Assert-True ($checkerText -match 'systemVersionAtLeast160') "Checker must preserve v1.5 project compatibility behind a v1.6 predicate."
-Assert-True ($bootstrapText -match "systemVersion\s*=\s*'1\.6\.0'") "New projects must bootstrap the v1.6 contract."
-Assert-True ($readmeText -match 'game-production-system` `1\.6\.0') "README system version must match the v1.6 release."
+Assert-True ($bootstrapText -match "systemVersion\s*=\s*'1\.7\.0'") "New projects must bootstrap the v1.7 contract."
+Assert-True ($readmeText -match 'game-production-system` `1\.7\.0') "README system version must match the v1.7 release."
 Assert-True (@($coreSkillText.TrimEnd() -split "\r?\n").Count -le 500) "Core SKILL.md must remain at or below 500 lines; keep interactive details in its reference."
 
 foreach ($skill in @(
@@ -178,5 +190,9 @@ Assert-True ($null -ne $node) "Node.js is required for approval MCP validation."
 Assert-True ($LASTEXITCODE -eq 0) "Approval MCP protocol test failed."
 & $node.Source $policyTestPath
 Assert-True ($LASTEXITCODE -eq 0) "Production policy structure test failed."
+& $node.Source $doctorTestPath
+Assert-True ($LASTEXITCODE -eq 0) "Production capability doctor test failed."
+& $node.Source $installTestPath
+Assert-True ($LASTEXITCODE -eq 0) "Cross-platform installer test failed."
 
 Write-Host "PASS atomic plugin structure, versions, skills, policy, scripts, links, secret scan, and approval MCP protocol"

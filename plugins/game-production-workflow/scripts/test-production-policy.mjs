@@ -29,8 +29,18 @@ const visualProduction = read(
 const experienceReview = read(
   "plugins/game-production-workflow/skills/game-production-system/references/experience-review.md",
 );
+const executionPath = path.join(
+  skillRoot,
+  "references/execution.md",
+);
 const taskTemplate = read(
   "plugins/game-production-workflow/skills/game-production-system/assets/project-template/production/TASK.md",
+);
+const projectInstructions = read(
+  "plugins/game-production-workflow/skills/game-production-system/assets/project-template/AGENTS.md",
+);
+const openaiYaml = read(
+  "plugins/game-production-workflow/skills/game-production-system/agents/openai.yaml",
 );
 const readme = read("README.md");
 
@@ -38,14 +48,14 @@ const baseVersion = manifest.version.split("+", 1)[0];
 const policyVersion = checker.match(/policyVersion\s*=\s*'([^']+)'/)?.[1];
 const bootstrapVersion = bootstrap.match(/systemVersion\s*=\s*'([^']+)'/)?.[1];
 
-assert.equal(baseVersion, "1.6.0", "plugin base version must be 1.6.0");
+assert.equal(baseVersion, "1.7.0", "plugin base version must be 1.7.0");
 assert.equal(policyVersion, baseVersion, "policy and plugin versions must match");
 assert.equal(
   bootstrapVersion,
   baseVersion,
   "new projects must bootstrap the current policy contract",
 );
-assert.match(readme, /game-production-system` `1\.6\.0/);
+assert.match(readme, /game-production-system` `1\.7\.0/);
 
 for (const field of [
   "Interactive visual scope:",
@@ -86,6 +96,37 @@ assert(
 );
 assert(fs.existsSync(skillRoot), "game-production-system skill root is missing");
 
+assert(
+  fs.existsSync(executionPath),
+  "standalone production execution reference is missing",
+);
+const execution = fs.readFileSync(executionPath, "utf8");
+assert.match(coreSkill, /### Execute a ready task/);
+assert.match(coreSkill, /references\/execution\.md/);
+assert.match(
+  coreSkill,
+  /### Continue a project[\s\S]*run `Execute a ready task`/,
+  "continue must route authorized Ready work into production instead of stopping at status review",
+);
+assert.match(execution, /standalone lifecycle authority/i);
+assert.match(execution, /player-visible product delta/i);
+assert.match(execution, /external Skills are optional/i);
+assert.match(
+  execution,
+  /do not invoke external discovery or planning Skills/i,
+  "legacy Ready tasks must not be captured by mandatory external planning workflows",
+);
+assert.match(execution, /player action.*interface state.*asset family.*assembly.*runtime/is);
+assert.match(projectInstructions, /External Skills are\s+optional accelerators/i);
+assert.match(projectInstructions, /must reuse `production\/TASK\.md`/i);
+assert.match(openaiYaml, /execute the next player-visible game slice/i);
+
+const pluginPrompts = manifest.interface?.defaultPrompt ?? [];
+assert(
+  pluginPrompts.some((prompt) => /build the next player-visible slice/i.test(prompt)),
+  "plugin prompts must expose direct game production, not only planning and approvals",
+);
+
 console.log(
-  "PASS production policy v1.6 interactive visual contract and compatibility structure",
+  "PASS production policy interactive visual and standalone execution contracts",
 );
