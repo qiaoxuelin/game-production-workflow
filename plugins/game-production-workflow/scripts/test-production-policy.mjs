@@ -138,6 +138,20 @@ assert.deepEqual(
   [],
   "core SKILL.md contains an immediately repeated instruction",
 );
+const substantialFeatureRoute = coreSkill.match(
+  /### Start a substantial feature([\s\S]*?)### Execute a ready task/,
+)?.[1];
+assert(substantialFeatureRoute, "core is missing the substantial-feature route");
+assert.match(
+  substantialFeatureRoute,
+  /game-art-production[\s\S]*must\s+not[\s\S]*routine accepted-baseline Fast repairs[\s\S]*non-art\/non-visual work/i,
+  "accepted-baseline Fast repairs and non-visual work must not load the art Skill",
+);
+assert.match(
+  substantialFeatureRoute,
+  /character[\s\S]*environment[\s\S]*3D[\s\S]*animation[\s\S]*VFX[\s\S]*technical-art[\s\S]*broad visual[\s\S]*visual-production\.md/i,
+  "broader visual crafts must remain on visual-production.md",
+);
 for (const [operation, load, result] of [
   ["Explore/discuss", "Project truth and relevant source", "Conversation only; no writes"],
   ["Diagnose/review", "Affected source and craft reference", "Report only; no repair"],
@@ -210,6 +224,21 @@ assert.match(projectInstructions, /must reuse `production\/TASK\.md`/i);
 assert.match(projectInstructions, /Select[\s\S]*Produce[\s\S]*Integrate[\s\S]*Observe[\s\S]*Repair[\s\S]*Checkpoint/i);
 assert.match(projectInstructions, /Fast[\s\S]*no independent review or human approval/i);
 assert.match(projectInstructions, /routine Fast UI repair[\s\S]*restoration Not applicable/i);
+assert.match(
+  projectInstructions,
+  /intact installed 1\.8 plugin[\s\S]*game-art-production[\s\S]*required/i,
+  "project instructions must honor the intact installed art route",
+);
+assert.match(
+  projectInstructions,
+  /installed 1\.8 plugin[\s\S]*missing[\s\S]*game-art-production[\s\S]*integrity failure[\s\S]*(?:repair|reinstall)[\s\S]*no art-path completion/i,
+  "project instructions must not disguise a damaged bundle as repository-only fallback",
+);
+assert.match(
+  execution,
+  /external generation, design, and browser tools[\s\S]*optional capability techniques[\s\S]*never lifecycle prerequisites/i,
+  "external art capabilities must remain optional techniques",
+);
 const projectInstructionLines = projectInstructions.trimEnd().split(/\r?\n/).length;
 const projectInstructionWords = projectInstructions.trim().split(/\s+/).length;
 assert(

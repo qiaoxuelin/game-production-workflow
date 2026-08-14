@@ -115,6 +115,11 @@ selected route without reopening planning or lowering the quality bar.
 
 ## Interactive visual execution
 
+For matching interactive UI/2D work, use `game-art-production` `Produce` inside
+the core-owned task; it creates no parallel task, plan, status, gate, approval,
+or close authority, while external generation, design, and browser tools remain
+optional capability techniques, never lifecycle prerequisites.
+
 Do not treat a composed design image as an asset inventory or runtime UI. For
 each representative slice, execute this causal chain:
 

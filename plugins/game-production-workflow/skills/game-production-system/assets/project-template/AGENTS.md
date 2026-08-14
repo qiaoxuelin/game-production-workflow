@@ -33,10 +33,10 @@ lane-applicable handoff unresolved.
 
 ## Execute Ready or Implementing work
 
-This Game Production System is the lifecycle authority. External Skills are
-optional accelerators; they must reuse `production/TASK.md` and its referenced
-`production/PLAN.md`, and must not create duplicate plans, approvals, states, or
-acceptance sources.
+The Game Production System remains lifecycle authority. With an intact installed 1.8 plugin,
+`game-art-production` is required for its matching art route. External Skills are
+optional accelerators; they must reuse `production/TASK.md` and its referenced `production/PLAN.md`,
+and must not create duplicate plans, approvals, states, or acceptance sources.
 
 Run one bounded production loop:
 
@@ -49,9 +49,9 @@ Run one bounded production loop:
 5. **Repair** one shared root cause without polishing unrelated findings.
 6. **Checkpoint** the delta, result, recovery point, risk, and next action.
 
-Use available or replaceable capabilities, base editing, engine primitives,
-code-native UI, or declared greybox boundaries when an external Skill is absent.
-Never claim proof that the environment could not observe.
+An installed 1.8 plugin missing `game-art-production` is an integrity failure; preserve work, repair/reinstall, and grant no art-path completion.
+Repository-only with no plugin uses this interaction-to-visual loop, available or replaceable capabilities,
+base editing, engine primitives, code-native UI, or greybox boundaries; it must not claim the dedicated protocol or unavailable subjective authority ran, or claim proof the environment could not observe.
 
 ## Design and player-facing quality
 

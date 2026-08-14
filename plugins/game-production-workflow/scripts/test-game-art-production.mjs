@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(scriptDirectory, "../skills/game-art-production");
+const coreRoot = path.resolve(scriptDirectory, "../skills/game-production-system");
 const requiredFiles = [
   "SKILL.md",
   "agents/openai.yaml",
@@ -18,6 +19,12 @@ for (const relativePath of requiredFiles) {
 }
 
 const skill = fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf8");
+const coreSkill = fs.readFileSync(path.join(coreRoot, "SKILL.md"), "utf8");
+const execution = fs.readFileSync(path.join(coreRoot, "references/execution.md"), "utf8");
+const projectInstructions = fs.readFileSync(
+  path.join(coreRoot, "assets/project-template/AGENTS.md"),
+  "utf8",
+);
 const expectedDescription = "Use when interactive UI/2D game work needs a new or materially changed visual direction, screen, HUD, component/state system, flattened-composite decomposition, editable source production, project-native integration, runtime visual proof, or professional visual review.";
 const expectedFrontmatter = `---
 name: game-art-production
@@ -32,6 +39,68 @@ assert(expectedDescription.length <= 500, "required description must remain at m
 assert.match(skill, /\| `Design` \| `references\/visual-design\.md` \|/);
 assert.match(skill, /\| `Produce` \| `references\/interactive-ui-2d\.md` \|/);
 assert.match(skill, /\| `Review` \| `references\/visual-review\.md` \|/);
+
+const startRoute = coreSkill.match(
+  /### Start a substantial feature([\s\S]*?)### Execute a ready task/,
+)?.[1];
+assert(startRoute, "core is missing the substantial-feature route");
+assert.match(
+  startRoute,
+  /unresolved\s+interactive UI\/2D direction[\s\S]*game-art-production[\s\S]*`Design`/i,
+  "unresolved interactive UI/2D direction must route to Design",
+);
+
+const executeRoute = coreSkill.match(
+  /### Execute a ready task([\s\S]*?)### Continue a project/,
+)?.[1];
+assert(executeRoute, "core is missing the ready-task route");
+assert.match(
+  executeRoute,
+  /`Ready`\s+or\s+`Implementing`[\s\S]*interactive UI\/2D[\s\S]*game-art-production[\s\S]*`Produce`/i,
+  "matching Ready/Implementing interactive UI/2D work must route to Produce",
+);
+
+const diagnoseRoute = coreSkill
+  .split(/\r?\n/)
+  .find((line) => line.startsWith("|") && line.includes("**Diagnose/review**"));
+assert.match(
+  diagnoseRoute ?? "",
+  /game-art-production[\s\S]*`Review`[\s\S]*professional UI\/2D diagnosis[\s\S]*requested/i,
+  "requested professional UI/2D diagnosis must route to Review",
+);
+
+const gateRoute = coreSkill.match(/### Review a gate([\s\S]*?)## Non-negotiable rules/)?.[1];
+assert(gateRoute, "core is missing the gate-review route");
+assert.match(
+  gateRoute,
+  /game-art-production[\s\S]*`Review`[\s\S]*professional UI\/2D gate\s+evidence[\s\S]*required/i,
+  "required professional UI/2D gate evidence must route to Review",
+);
+
+const interactiveExecution = execution.match(
+  /## Interactive visual execution\n\n([\s\S]*?)\n\nDo not treat/,
+)?.[1];
+assert.match(
+  interactiveExecution ?? "",
+  /^For matching interactive UI\/2D work, use `game-art-production` `Produce`/i,
+  "interactive visual execution must begin with the additive Produce route",
+);
+
+assert.match(
+  coreSkill,
+  /intact 1\.8 plugin\s+requires bundled `game-art-production` for (?:the )?positive UI\/2D\s+predicate/i,
+  "an intact 1.8 plugin must require its bundled art Skill",
+);
+assert.match(
+  coreSkill,
+  /installed 1\.8\s+plugin missing `game-art-production` is a\s+bundle-integrity failure:[\s\S]{0,180}report it[\s\S]{0,80}(?:repair|reinstall)[\s\S]{0,80}no art-path completion/i,
+  "a damaged installed 1.8 bundle must fail integrity without granting completion",
+);
+assert.match(
+  projectInstructions,
+  /repository-only[\s\S]*no\s+plugin[\s\S]*interaction-to-visual loop[\s\S]*must not claim[\s\S]*dedicated protocol[\s\S]*subjective authority ran/i,
+  "repository-only fallback must be useful without claiming unavailable authority",
+);
 
 for (const field of [
   "Operation",
