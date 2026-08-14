@@ -87,6 +87,9 @@ const stateVerification = spawnSync(
 assert.equal(stateVerification.status, 0, stateVerification.stderr || stateVerification.stdout);
 
 const designShell = await import(pathToFileURL(path.join(evalRoot, "design-direction/starter/web/app.mjs")));
+const designIndex = fs.readFileSync(path.join(evalRoot, "design-direction/starter/web/index.html"), "utf8");
+assert.match(designIndex, /id="case-controls"/);
+assert.match(designIndex, /id="viewport-controls"/);
 assert.deepEqual(Object.keys(designShell.resultCases), [
   "success",
   "failure",
@@ -98,6 +101,73 @@ assert.deepEqual(designShell.targetViewports, {
   desktop: "1280x720",
   mobile: "390x844",
 });
+
+function fakeElement(dataset = {}) {
+  return {
+    dataset,
+    className: "",
+    textContent: "",
+    children: [],
+    focused: false,
+    listeners: {},
+    addEventListener(type, listener) { this.listeners[type] = listener; },
+    click() { this.listeners.click?.(); },
+    focus() { this.focused = true; },
+    replaceChildren(...children) { this.children = children; },
+    append(...children) { this.children.push(...children); },
+  };
+}
+
+function fakeDesignDocument(omittedCase, generateControls = false) {
+  const elements = Object.fromEntries([
+    "#viewport", "#outcome", "#score", "#rewards", "#retry", "#exit", "#feedback", "#case-controls", "#viewport-controls",
+  ].map((selector) => [selector, fakeElement()]));
+  const caseButtons = generateControls ? [] : Object.keys(designShell.resultCases)
+    .filter((caseName) => caseName !== omittedCase)
+    .map((caseName) => fakeElement({ case: caseName }));
+  const viewportButtons = generateControls ? [] : Object.keys(designShell.targetViewports)
+    .map((viewport) => fakeElement({ viewport }));
+  elements["#case-controls"].append = (...buttons) => caseButtons.push(...buttons);
+  elements["#viewport-controls"].append = (...buttons) => viewportButtons.push(...buttons);
+  return {
+    elements,
+    caseButtons,
+    viewportButtons,
+    querySelector(selector) { return elements[selector]; },
+    querySelectorAll(selector) {
+      if (selector === "[data-case]") return caseButtons;
+      if (selector === "[data-viewport]") return viewportButtons;
+      return [];
+    },
+    createElement() { return fakeElement(); },
+  };
+}
+
+const generatedControlDocument = fakeDesignDocument(undefined, true);
+designShell.initializeResultShell(generatedControlDocument);
+assert.deepEqual(
+  generatedControlDocument.caseButtons.map((button) => button.dataset.case),
+  Object.keys(designShell.resultCases),
+);
+assert.deepEqual(
+  generatedControlDocument.viewportButtons.map((button) => button.dataset.viewport),
+  Object.keys(designShell.targetViewports),
+);
+
+const fakeDocument = fakeDesignDocument();
+designShell.initializeResultShell(fakeDocument);
+fakeDocument.caseButtons.find((button) => button.dataset.case === "failure").click();
+assert.equal(fakeDocument.elements["#outcome"].textContent, "Run failed");
+fakeDocument.caseButtons.find((button) => button.dataset.case === "reward-overflow").click();
+assert.equal(fakeDocument.elements["#rewards"].children.length, 8);
+fakeDocument.caseButtons.find((button) => button.dataset.case === "controller-focus").click();
+assert.equal(fakeDocument.elements["#retry"].focused, true);
+fakeDocument.viewportButtons.find((button) => button.dataset.viewport === "mobile").click();
+assert.equal(fakeDocument.elements["#viewport"].className, "viewport mobile");
+assert.throws(
+  () => designShell.initializeResultShell(fakeDesignDocument("failure")),
+  /missing case control: failure/,
+);
 
 assert(fs.existsSync(cliPath), "missing game art fixture CLI");
 const fixtureApi = await import(pathToFileURL(cliPath));
@@ -132,6 +202,25 @@ fs.rmSync(sourceTestRepository, { recursive: true, force: true });
 fs.mkdirSync(tempRoot, { recursive: true });
 
 try {
+  const orderedTree = path.join(tempRoot, "hash-order-a");
+  const reversedTree = path.join(tempRoot, "hash-order-b");
+  const treeEntries = [
+    ["alpha/one.txt", "one\n"],
+    ["beta/nested/two.txt", "two\n"],
+    ["root.txt", "root\n"],
+  ];
+  for (const [relative, content] of treeEntries) {
+    const file = path.join(orderedTree, relative);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, content);
+  }
+  for (const [relative, content] of [...treeEntries].reverse()) {
+    const file = path.join(reversedTree, relative);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, content);
+  }
+  assert.equal(fixtureApi.hashTree(orderedTree), fixtureApi.hashTree(reversedTree));
+
   assert.throws(
     () => fixtureApi.prepareFixture({
       pluginRoot,
@@ -360,6 +449,13 @@ try {
       assert(brokenStateResult.objectiveChecks.some((check) => check.id === "local-state-verifier" && check.status === "Fail"));
       fs.writeFileSync(statePath, stateContent);
 
+      fs.writeFileSync(statePath, "process.exit(0);\n");
+      const terminatingStateObservation = { ...observation, outputTreeHash: outputHash(runRoot) };
+      fs.writeFileSync(path.join(runRoot, "observation.json"), `${JSON.stringify(terminatingStateObservation, null, 2)}\n`);
+      const terminatingStateResult = fixtureApi.verifyFixture({ pluginRoot, runRoot });
+      assert(terminatingStateResult.objectiveChecks.some((check) => check.id === "local-state-verifier" && check.status === "Fail"));
+      fs.writeFileSync(statePath, stateContent);
+
       const missingArtifact = path.join(runRoot, fixture.requiredArtifacts[0]);
       const missingArtifactContent = fs.readFileSync(missingArtifact, "utf8");
       fs.rmSync(missingArtifact);
@@ -400,6 +496,16 @@ try {
   fs.copyFileSync(
     path.join(scriptDirectory, "game-art-composite-verifier.mjs"),
     path.join(sourceTestPlugin, "scripts/game-art-composite-verifier.mjs"),
+  );
+  const reservedBindingNamespace = path.join(sourceTestRepository, ".tmp/game-art-evals/.fixture-bindings");
+  assert.throws(
+    () => fixtureApi.prepareFixture({
+      pluginRoot: sourceTestPlugin,
+      fixtureId: "design-direction",
+      label: "reserved-binding-namespace",
+      outputRoot: reservedBindingNamespace,
+    }),
+    /reserved trusted binding namespace/,
   );
   if (symlinksSupported) {
     const fakeEvaluationRoot = path.join(sourceTestRepository, ".tmp/game-art-evals");
@@ -452,6 +558,56 @@ try {
     () => fixtureApi.verifyFixture({ pluginRoot: sourceTestPlugin, runRoot: sourceTestRun }),
     /committed fixture and starter/,
   );
+
+  const mutatingVerifierRelative = "scripts/mutating-composite-verifier.mjs";
+  fs.writeFileSync(
+    path.join(sourceTestPlugin, mutatingVerifierRelative),
+    [
+      'import fs from "node:fs";',
+      'import path from "node:path";',
+      'const runRoot = process.argv[2];',
+      'const projectPath = path.join(runRoot, "production/project.json");',
+      'const project = JSON.parse(fs.readFileSync(projectPath, "utf8"));',
+      'project.status = "Implementing";',
+      'fs.writeFileSync(projectPath, `${JSON.stringify(project, null, 2)}\\n`);',
+      'fs.writeFileSync(path.join(runRoot, "verifier-side-effect.txt"), "mutated during verification\\n");',
+      'console.log("PASS mutating verifier fixture");',
+      "",
+    ].join("\n"),
+  );
+  const mutationFixturePath = path.join(sourceTestPlugin, "evals/game-art-production/composite-runtime/fixture.json");
+  const mutationFixture = JSON.parse(fs.readFileSync(mutationFixturePath, "utf8"));
+  mutationFixture.trustedVerifier = mutatingVerifierRelative;
+  fs.writeFileSync(mutationFixturePath, `${JSON.stringify(mutationFixture, null, 2)}\n`);
+  const mutationRun = path.join(sourceTestRepository, ".tmp/game-art-evals/verifier-mutation");
+  const mutationLock = fixtureApi.prepareFixture({
+    pluginRoot: sourceTestPlugin,
+    fixtureId: "composite-runtime",
+    label: "verifier-mutation",
+    outputRoot: mutationRun,
+  });
+  for (const relative of mutationFixture.requiredArtifacts) {
+    const artifact = path.join(mutationRun, relative);
+    fs.mkdirSync(path.dirname(artifact), { recursive: true });
+    fs.writeFileSync(artifact, `mutation test artifact: ${relative}\n`);
+  }
+  const mutationObservation = {
+    schemaVersion: 1,
+    sourceTreeHash: mutationLock.sourceTreeHash,
+    outputTreeHash: outputHash(mutationRun),
+    taskStateBefore: mutationLock.taskStateBefore,
+    taskStateAfter: mutationLock.taskStateBefore,
+    loadedContext: { metadataWords: 0, bodyWords: 0, referenceWords: 0, files: [] },
+    cycles: 0,
+    elapsedMinutes: 0,
+    terminalClaim: "Verifier mutation ordering regression; subjective review pending.",
+  };
+  fs.writeFileSync(path.join(mutationRun, "observation.json"), `${JSON.stringify(mutationObservation, null, 2)}\n`);
+  const mutationResult = fixtureApi.verifyFixture({ pluginRoot: sourceTestPlugin, runRoot: mutationRun });
+  assert(mutationResult.objectiveChecks.some((check) => check.id === "task-state-claims" && check.status === "Fail"));
+  assert(mutationResult.objectiveChecks.some((check) => check.id === "output-tree-claim" && check.status === "Fail"));
+  assert.equal(mutationResult.taskStateAfter.status, "Implementing");
+  assert.equal(mutationResult.outputTreeHash, outputHash(mutationRun));
 
   const cliOutput = path.join(tempRoot, "cli-prepare");
   const cliRun = spawnSync(

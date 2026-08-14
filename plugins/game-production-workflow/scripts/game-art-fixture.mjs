@@ -65,6 +65,13 @@ function requireEvalRunPath(pluginRoot, value, name) {
   rejectSymlinkComponents(evaluationRoot.lexical, resolved, name);
   const relative = path.relative(evaluationRoot.lexical, resolved);
   const canonicalCandidate = path.resolve(evaluationRoot.canonical, relative);
+  const reservedBindingNamespace = path.join(evaluationRoot.canonical, ".fixture-bindings");
+  if (
+    comparisonPath(canonicalCandidate) === comparisonPath(reservedBindingNamespace) ||
+    isContainedPath(reservedBindingNamespace, canonicalCandidate)
+  ) {
+    throw new Error(`${name} uses the reserved trusted binding namespace`);
+  }
   if (!isContainedPath(evaluationRoot.canonical, canonicalCandidate)) {
     throw new Error(`${name} resolves outside ${evaluationRoot.canonical}`);
   }
@@ -380,11 +387,16 @@ function inspectRunFile(runRoot, relative, description) {
 
 function runTrustedVerifier(pluginRoot, fixtureDirectory, runRoot, fixture) {
   if (!fixture.trustedVerifier) return null;
-  const runVerifier = inspectRunFile(runRoot, fixture.localVerifier, "run-local verifier input");
-  if (!runVerifier.ok) return check("local-state-verifier", false, runVerifier.evidence);
-  const committedVerifier = path.resolve(fixtureDirectory, "starter", fixture.localVerifier);
-  if (!fs.existsSync(committedVerifier) || hashFile(runVerifier.file) !== hashFile(committedVerifier)) {
-    return check("local-state-verifier", false, "run-local verifier input differs from the committed fixture");
+  for (const [relative, description] of [
+    [fixture.localVerifier, "run-local verifier input"],
+    ["web/state.mjs", "authoritative state input"],
+  ]) {
+    const runInput = inspectRunFile(runRoot, relative, description);
+    if (!runInput.ok) return check("local-state-verifier", false, runInput.evidence);
+    const committedInput = path.resolve(fixtureDirectory, "starter", relative);
+    if (!fs.existsSync(committedInput) || fs.lstatSync(committedInput).isSymbolicLink() || hashFile(runInput.file) !== hashFile(committedInput)) {
+      return check("local-state-verifier", false, `${description} differs from the committed fixture`);
+    }
   }
 
   const trustedVerifier = path.resolve(pluginRoot, fixture.trustedVerifier);
@@ -462,6 +474,7 @@ export function verifyFixture({ pluginRoot, runRoot }) {
     taskStateBefore: readTaskState(starterRoot),
   };
   if (!sameValue(lock, expectedLock)) throw new Error("fixture lock does not match the committed fixture and starter");
+  const localVerifier = runTrustedVerifier(resolvedPluginRoot, fixtureDirectory, resolvedRunRoot, fixture);
   const taskStateAfter = readTaskState(resolvedRunRoot);
   const currentOutputTreeHash = hashTree(resolvedRunRoot, controlFiles);
 
@@ -492,7 +505,6 @@ export function verifyFixture({ pluginRoot, runRoot }) {
       `output tree: ${observation.outputTreeHash === currentOutputTreeHash ? "matches observation" : "changed after observation"}`,
     ),
   ];
-  const localVerifier = runTrustedVerifier(resolvedPluginRoot, fixtureDirectory, resolvedRunRoot, fixture);
   if (localVerifier) objectiveChecks.push(localVerifier);
 
   const prohibited = fixture.prohibitedClaims.filter((claim) =>

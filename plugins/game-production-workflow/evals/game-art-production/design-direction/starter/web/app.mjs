@@ -15,6 +15,25 @@ export const targetViewports = Object.freeze({
   mobile: "390x844",
 });
 
+function controlLabel(value) {
+  return value.replaceAll("-", " ").replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function modelControls(documentRoot, selector, hostSelector, model, dataKey) {
+  const existing = [...documentRoot.querySelectorAll(selector)];
+  if (existing.length > 0) return existing;
+  const host = documentRoot.querySelector(hostSelector);
+  if (!host) throw new Error(`missing control host: ${hostSelector}`);
+  const controls = Object.entries(model).map(([key, value]) => {
+    const button = documentRoot.createElement("button");
+    button.dataset[dataKey] = key;
+    button.textContent = dataKey === "viewport" ? value.replace("x", "×") : controlLabel(key);
+    return button;
+  });
+  host.append(...controls);
+  return controls;
+}
+
 export function initializeResultShell(documentRoot = document) {
   const viewport = documentRoot.querySelector("#viewport");
   const outcome = documentRoot.querySelector("#outcome");
@@ -23,6 +42,14 @@ export function initializeResultShell(documentRoot = document) {
   const retry = documentRoot.querySelector("#retry");
   const exit = documentRoot.querySelector("#exit");
   const feedback = documentRoot.querySelector("#feedback");
+  const caseButtons = modelControls(documentRoot, "[data-case]", "#case-controls", resultCases, "case");
+  const viewportButtons = modelControls(documentRoot, "[data-viewport]", "#viewport-controls", targetViewports, "viewport");
+  for (const caseName of Object.keys(resultCases)) {
+    if (!caseButtons.some((button) => button.dataset.case === caseName)) throw new Error(`missing case control: ${caseName}`);
+  }
+  for (const viewportName of Object.keys(targetViewports)) {
+    if (!viewportButtons.some((button) => button.dataset.viewport === viewportName)) throw new Error(`missing viewport control: ${viewportName}`);
+  }
 
   function render(caseName) {
     const state = resultCases[caseName];
@@ -37,10 +64,10 @@ export function initializeResultShell(documentRoot = document) {
     if (state.focus) retry.focus();
   }
 
-  documentRoot.querySelectorAll("[data-case]").forEach((button) => {
+  caseButtons.forEach((button) => {
     button.addEventListener("click", () => render(button.dataset.case));
   });
-  documentRoot.querySelectorAll("[data-viewport]").forEach((button) => {
+  viewportButtons.forEach((button) => {
     button.addEventListener("click", () => {
       viewport.className = `viewport ${button.dataset.viewport}`;
     });
