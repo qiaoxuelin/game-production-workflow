@@ -11,6 +11,7 @@ const repositoryRoot = path.resolve(pluginRoot, "../..");
 const evalRoot = path.join(pluginRoot, "evals/game-art-production");
 const cliPath = path.join(scriptDirectory, "game-art-fixture.mjs");
 const controlSummaryPath = path.join(evalRoot, "control-1.7.2.json");
+const candidateSummaryPath = path.join(evalRoot, "candidate-additive-1.8.0.json");
 const ids = ["design-direction", "composite-runtime"];
 const expectedStarterFiles = {
   "design-direction": [
@@ -53,6 +54,9 @@ const canonicalValue = (value) => Array.isArray(value)
     : value;
 const semanticHash = (value) => `sha256:${crypto.createHash("sha256")
   .update(`${JSON.stringify(canonicalValue(value), null, 2)}\n`)
+  .digest("hex")}`;
+const fileHash = (file) => `sha256:${crypto.createHash("sha256")
+  .update(fs.readFileSync(file))
   .digest("hex")}`;
 const approvalChangeCount = (before, after) => {
   const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
@@ -404,6 +408,210 @@ for (const failure of controlSummary.observedFailures) {
 if (controlSummary.splitDecision === "Proceed") {
   assert(controlSummary.observedFailures.length > 0, "Proceed requires observed artifact failures");
 }
+
+assert(fs.existsSync(candidateSummaryPath), "missing additive 1.8.0 candidate summary");
+const candidateSummary = JSON.parse(fs.readFileSync(candidateSummaryPath, "utf8"));
+assert.deepEqual(Object.keys(candidateSummary).sort(), [
+  "approvalEvidence",
+  "burden",
+  "candidateCommit",
+  "comparison",
+  "decisionBasis",
+  "evaluationContractMismatches",
+  "evidenceBundles",
+  "fixtureResults",
+  "label",
+  "observedFailures",
+  "result",
+  "schemaVersion",
+  "sharedRootCauseClassification",
+  "task6Unlocked",
+]);
+assert.equal(candidateSummary.schemaVersion, 1);
+assert.equal(candidateSummary.label, "candidate-additive-1.8.0");
+assert.equal(candidateSummary.candidateCommit, "2c26db33dadd2e23e06f7e2eea6604143a38ad7a");
+assert.equal(candidateSummary.result, "BoundedReturn");
+assert.equal(candidateSummary.task6Unlocked, false);
+assert.match(candidateSummary.decisionBasis, /genuine keyboard\/controller-equivalent input-to-visual causality remains unproven/i);
+assert.match(candidateSummary.decisionBasis, /Task 6 is not unlocked/i);
+
+const candidateKeys = [
+  ["design-direction", "primary"],
+  ["composite-runtime", "primary"],
+  ["composite-runtime", "no-optional-generation"],
+];
+assert.equal(candidateSummary.fixtureResults.length, candidateKeys.length);
+for (const [fixtureId, variant] of candidateKeys) {
+  const result = candidateSummary.fixtureResults.find((entry) => entry.fixtureId === fixtureId && entry.variant === variant);
+  assert(result, `missing candidate fixture result: ${fixtureId}/${variant}`);
+  assert.deepEqual(Object.keys(result).sort(), [
+    "approvalChanges",
+    "capabilities",
+    "cycles",
+    "elapsedMinutes",
+    "fixtureDefinitionHash",
+    "fixtureId",
+    "label",
+    "loadedContext",
+    "maturity",
+    "objectiveResult",
+    "outputTreeHash",
+    "routeFiles",
+    "sourceTreeHash",
+    "subjectiveReview",
+    "terminalClaim",
+    "variant",
+  ]);
+  assert.match(result.fixtureDefinitionHash, /^sha256:[a-f0-9]{64}$/);
+  assert.match(result.sourceTreeHash, /^sha256:[a-f0-9]{64}$/);
+  assert.match(result.outputTreeHash, /^sha256:[a-f0-9]{64}$/);
+  assert.equal(result.approvalChanges, 0);
+  assert(Number.isInteger(result.cycles) && result.cycles > 0);
+  assert(Number.isInteger(result.elapsedMinutes) && result.elapsedMinutes > 0);
+  assert.deepEqual(Object.keys(result.loadedContext).sort(), ["bodyWords", "files", "metadataWords", "referenceWords"]);
+  for (const routeFile of result.routeFiles) {
+    assert.deepEqual(Object.keys(routeFile).sort(), ["contextBucket", "path", "sha256", "wordCount"]);
+    assert.match(routeFile.sha256, /^sha256:[a-f0-9]{64}$/);
+    assert(Number.isInteger(routeFile.wordCount) && routeFile.wordCount > 0);
+    assert(result.loadedContext.files.includes(routeFile.path));
+    const routePath = path.isAbsolute(routeFile.path) ? routeFile.path : path.join(repositoryRoot, routeFile.path);
+    if (fs.existsSync(routePath)) assert.equal(fileHash(routePath), routeFile.sha256);
+  }
+  assert(["Pass", "Blocked"].includes(result.objectiveResult.status));
+  assert(Array.isArray(result.objectiveResult.checks) && result.objectiveResult.checks.length > 0);
+  assert.match(result.subjectiveReview.status, /^Pass/);
+  assert.equal(result.subjectiveReview.reviewerIndependence, "Independent");
+  assert.match(result.terminalClaim, /\S/);
+}
+
+const designCandidate = candidateSummary.fixtureResults.find((entry) => entry.fixtureId === "design-direction");
+const primaryProduceCandidate = candidateSummary.fixtureResults.find((entry) => entry.fixtureId === "composite-runtime" && entry.variant === "primary");
+const noGenerationCandidate = candidateSummary.fixtureResults.find((entry) => entry.variant === "no-optional-generation");
+assert.equal(designCandidate.objectiveResult.status, "Blocked");
+assert(designCandidate.objectiveResult.checks.some((check) => check.id === "genuine-input-to-visual-causality" && check.status === "Blocked"));
+assert.equal(designCandidate.maturity.bulkUnlock, "Locked");
+assert.equal(primaryProduceCandidate.objectiveResult.status, "Pass");
+assert.equal(noGenerationCandidate.objectiveResult.status, "Pass");
+assert.equal(noGenerationCandidate.capabilities.imageGeneration, "unavailable");
+assert.equal(noGenerationCandidate.capabilities.imageEditing, "unavailable");
+assert(noGenerationCandidate.objectiveResult.checks.some((check) => check.id === "replaceable-no-generation-route" && check.status === "Pass"));
+
+assert.equal(candidateSummary.observedFailures.length, 1);
+assert.deepEqual(Object.keys(candidateSummary.observedFailures[0]).sort(), ["criterion", "evidence", "fixtureId", "variant"]);
+assert.equal(candidateSummary.observedFailures[0].fixtureId, "design-direction");
+assert.equal(candidateSummary.observedFailures[0].variant, "primary");
+assert.equal(candidateSummary.observedFailures[0].criterion, "Actual keyboard/controller interaction-to-visual causality");
+assert(Array.isArray(candidateSummary.observedFailures[0].evidence) && candidateSummary.observedFailures[0].evidence.length > 0);
+
+assert.deepEqual(Object.keys(candidateSummary.sharedRootCauseClassification).sort(), [
+  "attribution",
+  "candidateArtifactRepairBatchUsed",
+  "classification",
+  "criterion",
+  "evidence",
+  "id",
+  "notAttributedTo",
+  "recovery",
+  "sameRootCycles",
+]);
+assert.equal(candidateSummary.sharedRootCauseClassification.id, "unavailable-browser-input-bridge");
+assert.equal(candidateSummary.sharedRootCauseClassification.criterion, candidateSummary.observedFailures[0].criterion);
+assert.equal(candidateSummary.sharedRootCauseClassification.classification, "Environment evidence limitation");
+assert.match(candidateSummary.sharedRootCauseClassification.attribution, /unavailable browser\/input bridge/i);
+assert.deepEqual(candidateSummary.sharedRootCauseClassification.notAttributedTo, [
+  "game-art-production Skill wording",
+  "candidate runtime",
+]);
+assert.equal(candidateSummary.sharedRootCauseClassification.candidateArtifactRepairBatchUsed, false);
+assert.equal(candidateSummary.sharedRootCauseClassification.sameRootCycles, 2);
+
+assert.equal(candidateSummary.evaluationContractMismatches.length, candidateKeys.length);
+for (const mismatch of candidateSummary.evaluationContractMismatches) {
+  assert.deepEqual(Object.keys(mismatch).sort(), [
+    "criterion",
+    "evidence",
+    "excludedFromGateBasis",
+    "fixtureId",
+    "objectiveCheckId",
+    "producedAlternatives",
+    "variant",
+  ]);
+  assert.equal(mismatch.objectiveCheckId, "required-artifacts");
+  assert.equal(mismatch.excludedFromGateBasis, true);
+  assert(Array.isArray(mismatch.evidence) && mismatch.evidence.length > 0);
+  assert(Array.isArray(mismatch.producedAlternatives) && mismatch.producedAlternatives.length > 0);
+  assert(!candidateSummary.observedFailures.some((failure) => failure.evidence.some((entry) => mismatch.evidence.includes(entry))));
+}
+assert.match(candidateSummary.decisionBasis, /Exact-path evaluation-contract mismatches are excluded from the gate basis/);
+
+assert.equal(candidateSummary.approvalEvidence.length, candidateKeys.length);
+for (const approval of candidateSummary.approvalEvidence) {
+  assert.deepEqual(Object.keys(approval).sort(), ["addedOrChangedCount", "after", "before", "fixtureId", "hash", "variant"]);
+  const { hash, ...identity } = approval;
+  assert.equal(hash, semanticHash(identity));
+  assert.equal(approval.addedOrChangedCount, approvalChangeCount(approval.before, approval.after));
+  assert.equal(approval.addedOrChangedCount, 0);
+}
+
+assert.equal(candidateSummary.evidenceBundles.length, candidateKeys.length);
+for (const bundle of candidateSummary.evidenceBundles) {
+  assert.deepEqual(Object.keys(bundle).sort(), [
+    "deterministicOutput",
+    "fixtureId",
+    "independentReview",
+    "inputCausalityEvidence",
+    "rawBundle",
+    "runRecord",
+    "variant",
+  ]);
+  assert.deepEqual(Object.keys(bundle.rawBundle).sort(), ["hash", "location", "outputTreeHash"]);
+  for (const recordName of ["runRecord", "deterministicOutput", "independentReview"]) {
+    assert.deepEqual(Object.keys(bundle[recordName]).sort(), ["hash", "location"]);
+  }
+  if (bundle.fixtureId === "design-direction") {
+    assert.deepEqual(Object.keys(bundle.inputCausalityEvidence).sort(), ["hash", "location"]);
+  } else {
+    assert.equal(bundle.inputCausalityEvidence, null);
+  }
+
+  const rawBundleRoot = path.join(repositoryRoot, bundle.rawBundle.location);
+  if (fs.existsSync(rawBundleRoot)) {
+    assert.equal(fixtureApi.hashTree(rawBundleRoot), bundle.rawBundle.hash);
+    assert.equal(fixtureApi.hashTree(rawBundleRoot, ["fixture-lock.json"]), bundle.rawBundle.outputTreeHash);
+    for (const recordName of ["runRecord", "deterministicOutput", "independentReview", "inputCausalityEvidence"]) {
+      const record = bundle[recordName];
+      if (!record) continue;
+      const recordPath = path.join(repositoryRoot, record.location);
+      assert(fs.existsSync(recordPath), `missing bound evidence: ${record.location}`);
+      assert.equal(semanticHash(JSON.parse(fs.readFileSync(recordPath, "utf8"))), record.hash);
+    }
+  }
+}
+
+assert.deepEqual(Object.keys(candidateSummary.burden).sort(), ["allRuns", "primaryFixtures"]);
+for (const burden of [candidateSummary.burden.primaryFixtures, candidateSummary.burden.allRuns]) {
+  assert.deepEqual(Object.keys(burden).sort(), ["approvals", "cycles", "elapsedMinutes", "loadedContext"]);
+  assert.deepEqual(Object.keys(burden.loadedContext).sort(), ["bodyWords", "files", "metadataWords", "referenceWords"]);
+}
+assert.equal(candidateSummary.burden.primaryFixtures.cycles, designCandidate.cycles + primaryProduceCandidate.cycles);
+assert.equal(candidateSummary.burden.primaryFixtures.elapsedMinutes, designCandidate.elapsedMinutes + primaryProduceCandidate.elapsedMinutes);
+assert.equal(candidateSummary.burden.allRuns.cycles, candidateSummary.fixtureResults.reduce((sum, entry) => sum + entry.cycles, 0));
+assert.equal(candidateSummary.burden.allRuns.elapsedMinutes, candidateSummary.fixtureResults.reduce((sum, entry) => sum + entry.elapsedMinutes, 0));
+assert.equal(candidateSummary.burden.allRuns.approvals, 0);
+
+assert.deepEqual(Object.keys(candidateSummary.comparison).sort(), [
+  "controlSummary",
+  "correctedControlFailures",
+  "lifecycleOrApprovalBurdenAdded",
+  "primaryBurdenDelta",
+  "retainedControlFailures",
+]);
+assert.equal(candidateSummary.comparison.controlSummary.location, "plugins/game-production-workflow/evals/game-art-production/control-1.7.2.json");
+assert.equal(candidateSummary.comparison.controlSummary.hash, semanticHash(controlSummary));
+assert.equal(candidateSummary.comparison.controlSummary.splitDecision, "Proceed");
+assert.equal(candidateSummary.comparison.correctedControlFailures.length, 3);
+assert.deepEqual(candidateSummary.comparison.retainedControlFailures, ["Actual keyboard/controller interaction-to-visual causality"]);
+assert.equal(candidateSummary.comparison.lifecycleOrApprovalBurdenAdded, false);
 
 assert.throws(
   () => fixtureApi.parseFixtureArguments(["prepare", "--fixture", "design-direction", "--label", "test", "--output", ".tmp/relative"]),

@@ -1,0 +1,724 @@
+{
+  "schemaVersion": 1,
+  "label": "candidate-additive-1.8.0",
+  "candidateCommit": "2c26db33dadd2e23e06f7e2eea6604143a38ad7a",
+  "result": "BoundedReturn",
+  "task6Unlocked": false,
+  "fixtureResults": [
+    {
+      "fixtureId": "design-direction",
+      "variant": "primary",
+      "label": "candidate-additive-1.8.0",
+      "fixtureDefinitionHash": "sha256:2aa7f3d58bb494587a29412bdad897ed581ede96c57b2324d5886ef998d42094",
+      "sourceTreeHash": "sha256:9263408b47f3df7faa539fa6559b92838309d402a1c89c9424611ea776f7ba7e",
+      "outputTreeHash": "sha256:e27662608fd2d03498c7d75acb4283e8067d56773c60244694117ee21a7f9c3b",
+      "capabilities": {
+        "browserRuntimeInspection": "available for the initial matrix; unavailable for the bounded genuine-input follow-up",
+        "imageGeneration": "available but not used",
+        "imageEditing": "available but not used",
+        "externalArtDirectionSelected": false
+      },
+      "routeFiles": [
+        {
+          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "sha256": "sha256:8fd8968c3fa199b0a8b28402e71f46b8de1ecc7153f01889a34732f3bb3bfb9a",
+          "wordCount": 4158,
+          "contextBucket": "reference"
+        },
+        {
+          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "sha256": "sha256:5e8c56e40633a8d310ad126c4dd26aed11e89d3c481967ef18344c7eeb9419ba",
+          "wordCount": 497,
+          "contextBucket": "reference"
+        },
+        {
+          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/references/visual-design.md",
+          "sha256": "sha256:832d580fa982fd574f4a16b09cba0f0c12c2eab1eecc03260e4ccb8b16954b37",
+          "wordCount": 466,
+          "contextBucket": "reference"
+        },
+        {
+          "path": "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md",
+          "sha256": "sha256:bdec2bfc891a6bd3f0a62d9d872ece4c6c3678f75bef7a5a2916cb1a53cc6910",
+          "wordCount": 1855,
+          "contextBucket": "reference"
+        },
+        {
+          "path": "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/systematic-debugging/SKILL.md",
+          "sha256": "sha256:808fc5717aa88ad65efff312b11c186294d3e6ee301afb584e2f86599b137787",
+          "wordCount": 1440,
+          "contextBucket": "reference"
+        },
+        {
+          "path": "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/verification-before-completion/SKILL.md",
+          "sha256": "sha256:2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3",
+          "wordCount": 580,
+          "contextBucket": "reference"
+        }
+      ],
+      "loadedContext": {
+        "metadataWords": 1663,
+        "bodyWords": 599,
+        "referenceWords": 8996,
+        "files": [
+          "AGENTS.md",
+          "production/project.json",
+          "production/PROJECT.md",
+          "production/TASK.md",
+          "production/ACCEPTANCE.md",
+          "docs/ART_BIBLE.md",
+          "web/index.html",
+          "web/styles.css",
+          "web/app.mjs",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/references/visual-design.md",
+          "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/systematic-debugging/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/verification-before-completion/SKILL.md"
+        ]
+      },
+      "cycles": 2,
+      "elapsedMinutes": 38,
+      "approvalChanges": 0,
+      "maturity": {
+        "level": "Direction",
+        "professionalResult": "Proposed",
+        "bulkUnlock": "Locked"
+      },
+      "objectiveResult": {
+        "status": "Blocked",
+        "checks": [
+          {
+            "id": "source-lock",
+            "status": "Pass",
+            "evidence": [
+              "Fixture definition and starter source hashes match the control locks."
+            ]
+          },
+          {
+            "id": "direction-candidate-set",
+            "status": "Pass",
+            "evidence": [
+              "Three mutually exclusive code-native Direction candidates were integrated into one shared runtime shell.",
+              "Human direction selection remains pending and no Production design was formed."
+            ]
+          },
+          {
+            "id": "target-size-state-matrix",
+            "status": "Pass",
+            "evidence": [
+              "Twelve recommended state/viewport combinations were observed at 1280x720 and 390x844 with actions contained and reward overflow scrollable.",
+              "Independent review passed the Direction candidate claim with one bounded non-blocking contrast finding."
+            ]
+          },
+          {
+            "id": "genuine-input-to-visual-causality",
+            "status": "Blocked",
+            "evidence": [
+              "Genuine keyboard/controller-equivalent Retry, Exit, and focus causality was not demonstrated.",
+              "The follow-up could not acquire a controllable browser backend, so no valid genuine-input event could be delivered or observed."
+            ]
+          }
+        ]
+      },
+      "subjectiveReview": {
+        "status": "Pass with bounded non-blocking findings",
+        "reviewerIndependence": "Independent",
+        "failedCriteria": [
+          "Product quality — Signal Garden portrait reward pictogram contrast is weaker than the frozen accessible-focus and clean-craft bar."
+        ],
+        "retainedPassingParts": [
+          "Three materially distinct direction candidates preserve the frozen hierarchy and intended-size action containment.",
+          "Direction/Working maturity remains truthful and human selection remains pending."
+        ]
+      },
+      "terminalClaim": "Bounded return. Three Working-fidelity Direction candidates remain available for human selection, but genuine keyboard/controller-equivalent input-to-visual causality remains unproven; no artistic, golden, producer, gate, or lifecycle passage is claimed."
+    },
+    {
+      "fixtureId": "composite-runtime",
+      "variant": "primary",
+      "label": "candidate-additive-1.8.0",
+      "fixtureDefinitionHash": "sha256:e0b89c7e3a05cac825e1e9754608c085b26225765558975b118ad2215a003559",
+      "sourceTreeHash": "sha256:b1dbaca1b28c58df2aceaca54ede285303fd8151e990f5b83c8e2bed5ce8a848",
+      "outputTreeHash": "sha256:837a35630d45c16aaf85dbed0d7dc7025b2f14aa6fc0ca57d0e88aa5186cec9c",
+      "capabilities": {
+        "browserRuntimeInspection": "available",
+        "imageGeneration": "available but unnecessary",
+        "imageEditing": "available but unnecessary",
+        "projectNativeComponents": "available"
+      },
+      "routeFiles": [
+        {
+          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "sha256": "sha256:8fd8968c3fa199b0a8b28402e71f46b8de1ecc7153f01889a34732f3bb3bfb9a",
+          "wordCount": 40,
+          "contextBucket": "metadata"
+        },
+        {
+          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "sha256": "sha256:5e8c56e40633a8d310ad126c4dd26aed11e89d3c481967ef18344c7eeb9419ba",
+          "wordCount": 35,
+          "contextBucket": "metadata"
+        },
+        {
+          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "sha256": "sha256:8fd8968c3fa199b0a8b28402e71f46b8de1ecc7153f01889a34732f3bb3bfb9a",
+          "wordCount": 4116,
+          "contextBucket": "body"
+        },
+        {
+          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "sha256": "sha256:5e8c56e40633a8d310ad126c4dd26aed11e89d3c481967ef18344c7eeb9419ba",
+          "wordCount": 460,
+          "contextBucket": "body"
+        },
+        {
+          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/references/execution.md",
+          "sha256": "sha256:4480f51617322904c4684bd463c8265a74857387612268cb6d8cbe0b2d2aef10",
+          "wordCount": 1468,
+          "contextBucket": "reference"
+        },
+        {
+          "path": "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md",
+          "sha256": "sha256:94e723b0d9dc1cc18c7a2a7d2c7df5eb7f2860089fd6b7a56283db84e624330e",
+          "wordCount": 523,
+          "contextBucket": "reference"
+        }
+      ],
+      "loadedContext": {
+        "metadataWords": 75,
+        "bodyWords": 4576,
+        "referenceWords": 1991,
+        "files": [
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/references/execution.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md"
+        ]
+      },
+      "cycles": 2,
+      "elapsedMinutes": 15,
+      "approvalChanges": 0,
+      "maturity": {
+        "level": "Production design",
+        "fidelity": "Working",
+        "taskState": "Implementing"
+      },
+      "objectiveResult": {
+        "status": "Pass",
+        "checks": [
+          {
+            "id": "source-lock",
+            "status": "Pass",
+            "evidence": [
+              "Fixture definition and starter source hashes match the control locks."
+            ]
+          },
+          {
+            "id": "editable-project-native-assembly",
+            "status": "Pass",
+            "evidence": [
+              "The flattened concept is not rendered; native DOM/CSS assembly uses a separate frame, eight editable item sources, and native focus/error/equip layers."
+            ]
+          },
+          {
+            "id": "five-state-runtime-proof",
+            "status": "Pass",
+            "evidence": [
+              "Empty, full, error, equip, and controller-focus states were observed and captured at 1280x720."
+            ]
+          },
+          {
+            "id": "actual-input-to-visual-causality",
+            "status": "Pass",
+            "evidence": [
+              "Enter, pointer activation, ArrowRight, Escape, and Open each caused the recorded visible runtime response."
+            ]
+          }
+        ]
+      },
+      "subjectiveReview": {
+        "status": "Pass",
+        "reviewerIndependence": "Independent",
+        "failedCriteria": [],
+        "retainedPassingParts": [
+          "The project-native 760x500 panel, eight-slot system, five states, and actual input causality pass the frozen Production-design/runtime claim."
+        ]
+      },
+      "terminalClaim": "Candidate Produce evidence passes the bounded Production-design/runtime claim; design acceptance, producer acceptance, human gates, golden authority, Final fidelity, and lifecycle passage remain pending."
+    },
+    {
+      "fixtureId": "composite-runtime",
+      "variant": "no-optional-generation",
+      "label": "candidate-additive-1.8.0-no-generation",
+      "fixtureDefinitionHash": "sha256:e0b89c7e3a05cac825e1e9754608c085b26225765558975b118ad2215a003559",
+      "sourceTreeHash": "sha256:b1dbaca1b28c58df2aceaca54ede285303fd8151e990f5b83c8e2bed5ce8a848",
+      "outputTreeHash": "sha256:722411822d889d8e8b696a8e95dc594de2a3022aefc404dad1ebbfaab8869cd6",
+      "capabilities": {
+        "browserRuntimeInspection": "available",
+        "imageGeneration": "unavailable",
+        "imageEditing": "unavailable",
+        "figmaAndDesignApplications": "unavailable",
+        "externalArtServices": "unavailable",
+        "thirdPartyArtSkills": "unavailable",
+        "baseProjectTools": "available",
+        "editableSvg": "available",
+        "codeNativeUi": "available",
+        "projectNativeComponents": "available"
+      },
+      "routeFiles": [
+        {
+          "path": "plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "sha256": "sha256:8fd8968c3fa199b0a8b28402e71f46b8de1ecc7153f01889a34732f3bb3bfb9a",
+          "wordCount": 4158,
+          "contextBucket": "metadata+body"
+        },
+        {
+          "path": "plugins/game-production-workflow/skills/game-production-system/references/execution.md",
+          "sha256": "sha256:4480f51617322904c4684bd463c8265a74857387612268cb6d8cbe0b2d2aef10",
+          "wordCount": 1468,
+          "contextBucket": "reference"
+        },
+        {
+          "path": "plugins/game-production-workflow/skills/game-production-system/scripts/doctor.mjs",
+          "sha256": "sha256:0c0118a225f1006e54e280c1fb7dc716a433a3f2d12a5072c27d98c87b66bcc5",
+          "wordCount": 1004,
+          "contextBucket": "reference"
+        },
+        {
+          "path": "plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "sha256": "sha256:5e8c56e40633a8d310ad126c4dd26aed11e89d3c481967ef18344c7eeb9419ba",
+          "wordCount": 497,
+          "contextBucket": "metadata+body"
+        },
+        {
+          "path": "plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md",
+          "sha256": "sha256:94e723b0d9dc1cc18c7a2a7d2c7df5eb7f2860089fd6b7a56283db84e624330e",
+          "wordCount": 523,
+          "contextBucket": "reference"
+        }
+      ],
+      "loadedContext": {
+        "metadataWords": 75,
+        "bodyWords": 4580,
+        "referenceWords": 2995,
+        "files": [
+          "plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "plugins/game-production-workflow/skills/game-production-system/references/execution.md",
+          "plugins/game-production-workflow/skills/game-production-system/scripts/doctor.mjs",
+          "plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md"
+        ]
+      },
+      "cycles": 2,
+      "elapsedMinutes": 8,
+      "approvalChanges": 0,
+      "maturity": {
+        "level": "Production design",
+        "fidelity": "Working",
+        "taskState": "Implementing"
+      },
+      "objectiveResult": {
+        "status": "Pass",
+        "checks": [
+          {
+            "id": "source-lock",
+            "status": "Pass",
+            "evidence": [
+              "Fixture definition and starter source hashes match the primary composite lock."
+            ]
+          },
+          {
+            "id": "replaceable-no-generation-route",
+            "status": "Pass",
+            "evidence": [
+              "With optional image generation, editing, design applications, external art services, and third-party art Skills unavailable, editable SVG plus native DOM/CSS/JavaScript remained an available final-fidelity route.",
+              "The healthy Ready task advanced to Implementing instead of being returned to product planning."
+            ]
+          },
+          {
+            "id": "editable-project-native-assembly",
+            "status": "Pass",
+            "evidence": [
+              "Eight separated editable SVG sources, a project-native component, handoff, and five-state runtime proof were produced without rendering the flattened concept."
+            ]
+          },
+          {
+            "id": "actual-input-to-visual-causality",
+            "status": "Pass",
+            "evidence": [
+              "Enter, pointer activation, ArrowRight, Escape, and Open each caused the recorded visible runtime response."
+            ]
+          }
+        ]
+      },
+      "subjectiveReview": {
+        "status": "Pass with bounded non-blocking findings",
+        "reviewerIndependence": "Independent",
+        "failedCriteria": [],
+        "retainedPassingParts": [
+          "The no-generation route preserved the centered project-native panel, eight-slot geometry, five states, actual input causality, separated SVG sources, and absence of flattened-concept runtime use."
+        ]
+      },
+      "terminalClaim": "The no-optional-generation pressure route passes with editable code/vector/project-native production evidence; human design/producer decisions and gate passage remain pending."
+    }
+  ],
+  "approvalEvidence": [
+    {
+      "fixtureId": "design-direction",
+      "variant": "primary",
+      "before": {
+        "G0": null,
+        "G1": null,
+        "goldenVisual": null,
+        "G2": null,
+        "G3": null
+      },
+      "after": {
+        "G0": null,
+        "G1": null,
+        "goldenVisual": null,
+        "G2": null,
+        "G3": null
+      },
+      "addedOrChangedCount": 0,
+      "hash": "sha256:c776e775e588f209edbae5b4a8de93de37a0580ab0bc43c8aef553ed520d1040"
+    },
+    {
+      "fixtureId": "composite-runtime",
+      "variant": "primary",
+      "before": {
+        "G0": {
+          "decision": "approved",
+          "decidedBy": "Fixture author",
+          "decidedAt": "2026-08-14",
+          "source": "production/PROJECT.md",
+          "scope": "Inventory direction and interaction/render contract"
+        },
+        "G1": null,
+        "goldenVisual": null,
+        "G2": null,
+        "G3": null
+      },
+      "after": {
+        "G0": {
+          "decision": "approved",
+          "decidedBy": "Fixture author",
+          "decidedAt": "2026-08-14",
+          "source": "production/PROJECT.md",
+          "scope": "Inventory direction and interaction/render contract"
+        },
+        "G1": null,
+        "goldenVisual": null,
+        "G2": null,
+        "G3": null
+      },
+      "addedOrChangedCount": 0,
+      "hash": "sha256:0370fdac635b7b78eee368d92a38b1e672dec0bada431440cb5686355b21a6e2"
+    },
+    {
+      "fixtureId": "composite-runtime",
+      "variant": "no-optional-generation",
+      "before": {
+        "G0": {
+          "decision": "approved",
+          "decidedBy": "Fixture author",
+          "decidedAt": "2026-08-14",
+          "source": "production/PROJECT.md",
+          "scope": "Inventory direction and interaction/render contract"
+        },
+        "G1": null,
+        "goldenVisual": null,
+        "G2": null,
+        "G3": null
+      },
+      "after": {
+        "G0": {
+          "decision": "approved",
+          "decidedBy": "Fixture author",
+          "decidedAt": "2026-08-14",
+          "source": "production/PROJECT.md",
+          "scope": "Inventory direction and interaction/render contract"
+        },
+        "G1": null,
+        "goldenVisual": null,
+        "G2": null,
+        "G3": null
+      },
+      "addedOrChangedCount": 0,
+      "hash": "sha256:c07cb360c4f633989c2c826f23bcedaf8fa18f80be4ac26e9ea4ab7ee1654b91"
+    }
+  ],
+  "evidenceBundles": [
+    {
+      "fixtureId": "design-direction",
+      "variant": "primary",
+      "rawBundle": {
+        "location": ".tmp/game-art-evals/candidate-design-direction",
+        "hash": "sha256:7d9b6f1aebfa569a6b765a8240d38a814c8c30b6e21d889409043ad2e52656d2",
+        "outputTreeHash": "sha256:e27662608fd2d03498c7d75acb4283e8067d56773c60244694117ee21a7f9c3b"
+      },
+      "runRecord": {
+        "location": ".tmp/game-art-evals/candidate-design-direction/artifacts/candidate-run-record.json",
+        "hash": "sha256:4b4b5ec0068ce7fe8c6089a05e194f2851a2cb346124250160118c1fe0252385"
+      },
+      "deterministicOutput": {
+        "location": ".tmp/game-art-evals/candidate-design-direction/artifacts/runtime-observation.json",
+        "hash": "sha256:bd1303791e8005297bbe92840975168042818802ee909c4911582afc1bd66b81"
+      },
+      "independentReview": {
+        "location": ".tmp/game-art-evals/candidate-design-direction/artifacts/independent-review.json",
+        "hash": "sha256:9a7a3869fbed9200544a92ed5457e455874260312c67b7dec749827cb32aa1eb"
+      },
+      "inputCausalityEvidence": {
+        "location": ".tmp/game-art-evals/candidate-design-direction/artifacts/input-causality-evidence.json",
+        "hash": "sha256:b5ced052fe14ac7aa69861faa306f038a9ab3ea4765982f787a131a77bbcd1bf"
+      }
+    },
+    {
+      "fixtureId": "composite-runtime",
+      "variant": "primary",
+      "rawBundle": {
+        "location": ".tmp/game-art-evals/candidate-composite-runtime",
+        "hash": "sha256:530768cdb2611486d5ea6c35e90e905d66098fcb8f5f19a24cb1d467ea5f4635",
+        "outputTreeHash": "sha256:837a35630d45c16aaf85dbed0d7dc7025b2f14aa6fc0ca57d0e88aa5186cec9c"
+      },
+      "runRecord": {
+        "location": ".tmp/game-art-evals/candidate-composite-runtime/artifacts/candidate-run-record.json",
+        "hash": "sha256:a6b4b8af4fee10693c1bbf10d208a5584839fc4481ad492c505f1661b3b13e75"
+      },
+      "deterministicOutput": {
+        "location": ".tmp/game-art-evals/candidate-composite-runtime/artifacts/runtime-observation.json",
+        "hash": "sha256:397937d3ada48defb8b85bdf75b05b55dff0ac20248b746fe70a83091b0355d4"
+      },
+      "independentReview": {
+        "location": ".tmp/game-art-evals/candidate-composite-runtime/artifacts/independent-review.json",
+        "hash": "sha256:dc5c76fdfe4e72efe4f986621e610851b8b9b35be2e31eed24847664287e8ff2"
+      },
+      "inputCausalityEvidence": null
+    },
+    {
+      "fixtureId": "composite-runtime",
+      "variant": "no-optional-generation",
+      "rawBundle": {
+        "location": ".tmp/game-art-evals/candidate-composite-runtime-no-generation",
+        "hash": "sha256:d567a7f4a90659e60ee4cd8e2b4c720998aa6bbab850d12818bca5c9a1767ff5",
+        "outputTreeHash": "sha256:722411822d889d8e8b696a8e95dc594de2a3022aefc404dad1ebbfaab8869cd6"
+      },
+      "runRecord": {
+        "location": ".tmp/game-art-evals/candidate-composite-runtime-no-generation/artifacts/candidate-run-record.json",
+        "hash": "sha256:3cbca7cc0b4c2c44dd89c44f7468c7ffa6c3f732284a56f711201fb836c74d0a"
+      },
+      "deterministicOutput": {
+        "location": ".tmp/game-art-evals/candidate-composite-runtime-no-generation/artifacts/runtime-proof.json",
+        "hash": "sha256:2519d22408a997e403b3791beb6de88ab324f71bb9d4c6c96127101a3d02d629"
+      },
+      "independentReview": {
+        "location": ".tmp/game-art-evals/candidate-composite-runtime-no-generation/artifacts/independent-review.json",
+        "hash": "sha256:5ab2a5a9f06a9820b035cab5255599197277bcd50e0e8a472a03825073f3cea6"
+      },
+      "inputCausalityEvidence": null
+    }
+  ],
+  "evaluationContractMismatches": [
+    {
+      "fixtureId": "design-direction",
+      "variant": "primary",
+      "criterion": "The machine verifier requires exact output names and SVG capture extensions that were not disclosed to the fresh candidate worker.",
+      "objectiveCheckId": "required-artifacts",
+      "evidence": [
+        "artifacts/design-direction.md: missing or empty",
+        "artifacts/runtime-captures/1280x720-success.svg: missing or empty",
+        "artifacts/runtime-captures/1280x720-failure.svg: missing or empty",
+        "artifacts/runtime-captures/390x844-reward-overflow.svg: missing or empty",
+        "artifacts/runtime-captures/390x844-controller-focus.svg: missing or empty"
+      ],
+      "producedAlternatives": [
+        "artifacts/direction-summary.md",
+        "artifacts/runtime-observation.json",
+        "artifacts/runtime-captures/01-afterglow-desktop-success.png",
+        "artifacts/runtime-captures/02-signal-garden-desktop-success.png",
+        "artifacts/runtime-captures/03-archive-pulse-desktop-success.png",
+        "artifacts/runtime-captures/04-afterglow-mobile-reward-overflow.png"
+      ],
+      "excludedFromGateBasis": true
+    },
+    {
+      "fixtureId": "composite-runtime",
+      "variant": "primary",
+      "criterion": "The machine verifier requires exact bundled SVG source names and SVG capture extensions that were not disclosed to the fresh candidate worker.",
+      "objectiveCheckId": "required-artifacts",
+      "evidence": [
+        "web/assets/inventory-frame.svg: missing or empty",
+        "web/assets/inventory-icons.svg: missing or empty",
+        "artifacts/runtime-captures/empty.svg: missing or empty",
+        "artifacts/runtime-captures/full.svg: missing or empty",
+        "artifacts/runtime-captures/error.svg: missing or empty",
+        "artifacts/runtime-captures/equip.svg: missing or empty",
+        "artifacts/runtime-captures/controller-focus.svg: missing or empty"
+      ],
+      "producedAlternatives": [
+        "web/assets/source/panel-frame.svg",
+        "web/assets/source/icons/*.svg",
+        "artifacts/runtime-captures/empty.jpg",
+        "artifacts/runtime-captures/full.jpg",
+        "artifacts/runtime-captures/error.jpg",
+        "artifacts/runtime-captures/equip.jpg",
+        "artifacts/runtime-captures/controller-focus.jpg"
+      ],
+      "excludedFromGateBasis": true
+    },
+    {
+      "fixtureId": "composite-runtime",
+      "variant": "no-optional-generation",
+      "criterion": "The machine verifier requires exact source/handoff names and SVG capture extensions that were not disclosed to the fresh pressure worker.",
+      "objectiveCheckId": "required-artifacts",
+      "evidence": [
+        "web/assets/inventory-frame.svg: missing or empty",
+        "web/assets/inventory-icons.svg: missing or empty",
+        "artifacts/source-export-import.md: missing or empty",
+        "artifacts/runtime-captures/empty.svg: missing or empty",
+        "artifacts/runtime-captures/full.svg: missing or empty",
+        "artifacts/runtime-captures/error.svg: missing or empty",
+        "artifacts/runtime-captures/equip.svg: missing or empty",
+        "artifacts/runtime-captures/controller-focus.svg: missing or empty"
+      ],
+      "producedAlternatives": [
+        "web/assets/icons/*.svg",
+        "artifacts/art-handoff.md",
+        "artifacts/runtime-captures/empty.png",
+        "artifacts/runtime-captures/full.png",
+        "artifacts/runtime-captures/error.png",
+        "artifacts/runtime-captures/equip.png",
+        "artifacts/runtime-captures/controller-focus.png"
+      ],
+      "excludedFromGateBasis": true
+    }
+  ],
+  "observedFailures": [
+    {
+      "fixtureId": "design-direction",
+      "variant": "primary",
+      "criterion": "Actual keyboard/controller interaction-to-visual causality",
+      "evidence": [
+        "Genuine Retry/Exit/focus visual causality was not demonstrated.",
+        "The bounded follow-up could not acquire a browser backend, so no genuine input could be delivered or observed.",
+        "Prior automation-key attempts remain diagnostic only and cannot substitute for genuine input evidence."
+      ]
+    }
+  ],
+  "sharedRootCauseClassification": {
+    "id": "unavailable-browser-input-bridge",
+    "criterion": "Actual keyboard/controller interaction-to-visual causality",
+    "classification": "Environment evidence limitation",
+    "attribution": "The unresolved criterion is attributed to an unavailable browser/input bridge: prior automation key APIs failed at the input boundary and the bounded follow-up could not acquire any controllable browser backend.",
+    "notAttributedTo": [
+      "game-art-production Skill wording",
+      "candidate runtime"
+    ],
+    "candidateArtifactRepairBatchUsed": false,
+    "sameRootCycles": 2,
+    "evidence": [
+      "Pointer causality reached the native button listeners and produced observable feedback.",
+      "Retry and Exit remain native buttons with no candidate code suppressing native keyboard activation.",
+      "No valid genuine-input event could be delivered during the follow-up cycle."
+    ],
+    "recovery": "When a controllable browser/input bridge is available, repeat only the bounded genuine-input evidence cycle from ordinary runtime success, observe Tab focus and Enter/Space feedback, check the console, and rerun the full matrix only if a candidate-runtime repair is actually required."
+  },
+  "burden": {
+    "primaryFixtures": {
+      "cycles": 4,
+      "elapsedMinutes": 53,
+      "approvals": 0,
+      "loadedContext": {
+        "metadataWords": 1738,
+        "bodyWords": 5175,
+        "referenceWords": 10987,
+        "files": [
+          "AGENTS.md",
+          "production/project.json",
+          "production/PROJECT.md",
+          "production/TASK.md",
+          "production/ACCEPTANCE.md",
+          "docs/ART_BIBLE.md",
+          "web/index.html",
+          "web/styles.css",
+          "web/app.mjs",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/references/visual-design.md",
+          "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/systematic-debugging/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/verification-before-completion/SKILL.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/references/execution.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md"
+        ]
+      }
+    },
+    "allRuns": {
+      "cycles": 6,
+      "elapsedMinutes": 61,
+      "approvals": 0,
+      "loadedContext": {
+        "metadataWords": 1813,
+        "bodyWords": 9755,
+        "referenceWords": 13982,
+        "files": [
+          "AGENTS.md",
+          "production/project.json",
+          "production/PROJECT.md",
+          "production/TASK.md",
+          "production/ACCEPTANCE.md",
+          "docs/ART_BIBLE.md",
+          "web/index.html",
+          "web/styles.css",
+          "web/app.mjs",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/references/visual-design.md",
+          "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/systematic-debugging/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/verification-before-completion/SKILL.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-production-system/references/execution.md",
+          "/Users/qxl/Documents/Codex/2026-08-13/yu-a/work/game-production-workflow/worktrees/game-art-production-implementation/plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md",
+          "plugins/game-production-workflow/skills/game-production-system/SKILL.md",
+          "plugins/game-production-workflow/skills/game-production-system/references/execution.md",
+          "plugins/game-production-workflow/skills/game-production-system/scripts/doctor.mjs",
+          "plugins/game-production-workflow/skills/game-art-production/SKILL.md",
+          "plugins/game-production-workflow/skills/game-art-production/references/interactive-ui-2d.md"
+        ]
+      }
+    }
+  },
+  "comparison": {
+    "controlSummary": {
+      "location": "plugins/game-production-workflow/evals/game-art-production/control-1.7.2.json",
+      "hash": "sha256:5e85a3104e6250681d0e099cf2364bb9964c1a3fa52cedd4ac5ac9a351c9df88",
+      "splitDecision": "Proceed"
+    },
+    "correctedControlFailures": [
+      "Reward-overflow state coverage and action-safe readability at 390x844",
+      "Visible and unambiguous controller focus at the portrait target size",
+      "Five-state project-native runtime coverage at 1280x720"
+    ],
+    "retainedControlFailures": [
+      "Actual keyboard/controller interaction-to-visual causality"
+    ],
+    "primaryBurdenDelta": {
+      "cycles": 0,
+      "elapsedMinutes": 11,
+      "approvals": 0,
+      "metadataWords": 1534,
+      "bodyWords": -7213,
+      "referenceWords": -1168,
+      "interpretation": "The candidate primary fixtures used the same number of cycles and approvals, took 11 more recorded minutes, and loaded fewer body/reference words. No claim of lower overall burden is made."
+    },
+    "lifecycleOrApprovalBurdenAdded": false
+  },
+  "decisionBasis": "BoundedReturn, not CandidatePass. Candidate Produce corrects the control's five-state project-native runtime failure, and the no-optional-generation pressure run retains a passing editable code/vector/project-native route. Design corrects the control's overflow and visible-focus failures, but genuine keyboard/controller-equivalent input-to-visual causality remains unproven after two same-root evidence cycles because the browser/input bridge was unavailable. Exact-path evaluation-contract mismatches are excluded from the gate basis. No Skill or candidate-runtime defect was established, so no Skill/core wording was changed. No lifecycle state or approval burden was added, but both primary candidate fixtures do not pass every declared artifact/maturity criterion; Task 6 is not unlocked."
+}
