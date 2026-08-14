@@ -110,8 +110,8 @@ Assert-True ($checkerText -match 'interactive_visual_scope_missing') "Checker mu
 Assert-True ($checkerText -match 'interaction_render_contract_missing') "Checker must require a frozen interaction/render contract for active work."
 Assert-True ($checkerText -match 'visual_bulk_unlock_without_prechecks') "Checker must keep visual bulk work locked until both prechecks pass."
 Assert-True ($checkerText -match 'systemVersionAtLeast160') "Checker must preserve v1.5 project compatibility behind a v1.6 predicate."
-Assert-True ($bootstrapText -match "systemVersion\s*=\s*'1\.7\.1'") "New projects must bootstrap the v1.7.1 contract."
-Assert-True ($readmeText -match 'game-production-system` `1\.7\.1') "README system version must match the v1.7.1 release."
+Assert-True ($bootstrapText -match "systemVersion\s*=\s*'1\.7\.2'") "New projects must bootstrap the v1.7.2 contract."
+Assert-True ($readmeText -match 'game-production-system` `1\.7\.2') "README system version must match the v1.7.2 release."
 Assert-True (@($coreSkillText.TrimEnd() -split "\r?\n").Count -le 500) "Core SKILL.md must remain at or below 500 lines; keep interactive details in its reference."
 
 foreach ($skill in @(

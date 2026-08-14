@@ -232,8 +232,8 @@ task-owned processes, and switch to the next authorized fallback package.
 7. Never initialize a formal game inside a dated/projectless conversation
    folder when an intended repository exists elsewhere.
 
-Read [workflow.md](references/workflow.md) for task states, clarification,
-evidence, and handoff rules.
+After repository truth, load only the references selected by the Operation
+router. Treat `execution.md` as standalone for Ready/Implementing production.
 
 ## Select an operation
 

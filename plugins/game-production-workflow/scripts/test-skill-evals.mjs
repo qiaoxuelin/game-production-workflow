@@ -45,6 +45,14 @@ for (const scenario of corpus.scenarios) {
     hasContent(scenario.repositoryState),
     `${scenario.id}: repositoryState is empty`,
   );
+  if (scenario.repositoryState.interactiveVisualScope !== undefined) {
+    assert(
+      ["Required", "Not applicable"].includes(
+        scenario.repositoryState.interactiveVisualScope,
+      ),
+      `${scenario.id}: interactiveVisualScope must use the task contract vocabulary`,
+    );
+  }
   for (const field of [
     "pressures",
     "requiredActions",

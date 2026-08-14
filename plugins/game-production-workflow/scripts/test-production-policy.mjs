@@ -48,14 +48,14 @@ const baseVersion = manifest.version.split("+", 1)[0];
 const policyVersion = checker.match(/policyVersion\s*=\s*'([^']+)'/)?.[1];
 const bootstrapVersion = bootstrap.match(/systemVersion\s*=\s*'([^']+)'/)?.[1];
 
-assert.equal(baseVersion, "1.7.1", "plugin base version must be 1.7.1");
+assert.equal(baseVersion, "1.7.2", "plugin base version must be 1.7.2");
 assert.equal(policyVersion, baseVersion, "policy and plugin versions must match");
 assert.equal(
   bootstrapVersion,
   baseVersion,
   "new projects must bootstrap the current policy contract",
 );
-assert.match(readme, /game-production-system` `1\.7\.1/);
+assert.match(readme, /game-production-system` `1\.7\.2/);
 
 for (const field of [
   "Interactive visual scope:",
@@ -130,6 +130,14 @@ assert(
   `core SKILL.md grew to ${coreWordCount} words; route details progressively instead of adding policy`,
 );
 assert.match(coreSkill, /## Operation router/);
+const immediatelyRepeatedCoreLines = coreSkill
+  .split(/\r?\n/)
+  .filter((line, index, lines) => line.trim() && line === lines[index - 1]);
+assert.deepEqual(
+  immediatelyRepeatedCoreLines,
+  [],
+  "core SKILL.md contains an immediately repeated instruction",
+);
 for (const operation of [
   "Explore/discuss",
   "Diagnose/review",
@@ -171,6 +179,16 @@ assert.match(
   "continue must route authorized Ready work into production instead of stopping at status review",
 );
 assert.match(execution, /standalone lifecycle authority/i);
+assert.match(
+  coreSkill,
+  /load only the references selected by the Operation\s+router/i,
+  "startup must preserve progressive disclosure instead of preloading workflow.md",
+);
+assert.match(
+  execution,
+  /reuse a passing capability handshake[\s\S]*environment[\s\S]*unchanged/i,
+  "execution should reuse a current capability result for an unchanged environment",
+);
 assert.match(execution, /player-visible product delta/i);
 assert.match(execution, /external Skills are optional/i);
 assert.match(

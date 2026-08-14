@@ -22,7 +22,8 @@ only when a genuinely human-owned boundary is absent or contradicted.
 
 ## Capability handshake
 
-Before the first product mutation or when the environment changes:
+Reuse a passing capability handshake while the project adapter, required
+commands, and environment are unchanged. Otherwise, before the first mutation:
 
 1. Run `node scripts/doctor.mjs --project-root <root> --json` from the installed
    Skill when Node is available. Add `--require` only for capabilities the next
