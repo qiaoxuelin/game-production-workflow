@@ -1,6 +1,22 @@
 {
   "schemaVersion": 1,
   "candidateCommit": "2c26db33dadd2e23e06f7e2eea6604143a38ad7a",
+  "burdenMeasurementScope": {
+    "cycleAndElapsedScope": "Design's 3 cycles and 46 elapsed minutes include the independently supplied Chrome recovery evidence cycle; Produce and no-generation retain their recorded run totals.",
+    "loadedContextScope": "Loaded-context files and word counts reproduce each candidate-run-record worker ledger and its portable route/support mapping.",
+    "included": [
+      "candidate-worker loaded-file ledgers recorded in the three candidate run records",
+      "all recorded production and evidence cycles and elapsed minutes, including the Design Chrome recovery cycle",
+      "human approval changes recorded before and after each candidate run"
+    ],
+    "excluded": [
+      "controller and orchestration context not present in candidate-run-record loaded-file ledgers",
+      "independent-reviewer Chrome documentation and context not present in candidate-run-record loaded-file ledgers",
+      "any unrecorded word count"
+    ],
+    "comparisonBoundary": "Control/candidate word deltas compare recorded candidate-worker route/context ledgers only; they do not measure total orchestration or reviewer context and do not establish an overall context reduction.",
+    "unrecordedWordCountsInvented": false
+  },
   "records": [
     {
       "fixtureId": "design-direction",
@@ -9,12 +25,18 @@
         "label": "candidate-additive-1.8.0",
         "definitionHash": "sha256:2aa7f3d58bb494587a29412bdad897ed581ede96c57b2324d5886ef998d42094",
         "sourceTreeHash": "sha256:9263408b47f3df7faa539fa6559b92838309d402a1c89c9424611ea776f7ba7e",
-        "outputTreeHash": "sha256:e27662608fd2d03498c7d75acb4283e8067d56773c60244694117ee21a7f9c3b"
+        "outputTreeHash": "sha256:1221a59e2d2d7f901fd02b993f37d93460ef625726985290052b55873a4cc8c3"
+      },
+      "sourceRecords": {
+        "candidateRunRecord": "sha256:ab24a6cbd1ff05f2cc4cb16381008d4ff307e0a24b88907d553a31c8878a1b58",
+        "runtimeObservation": "sha256:e78a5afd74fd71e735dd33c052581482e4f7e14d729eeef56c729e002aea0485",
+        "inputCausalityEvidence": "sha256:7931966fa6731c14d8e306f03c021c5d747ad2d386c71b3a784648bd2b921f9f",
+        "independentReview": "sha256:3976728210c2bd044b06788e1fe1b140b5d45dffb35256324f22ca57dba65a0e"
       },
       "run": {
         "candidateCommit": "2c26db33dadd2e23e06f7e2eea6604143a38ad7a",
-        "cycles": 2,
-        "elapsedMinutes": 38,
+        "cycles": 3,
+        "elapsedMinutes": 46,
         "loadedContext": {
           "metadataWords": 1663,
           "bodyWords": 599,
@@ -42,7 +64,7 @@
           "professionalResult": "Proposed",
           "bulkUnlock": "Locked"
         },
-        "terminalClaim": "Professional result remains Proposed. Three Direction candidates at Working fidelity remain available for human selection. Genuine keyboard/controller-equivalent Retry/Exit/focus causality is not demonstrated. No artistic approval, golden passage, independent quality passage, producer acceptance, or task closure is claimed."
+        "terminalClaim": "Professional result remains Proposed. Three Direction candidates at Working fidelity remain available for human selection. Genuine keyboard/controller-equivalent Retry/Exit/focus causality passed for the unchanged runtime. Independent review is Pass with bounded non-blocking findings for the Direction candidate claim only. No direction selection, design acceptance, producer acceptance, golden approval, integrated acceptance, gate/lifecycle passage, finality, or task closure is claimed."
       },
       "workspaceContext": [
         { "logicalId": "candidate-workspace://design-direction/AGENTS.md", "sha256": "sha256:7d65153ea55229b1386262231d4e15fcabe95f7d58222ebc03496979376c2e78", "wordCount": 95, "contextBucket": "metadata" },
@@ -99,24 +121,52 @@
       "review": {
         "status": "Pass with bounded non-blocking findings",
         "reviewerIndependence": "Independent",
+        "contributionDisclosure": "No contribution to production artifacts",
         "failedCriteria": [
           "Product quality — Signal Garden portrait reward pictogram contrast is weaker than the frozen accessible-focus and clean-craft bar."
         ],
+        "actualInputCriterion": "Pass",
+        "integratedAcceptance": "Not granted",
+        "authorityBoundary": "Evidence only; not human direction selection, design acceptance, producer acceptance, golden approval, integrated acceptance, gate passage, lifecycle passage, or finality.",
         "terminalReviewClaim": "Independent Review result: Pass with bounded non-blocking findings for the Direction candidate claim only. This review is evidence, not human selection, golden approval, producer acceptance, integrated acceptance, gate passage, or lifecycle passage."
       },
       "objective": {
-        "status": "Blocked",
+        "status": "Pass",
         "statesObserved": 12,
         "inputCausality": {
-          "result": "Blocked",
-          "blockingEvidenceResult": "Genuine Retry/Exit/focus visual causality was not demonstrated. The browser observation/input surface is unavailable, and the original physical-input confirmation limitation remains intact.",
+          "result": "Observed",
+          "verdict": "Pass",
+          "evidenceResult": "Pass: genuine keyboard/controller-equivalent Retry, Exit, and focus-visible causality was observed in the unchanged live runtime without proof-state presets or synthetic event dispatch.",
           "rejectedAsPassageEvidence": "The prior key attempts began from a proof-state control that programmatically focused Retry. They are retained only as diagnostic history and are not treated as genuine-input evidence.",
-          "minimalTestOutcome": "Blocked before live-page acquisition; no valid genuine-input event could be delivered.",
-          "rootCauseHypothesis": "The unresolved result is most likely caused by browser automation/input-bridge availability rather than candidate runtime code, because pointer causality works, standard native-button semantics are intact, all attempted automation key APIs previously failed at the input boundary, and the browser backend is now unavailable.",
-          "workingPath": "Pointer activation previously reached the native button click listeners and produced observable feedback.",
-          "candidateStructure": "Retry and Exit remain native button elements in DOM order with click listeners; the candidate source contains no keydown handler, preventDefault call, disabled state, inert container, or tabindex override that suppresses native keyboard activation.",
+          "rootCauseConclusion": "The earlier limitation was caused by browser automation/input-bridge availability rather than candidate runtime code.",
+          "minimalTestOutcome": "Pass: twelve genuine Tabs reached #retry in DOM order with visible focus; Enter activated Retry, Tab moved visibly to Exit, and Space activated Exit.",
+          "browserSurface": "Chrome extension",
+          "proofStatePresetActivated": false,
+          "syntheticDispatchEventUsed": false,
           "candidateArtifactRepairBatchUsed": false,
-          "recovery": "Repeat this bounded evidence cycle when a controllable browser backend is available. Begin from ordinary runtime success without using keyboard-focus/controller-focus preset controls, use genuine Tab navigation into Retry and Exit, capture focus-visible before and feedback after Enter/Space, check console output, then rerun the full state/viewport matrix only if a candidate-runtime repair is actually required."
+          "fullMatrixRerun": false,
+          "sourceNoRepairHashes": [
+            { "path": "candidate-workspace://design-direction/web/index.html", "sha256": "sha256:b423da57e49f2e61e6d0027c6e64b1182737e2717aa3deeac10c5cfa55405db3" },
+            { "path": "candidate-workspace://design-direction/web/app.mjs", "sha256": "sha256:e5ca5e32bfd9924d2b9a9f14621fa9db321d8ac840f7a289353db138a99a0b2a" },
+            { "path": "candidate-workspace://design-direction/web/styles.css", "sha256": "sha256:4686bb6db7fa6ded2db475171e13e339a62debf44c5ac5104dc0225155e642fa" }
+          ],
+          "genuineInputObservation": {
+            "initialActiveElement": "body",
+            "tabCountToRetry": 12,
+            "retryFocusVisible": true,
+            "enterFeedback": "Retry requested",
+            "tabAfterRetryActiveId": "exit",
+            "exitFocusVisible": true,
+            "spaceFeedback": "Exit requested"
+          },
+          "applicationWarningsOrErrors": [],
+          "externalWarningBoundary": {
+            "count": 12,
+            "origin": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn",
+            "source": "Third-party extension logs; product attribution was not independently verified",
+            "excludedFromApplicationResult": true
+          },
+          "evidenceBoundary": "This closes only the physical-input/browser-bridge evidence risk. It does not select a direction, approve artistic quality, grant human or producer acceptance, change lifecycle state, or authorize bulk production."
         }
       },
       "evaluationContractMismatch": {
@@ -139,8 +189,8 @@
       "historicalRawBundle": {
         "authoritative": false,
         "location": ".tmp/game-art-evals/candidate-design-direction",
-        "hash": "sha256:7d9b6f1aebfa569a6b765a8240d38a814c8c30b6e21d889409043ad2e52656d2",
-        "outputTreeHash": "sha256:e27662608fd2d03498c7d75acb4283e8067d56773c60244694117ee21a7f9c3b"
+        "hash": "sha256:bd94a1d85a5140a4aeaf40211ab03bdb4510a75de6a21fa6eeb89f0ef6511c1a",
+        "outputTreeHash": "sha256:1221a59e2d2d7f901fd02b993f37d93460ef625726985290052b55873a4cc8c3"
       }
     },
     {
@@ -151,6 +201,12 @@
         "definitionHash": "sha256:e0b89c7e3a05cac825e1e9754608c085b26225765558975b118ad2215a003559",
         "sourceTreeHash": "sha256:b1dbaca1b28c58df2aceaca54ede285303fd8151e990f5b83c8e2bed5ce8a848",
         "outputTreeHash": "sha256:837a35630d45c16aaf85dbed0d7dc7025b2f14aa6fc0ca57d0e88aa5186cec9c"
+      },
+      "sourceRecords": {
+        "candidateRunRecord": "sha256:a6b4b8af4fee10693c1bbf10d208a5584839fc4481ad492c505f1661b3b13e75",
+        "runtimeObservation": "sha256:397937d3ada48defb8b85bdf75b05b55dff0ac20248b746fe70a83091b0355d4",
+        "inputCausalityEvidence": null,
+        "independentReview": "sha256:dc5c76fdfe4e72efe4f986621e610851b8b9b35be2e31eed24847664287e8ff2"
       },
       "run": {
         "candidateCommit": "2c26db33dadd2e23e06f7e2eea6604143a38ad7a",
@@ -300,6 +356,12 @@
         "definitionHash": "sha256:e0b89c7e3a05cac825e1e9754608c085b26225765558975b118ad2215a003559",
         "sourceTreeHash": "sha256:b1dbaca1b28c58df2aceaca54ede285303fd8151e990f5b83c8e2bed5ce8a848",
         "outputTreeHash": "sha256:722411822d889d8e8b696a8e95dc594de2a3022aefc404dad1ebbfaab8869cd6"
+      },
+      "sourceRecords": {
+        "candidateRunRecord": "sha256:3cbca7cc0b4c2c44dd89c44f7468c7ffa6c3f732284a56f711201fb836c74d0a",
+        "runtimeObservation": "sha256:2519d22408a997e403b3791beb6de88ab324f71bb9d4c6c96127101a3d02d629",
+        "inputCausalityEvidence": null,
+        "independentReview": "sha256:5ab2a5a9f06a9820b035cab5255599197277bcd50e0e8a472a03825073f3cea6"
       },
       "run": {
         "candidateCommit": "2c26db33dadd2e23e06f7e2eea6604143a38ad7a",

@@ -78,6 +78,23 @@ export function validateCandidateDocuments({ repositoryRoot, summary, evidence, 
     location: candidateEvidenceRelative,
     hash: semanticHash(evidence),
   }, "candidate summary must bind the fixed committed evidence snapshot");
+  assert.deepEqual(summary.burdenMeasurementScope, evidence.burdenMeasurementScope, "burden scope must be bound to committed evidence");
+  assert.deepEqual(evidence.burdenMeasurementScope, {
+    cycleAndElapsedScope: "Design's 3 cycles and 46 elapsed minutes include the independently supplied Chrome recovery evidence cycle; Produce and no-generation retain their recorded run totals.",
+    loadedContextScope: "Loaded-context files and word counts reproduce each candidate-run-record worker ledger and its portable route/support mapping.",
+    included: [
+      "candidate-worker loaded-file ledgers recorded in the three candidate run records",
+      "all recorded production and evidence cycles and elapsed minutes, including the Design Chrome recovery cycle",
+      "human approval changes recorded before and after each candidate run",
+    ],
+    excluded: [
+      "controller and orchestration context not present in candidate-run-record loaded-file ledgers",
+      "independent-reviewer Chrome documentation and context not present in candidate-run-record loaded-file ledgers",
+      "any unrecorded word count",
+    ],
+    comparisonBoundary: "Control/candidate word deltas compare recorded candidate-worker route/context ledgers only; they do not measure total orchestration or reviewer context and do not establish an overall context reduction.",
+    unrecordedWordCountsInvented: false,
+  });
   assert(!JSON.stringify(evidence).includes("/Users/qxl/"), "committed evidence contains a machine-specific path");
 
   assert.equal(evidence.records.length, 3);
@@ -90,10 +107,41 @@ export function validateCandidateDocuments({ repositoryRoot, summary, evidence, 
   const design = records.get("design-direction/primary");
   const produce = records.get("composite-runtime/primary");
   const noGeneration = records.get("composite-runtime/no-optional-generation");
+  assert.deepEqual(design.sourceRecords, {
+    candidateRunRecord: "sha256:ab24a6cbd1ff05f2cc4cb16381008d4ff307e0a24b88907d553a31c8878a1b58",
+    runtimeObservation: "sha256:e78a5afd74fd71e735dd33c052581482e4f7e14d729eeef56c729e002aea0485",
+    inputCausalityEvidence: "sha256:7931966fa6731c14d8e306f03c021c5d747ad2d386c71b3a784648bd2b921f9f",
+    independentReview: "sha256:3976728210c2bd044b06788e1fe1b140b5d45dffb35256324f22ca57dba65a0e",
+  });
+  assert.deepEqual(produce.sourceRecords, {
+    candidateRunRecord: "sha256:a6b4b8af4fee10693c1bbf10d208a5584839fc4481ad492c505f1661b3b13e75",
+    runtimeObservation: "sha256:397937d3ada48defb8b85bdf75b05b55dff0ac20248b746fe70a83091b0355d4",
+    inputCausalityEvidence: null,
+    independentReview: "sha256:dc5c76fdfe4e72efe4f986621e610851b8b9b35be2e31eed24847664287e8ff2",
+  });
+  assert.deepEqual(noGeneration.sourceRecords, {
+    candidateRunRecord: "sha256:3cbca7cc0b4c2c44dd89c44f7468c7ffa6c3f732284a56f711201fb836c74d0a",
+    runtimeObservation: "sha256:2519d22408a997e403b3791beb6de88ab324f71bb9d4c6c96127101a3d02d629",
+    inputCausalityEvidence: null,
+    independentReview: "sha256:5ab2a5a9f06a9820b035cab5255599197277bcd50e0e8a472a03825073f3cea6",
+  });
 
   for (const record of records.values()) {
     const key = recordKey(record);
     assert.equal(record.run.candidateCommit, summary.candidateCommit, `${key}: run commit mismatch`);
+    assert.deepEqual(Object.keys(record.sourceRecords).sort(), [
+      "candidateRunRecord",
+      "independentReview",
+      "inputCausalityEvidence",
+      "runtimeObservation",
+    ]);
+    for (const [recordName, hash] of Object.entries(record.sourceRecords)) {
+      if (recordName === "inputCausalityEvidence" && record.fixtureId !== "design-direction") {
+        assert.equal(hash, null, `${key}: unexpected dedicated input-causality record`);
+      } else {
+        assert.match(hash, /^sha256:[a-f0-9]{64}$/, `${key}: invalid ${recordName} semantic hash`);
+      }
+    }
     assert(Number.isInteger(record.run.cycles) && record.run.cycles > 0, `${key}: invalid cycles`);
     assert(Number.isInteger(record.run.elapsedMinutes) && record.run.elapsedMinutes > 0, `${key}: invalid elapsed minutes`);
     const workspaceContext = record.workspaceContext ?? [];
@@ -143,13 +191,45 @@ export function validateCandidateDocuments({ repositoryRoot, summary, evidence, 
     assert.equal(mismatch.objectiveCheckId, "required-artifacts");
   }
 
-  assert.equal(design.objective.status, "Blocked");
+  assert.equal(design.objective.status, "Pass");
   assert.equal(design.workspaceContext.filter(({ contextBucket }) => contextBucket === "metadata").reduce((sum, entry) => sum + entry.wordCount, 0), design.run.loadedContext.metadataWords);
   assert.equal(design.workspaceContext.filter(({ contextBucket }) => contextBucket === "body").reduce((sum, entry) => sum + entry.wordCount, 0), design.run.loadedContext.bodyWords);
   assert.equal([...design.routeIdentity, ...design.supportContext].reduce((sum, entry) => sum + entry.wordCount, 0), design.run.loadedContext.referenceWords);
-  assert.equal(design.objective.inputCausality.result, "Blocked");
+  assert.equal(design.objective.inputCausality.result, "Observed");
+  assert.equal(design.objective.inputCausality.verdict, "Pass");
+  assert.equal(design.objective.inputCausality.proofStatePresetActivated, false);
+  assert.equal(design.objective.inputCausality.syntheticDispatchEventUsed, false);
   assert.equal(design.objective.inputCausality.candidateArtifactRepairBatchUsed, false);
-  assert.match(design.run.terminalClaim, /causality is not demonstrated/i);
+  assert.equal(design.objective.inputCausality.fullMatrixRerun, false);
+  assert.deepEqual(design.objective.inputCausality.genuineInputObservation, {
+    initialActiveElement: "body",
+    tabCountToRetry: 12,
+    retryFocusVisible: true,
+    enterFeedback: "Retry requested",
+    tabAfterRetryActiveId: "exit",
+    exitFocusVisible: true,
+    spaceFeedback: "Exit requested",
+  });
+  assert.deepEqual(design.objective.inputCausality.applicationWarningsOrErrors, []);
+  assert.deepEqual(design.objective.inputCausality.externalWarningBoundary, {
+    count: 12,
+    origin: "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn",
+    source: "Third-party extension logs; product attribution was not independently verified",
+    excludedFromApplicationResult: true,
+  });
+  assert.deepEqual(design.objective.inputCausality.sourceNoRepairHashes, [
+    { path: "candidate-workspace://design-direction/web/index.html", sha256: "sha256:b423da57e49f2e61e6d0027c6e64b1182737e2717aa3deeac10c5cfa55405db3" },
+    { path: "candidate-workspace://design-direction/web/app.mjs", sha256: "sha256:e5ca5e32bfd9924d2b9a9f14621fa9db321d8ac840f7a289353db138a99a0b2a" },
+    { path: "candidate-workspace://design-direction/web/styles.css", sha256: "sha256:4686bb6db7fa6ded2db475171e13e339a62debf44c5ac5104dc0225155e642fa" },
+  ]);
+  assert.equal(design.review.status, "Pass with bounded non-blocking findings");
+  assert.equal(design.review.reviewerIndependence, "Independent");
+  assert.equal(design.review.contributionDisclosure, "No contribution to production artifacts");
+  assert.equal(design.review.actualInputCriterion, "Pass");
+  assert.equal(design.review.integratedAcceptance, "Not granted");
+  assert.match(design.review.authorityBoundary, /not human direction selection.*design acceptance.*producer acceptance.*golden approval.*gate passage.*lifecycle passage/i);
+  assert.match(design.run.terminalClaim, /causality passed for the unchanged runtime/i);
+  assert.match(design.run.terminalClaim, /human selection/i);
   assert.equal(produce.objective.status, "Pass");
   assert.deepEqual(produce.objective.states, ["empty", "full", "error", "equip", "controller-focus"]);
   assert(produce.objective.actualInputs.length >= 4);
@@ -160,29 +240,24 @@ export function validateCandidateDocuments({ repositoryRoot, summary, evidence, 
   assert.equal(noGeneration.objective.conceptRendered, false);
   assert.match(noGeneration.objective.capabilityRoute, /replaceable/);
 
-  const expectedFailure = [{
-    fixtureId: design.fixtureId,
-    variant: design.variant,
+  assert.deepEqual(summary.observedFailures, [], "passing primary evidence cannot retain a substantive failure");
+  assert.deepEqual(summary.inputGateClosure, {
+    id: "genuine-input-causality-observed",
     criterion: retainedCriterion,
+    result: "Observed/Pass",
+    reviewerIndependence: design.review.reviewerIndependence,
+    contributionDisclosure: design.review.contributionDisclosure,
+    candidateArtifactRepairBatchUsed: design.objective.inputCausality.candidateArtifactRepairBatchUsed,
+    sourceHashMatch: true,
+    fullMatrixRerun: design.objective.inputCausality.fullMatrixRerun,
     evidence: [
-      design.objective.inputCausality.blockingEvidenceResult,
-      design.objective.inputCausality.rejectedAsPassageEvidence,
       design.objective.inputCausality.minimalTestOutcome,
+      design.objective.inputCausality.evidenceResult,
     ],
-  }];
-  assert.deepEqual(summary.observedFailures, expectedFailure, "Design causality failure must be derived from committed evidence");
-  assert.equal(summary.sharedRootCauseClassification.criterion, retainedCriterion);
-  assert.equal(summary.sharedRootCauseClassification.classification, "Environment evidence limitation");
-  assert.equal(summary.sharedRootCauseClassification.attribution, design.objective.inputCausality.rootCauseHypothesis);
-  assert.deepEqual(summary.sharedRootCauseClassification.notAttributedTo, ["game-art-production Skill wording", "candidate runtime"]);
-  assert.equal(summary.sharedRootCauseClassification.candidateArtifactRepairBatchUsed, false);
-  assert.equal(summary.sharedRootCauseClassification.sameRootCycles, design.run.cycles);
-  assert.deepEqual(summary.sharedRootCauseClassification.evidence, [
-    design.objective.inputCausality.workingPath,
-    design.objective.inputCausality.candidateStructure,
-    design.objective.inputCausality.minimalTestOutcome,
-  ]);
-  assert.equal(summary.sharedRootCauseClassification.recovery, design.objective.inputCausality.recovery);
+    applicationWarningsOrErrors: design.objective.inputCausality.applicationWarningsOrErrors,
+    externalWarningBoundary: design.objective.inputCausality.externalWarningBoundary,
+    authorityBoundary: design.review.authorityBoundary,
+  }, "input-gate closure must be derived from committed evidence and independent authority");
 
   const expectedApprovals = [...records.values()].map((record) => {
     const identity = {
@@ -212,8 +287,9 @@ export function validateCandidateDocuments({ repositoryRoot, summary, evidence, 
     hash: semanticHash(controlSummary),
     splitDecision: "Proceed",
   });
-  const retained = controlSummary.observedFailures.filter(({ criterion }) => criterion === retainedCriterion).map(({ criterion }) => criterion);
-  const corrected = controlSummary.observedFailures.filter(({ criterion }) => criterion !== retainedCriterion).map(({ criterion }) => criterion);
+  const candidateFailureCriteria = new Set(summary.observedFailures.map(({ criterion }) => criterion));
+  const retained = controlSummary.observedFailures.filter(({ criterion }) => candidateFailureCriteria.has(criterion)).map(({ criterion }) => criterion);
+  const corrected = controlSummary.observedFailures.filter(({ criterion }) => !candidateFailureCriteria.has(criterion)).map(({ criterion }) => criterion);
   assert.deepEqual(summary.comparison.retainedControlFailures, retained);
   assert.deepEqual(summary.comparison.correctedControlFailures, corrected);
   const primary = summary.burden.primaryFixtures;
@@ -231,10 +307,11 @@ export function validateCandidateDocuments({ repositoryRoot, summary, evidence, 
   const primaryPassed = primaryRecords.every((record) => record.objective.status === "Pass");
   assert.equal(summary.result, primaryPassed ? "CandidatePass" : "BoundedReturn", "terminal result contradicts committed evidence");
   assert.equal(summary.task6Unlocked, primaryPassed, "Task 6 truth contradicts committed evidence");
-  assert.equal(primaryPassed, false);
-  assert(summary.decisionBasis.startsWith("BoundedReturn, not CandidatePass."));
-  assert.match(summary.decisionBasis, /genuine keyboard\/controller-equivalent input-to-visual causality remains unproven/i);
-  assert.match(summary.decisionBasis, /Task 6 is not unlocked/i);
+  assert.equal(primaryPassed, true);
+  assert(summary.decisionBasis.startsWith("CandidatePass."));
+  assert.match(summary.decisionBasis, /genuine keyboard\/controller-equivalent input-to-visual causality criterion through independent observation/i);
+  assert.match(summary.decisionBasis, /unlocks Task 6, but does not implement it/i);
+  assert.match(summary.decisionBasis, /no human direction\/design\/producer\/golden\/G1\/G2/i);
   return { summary, evidence, controlSummary };
 }
 

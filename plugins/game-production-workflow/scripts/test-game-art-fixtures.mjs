@@ -420,6 +420,7 @@ const { summary: candidateSummary, evidence: candidateEvidence } = validatedCand
 assert.deepEqual(Object.keys(candidateSummary).sort(), [
   "approvalEvidence",
   "burden",
+  "burdenMeasurementScope",
   "candidateCommit",
   "committedEvidence",
   "comparison",
@@ -427,17 +428,19 @@ assert.deepEqual(Object.keys(candidateSummary).sort(), [
   "evaluationContractMismatches",
   "fixtureResults",
   "historicalRawBundles",
+  "inputGateClosure",
   "label",
   "observedFailures",
   "result",
   "schemaVersion",
-  "sharedRootCauseClassification",
   "task6Unlocked",
 ]);
-assert.equal(candidateSummary.result, "BoundedReturn");
-assert.equal(candidateSummary.task6Unlocked, false);
-assert.equal(candidateSummary.fixtureResults.find(({ fixtureId }) => fixtureId === "design-direction").objectiveResult.status, "Blocked");
+assert.equal(candidateSummary.result, "CandidatePass");
+assert.equal(candidateSummary.task6Unlocked, true);
+assert.equal(candidateSummary.fixtureResults.find(({ fixtureId }) => fixtureId === "design-direction").objectiveResult.status, "Pass");
 assert.equal(candidateSummary.fixtureResults.find(({ variant }) => variant === "no-optional-generation").objectiveResult.status, "Pass");
+assert.deepEqual(candidateSummary.observedFailures, []);
+assert.deepEqual(candidateSummary.comparison.retainedControlFailures, []);
 
 const candidateMutations = [
   {
@@ -445,12 +448,76 @@ const candidateMutations = [
     mutate(summary) { summary.historicalRawBundles[0].location = ".tmp/game-art-evals/nonexistent-design-evidence"; },
   },
   {
-    name: "candidate-pass narrative while Design is blocked",
-    mutate(summary) { summary.decisionBasis = summary.decisionBasis.replace("BoundedReturn, not CandidatePass.", "CandidatePass."); },
+    name: "bounded-return result while both primary records pass",
+    mutate(summary) {
+      summary.result = "BoundedReturn";
+      summary.task6Unlocked = false;
+    },
   },
   {
-    name: "reversed Design causality evidence",
-    mutate(summary) { summary.observedFailures[0].evidence[0] = "Genuine Retry/Exit/focus visual causality was demonstrated."; },
+    name: "forged substantive Design failure",
+    mutate(summary) {
+      summary.observedFailures = [{
+        fixtureId: "design-direction",
+        variant: "primary",
+        criterion: "Actual keyboard/controller interaction-to-visual causality",
+        evidence: ["Genuine input causality was not observed."],
+      }];
+    },
+  },
+  {
+    name: "reverted Design input evidence",
+    mutate(summary, evidence) {
+      const design = evidence.records.find(({ fixtureId }) => fixtureId === "design-direction");
+      design.objective.status = "Blocked";
+      design.objective.inputCausality.result = "Blocked";
+      design.objective.inputCausality.verdict = "Blocked";
+      summary.committedEvidence.hash = semanticHash(evidence);
+    },
+  },
+  {
+    name: "forged preset-based Design input passage",
+    mutate(summary, evidence) {
+      const design = evidence.records.find(({ fixtureId }) => fixtureId === "design-direction");
+      design.objective.inputCausality.proofStatePresetActivated = true;
+      summary.committedEvidence.hash = semanticHash(evidence);
+    },
+  },
+  {
+    name: "forged unchanged-source evidence",
+    mutate(summary, evidence) {
+      const design = evidence.records.find(({ fixtureId }) => fixtureId === "design-direction");
+      design.objective.inputCausality.sourceNoRepairHashes[0].sha256 = `sha256:${"0".repeat(64)}`;
+      summary.committedEvidence.hash = semanticHash(evidence);
+    },
+  },
+  {
+    name: "Design independent review loses pass",
+    mutate(summary, evidence) {
+      const design = evidence.records.find(({ fixtureId }) => fixtureId === "design-direction");
+      design.review.status = "Blocked";
+      summary.committedEvidence.hash = semanticHash(evidence);
+    },
+  },
+  {
+    name: "Design review loses independent authority boundary",
+    mutate(summary, evidence) {
+      const design = evidence.records.find(({ fixtureId }) => fixtureId === "design-direction");
+      design.review.reviewerIndependence = "Contributing";
+      design.review.contributionDisclosure = "Contributed to candidate source";
+      summary.committedEvidence.hash = semanticHash(evidence);
+    },
+  },
+  {
+    name: "burden measurement scope omitted",
+    mutate(summary) { delete summary.burdenMeasurementScope; },
+  },
+  {
+    name: "burden measurement scope overstates total context reduction",
+    mutate(summary) {
+      summary.burdenMeasurementScope ??= {};
+      summary.burdenMeasurementScope.comparisonBoundary = "Candidate word deltas prove lower total orchestration and reviewer context.";
+    },
   },
   {
     name: "traversing historical raw bundle path",
@@ -468,12 +535,13 @@ const candidateMutations = [
 ];
 const acceptedCandidateMutations = candidateMutations.flatMap(({ name, mutate }) => {
   const mutation = structuredClone(candidateSummary);
-  mutate(mutation);
+  const evidenceMutation = structuredClone(candidateEvidence);
+  mutate(mutation, evidenceMutation);
   try {
     validateCandidateDocuments({
       repositoryRoot,
       summary: mutation,
-      evidence: candidateEvidence,
+      evidence: evidenceMutation,
       controlSummary,
     });
     return [name];

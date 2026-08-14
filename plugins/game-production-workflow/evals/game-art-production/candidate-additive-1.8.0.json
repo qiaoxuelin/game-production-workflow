@@ -2,11 +2,27 @@
   "schemaVersion": 1,
   "label": "candidate-additive-1.8.0",
   "candidateCommit": "2c26db33dadd2e23e06f7e2eea6604143a38ad7a",
-  "result": "BoundedReturn",
-  "task6Unlocked": false,
+  "result": "CandidatePass",
+  "task6Unlocked": true,
+  "burdenMeasurementScope": {
+    "cycleAndElapsedScope": "Design's 3 cycles and 46 elapsed minutes include the independently supplied Chrome recovery evidence cycle; Produce and no-generation retain their recorded run totals.",
+    "loadedContextScope": "Loaded-context files and word counts reproduce each candidate-run-record worker ledger and its portable route/support mapping.",
+    "included": [
+      "candidate-worker loaded-file ledgers recorded in the three candidate run records",
+      "all recorded production and evidence cycles and elapsed minutes, including the Design Chrome recovery cycle",
+      "human approval changes recorded before and after each candidate run"
+    ],
+    "excluded": [
+      "controller and orchestration context not present in candidate-run-record loaded-file ledgers",
+      "independent-reviewer Chrome documentation and context not present in candidate-run-record loaded-file ledgers",
+      "any unrecorded word count"
+    ],
+    "comparisonBoundary": "Control/candidate word deltas compare recorded candidate-worker route/context ledgers only; they do not measure total orchestration or reviewer context and do not establish an overall context reduction.",
+    "unrecordedWordCountsInvented": false
+  },
   "committedEvidence": {
     "location": "plugins/game-production-workflow/evals/game-art-production/candidate-additive-1.8.0-evidence.json",
-    "hash": "sha256:670406e582f33e18c742ce901c620667d4924d8ff7b41a2a2e6d9e48cc6c4bea"
+    "hash": "sha256:47826ca67c3aa8843431231f572ff112446133fe6e25c9d8de2187ec2fa5a8d0"
   },
   "fixtureResults": [
     {
@@ -15,9 +31,9 @@
       "label": "candidate-additive-1.8.0",
       "fixtureDefinitionHash": "sha256:2aa7f3d58bb494587a29412bdad897ed581ede96c57b2324d5886ef998d42094",
       "sourceTreeHash": "sha256:9263408b47f3df7faa539fa6559b92838309d402a1c89c9424611ea776f7ba7e",
-      "outputTreeHash": "sha256:e27662608fd2d03498c7d75acb4283e8067d56773c60244694117ee21a7f9c3b",
+      "outputTreeHash": "sha256:1221a59e2d2d7f901fd02b993f37d93460ef625726985290052b55873a4cc8c3",
       "capabilities": {
-        "browserRuntimeInspection": "available for the initial matrix; unavailable for the bounded genuine-input follow-up",
+        "browserRuntimeInspection": "available for the initial matrix; independent Chrome extension available for the bounded genuine-input follow-up",
         "imageGeneration": "available but not used",
         "imageEditing": "available but not used",
         "externalArtDirectionSelected": false
@@ -64,8 +80,8 @@
           "external-plugin://superpowers/verification-before-completion/6.2.0/SKILL.md"
         ]
       },
-      "cycles": 2,
-      "elapsedMinutes": 38,
+      "cycles": 3,
+      "elapsedMinutes": 46,
       "approvalChanges": 0,
       "maturity": {
         "level": "Direction",
@@ -73,7 +89,7 @@
         "bulkUnlock": "Locked"
       },
       "objectiveResult": {
-        "status": "Blocked",
+        "status": "Pass",
         "checks": [
           {
             "id": "source-lock",
@@ -100,10 +116,10 @@
           },
           {
             "id": "genuine-input-to-visual-causality",
-            "status": "Blocked",
+            "status": "Pass",
             "evidence": [
-              "Genuine keyboard/controller-equivalent Retry, Exit, and focus causality was not demonstrated.",
-              "The follow-up could not acquire a controllable browser backend, so no valid genuine-input event could be delivered or observed."
+              "Twelve genuine Tab inputs reached Retry in DOM order with focus-visible without activating a proof-state preset; Enter produced Retry requested.",
+              "A genuine Tab moved focus visibly to Exit and Space produced Exit requested in the unchanged runtime; no synthetic event dispatch or candidate repair was used."
             ]
           }
         ]
@@ -119,7 +135,7 @@
           "Direction/Working maturity remains truthful and human selection remains pending."
         ]
       },
-      "terminalClaim": "Bounded return. Three Working-fidelity Direction candidates remain available for human selection, but genuine keyboard/controller-equivalent input-to-visual causality remains unproven; no artistic, golden, producer, gate, or lifecycle passage is claimed."
+      "terminalClaim": "The bounded Direction evidence passes, including genuine keyboard/controller-equivalent input-to-visual causality in the unchanged runtime. Three Working-fidelity candidates remain Proposed pending human direction selection; no design, producer, golden, G1/G2, integrated-acceptance, lifecycle, or finality decision is claimed."
     },
     {
       "fixtureId": "composite-runtime",
@@ -442,8 +458,8 @@
       "variant": "primary",
       "authoritative": false,
       "location": ".tmp/game-art-evals/candidate-design-direction",
-      "hash": "sha256:7d9b6f1aebfa569a6b765a8240d38a814c8c30b6e21d889409043ad2e52656d2",
-      "outputTreeHash": "sha256:e27662608fd2d03498c7d75acb4283e8067d56773c60244694117ee21a7f9c3b"
+      "hash": "sha256:bd94a1d85a5140a4aeaf40211ab03bdb4510a75de6a21fa6eeb89f0ef6511c1a",
+      "outputTreeHash": "sha256:1221a59e2d2d7f901fd02b993f37d93460ef625726985290052b55873a4cc8c3"
     },
     {
       "fixtureId": "composite-runtime",
@@ -537,40 +553,33 @@
       "excludedFromGateBasis": true
     }
   ],
-  "observedFailures": [
-    {
-      "fixtureId": "design-direction",
-      "variant": "primary",
-      "criterion": "Actual keyboard/controller interaction-to-visual causality",
-      "evidence": [
-        "Genuine Retry/Exit/focus visual causality was not demonstrated. The browser observation/input surface is unavailable, and the original physical-input confirmation limitation remains intact.",
-        "The prior key attempts began from a proof-state control that programmatically focused Retry. They are retained only as diagnostic history and are not treated as genuine-input evidence.",
-        "Blocked before live-page acquisition; no valid genuine-input event could be delivered."
-      ]
-    }
-  ],
-  "sharedRootCauseClassification": {
-    "id": "unavailable-browser-input-bridge",
+  "observedFailures": [],
+  "inputGateClosure": {
+    "id": "genuine-input-causality-observed",
     "criterion": "Actual keyboard/controller interaction-to-visual causality",
-    "classification": "Environment evidence limitation",
-    "attribution": "The unresolved result is most likely caused by browser automation/input-bridge availability rather than candidate runtime code, because pointer causality works, standard native-button semantics are intact, all attempted automation key APIs previously failed at the input boundary, and the browser backend is now unavailable.",
-    "notAttributedTo": [
-      "game-art-production Skill wording",
-      "candidate runtime"
-    ],
+    "result": "Observed/Pass",
+    "reviewerIndependence": "Independent",
+    "contributionDisclosure": "No contribution to production artifacts",
     "candidateArtifactRepairBatchUsed": false,
-    "sameRootCycles": 2,
+    "sourceHashMatch": true,
+    "fullMatrixRerun": false,
     "evidence": [
-      "Pointer activation previously reached the native button click listeners and produced observable feedback.",
-      "Retry and Exit remain native button elements in DOM order with click listeners; the candidate source contains no keydown handler, preventDefault call, disabled state, inert container, or tabindex override that suppresses native keyboard activation.",
-      "Blocked before live-page acquisition; no valid genuine-input event could be delivered."
+      "Pass: twelve genuine Tabs reached #retry in DOM order with visible focus; Enter activated Retry, Tab moved visibly to Exit, and Space activated Exit.",
+      "Pass: genuine keyboard/controller-equivalent Retry, Exit, and focus-visible causality was observed in the unchanged live runtime without proof-state presets or synthetic event dispatch."
     ],
-    "recovery": "Repeat this bounded evidence cycle when a controllable browser backend is available. Begin from ordinary runtime success without using keyboard-focus/controller-focus preset controls, use genuine Tab navigation into Retry and Exit, capture focus-visible before and feedback after Enter/Space, check console output, then rerun the full state/viewport matrix only if a candidate-runtime repair is actually required."
+    "applicationWarningsOrErrors": [],
+    "externalWarningBoundary": {
+      "count": 12,
+      "origin": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn",
+      "source": "Third-party extension logs; product attribution was not independently verified",
+      "excludedFromApplicationResult": true
+    },
+    "authorityBoundary": "Evidence only; not human direction selection, design acceptance, producer acceptance, golden approval, integrated acceptance, gate passage, lifecycle passage, or finality."
   },
   "burden": {
     "primaryFixtures": {
-      "cycles": 4,
-      "elapsedMinutes": 53,
+      "cycles": 5,
+      "elapsedMinutes": 61,
       "approvals": 0,
       "loadedContext": {
         "metadataWords": 1738,
@@ -600,8 +609,8 @@
       }
     },
     "allRuns": {
-      "cycles": 6,
-      "elapsedMinutes": 61,
+      "cycles": 7,
+      "elapsedMinutes": 69,
       "approvals": 0,
       "loadedContext": {
         "metadataWords": 1813,
@@ -645,21 +654,20 @@
     "correctedControlFailures": [
       "Reward-overflow state coverage and action-safe readability at 390x844",
       "Visible and unambiguous controller focus at the portrait target size",
+      "Actual keyboard/controller interaction-to-visual causality",
       "Five-state project-native runtime coverage at 1280x720"
     ],
-    "retainedControlFailures": [
-      "Actual keyboard/controller interaction-to-visual causality"
-    ],
+    "retainedControlFailures": [],
     "primaryBurdenDelta": {
-      "cycles": 0,
-      "elapsedMinutes": 11,
+      "cycles": 1,
+      "elapsedMinutes": 19,
       "approvals": 0,
       "metadataWords": 1534,
       "bodyWords": -7213,
       "referenceWords": -1168,
-      "interpretation": "The candidate primary fixtures used the same number of cycles and approvals, took 11 more recorded minutes, and loaded fewer body/reference words. No claim of lower overall burden is made."
+      "interpretation": "The candidate primary fixtures used one more cycle and 19 more recorded minutes with no additional approvals. Their recorded candidate-worker ledgers contain 1,534 more metadata words, 7,213 fewer body words, and 1,168 fewer reference words than control; controller/orchestration and independent-reviewer context absent from those ledgers is excluded, so these deltas do not establish an overall context reduction."
     },
     "lifecycleOrApprovalBurdenAdded": false
   },
-  "decisionBasis": "BoundedReturn, not CandidatePass. Candidate Produce corrects the control's five-state project-native runtime failure, and the no-optional-generation pressure run retains a passing editable code/vector/project-native route. Design corrects the control's overflow and visible-focus failures, but genuine keyboard/controller-equivalent input-to-visual causality remains unproven after two same-root evidence cycles because the browser/input bridge was unavailable. Exact-path evaluation-contract mismatches are excluded from the gate basis. No Skill or candidate-runtime defect was established, so no Skill/core wording was changed. No lifecycle state or approval burden was added, but both primary candidate fixtures do not pass every declared artifact/maturity criterion; Task 6 is not unlocked."
+  "decisionBasis": "CandidatePass. Design now passes the previously retained genuine keyboard/controller-equivalent input-to-visual causality criterion through independent observation of Tab, Enter, and Space in the unchanged runtime, with no proof-state preset, synthetic dispatch, candidate repair, or application-origin warning/error. Candidate Produce retains its five-state project-native runtime pass, and the no-optional-generation pressure run retains its editable code/vector/project-native pass. All four substantive control failures are corrected; exact-path evaluation-contract mismatches remain excluded from the gate basis. The additional Design evidence cycle raises primary burden to five cycles and 61 minutes (+1 cycle and +19 minutes versus control) without adding approval or lifecycle burden. Word deltas cover only recorded candidate-worker route/context ledgers, exclude unrecorded controller/orchestration and independent-reviewer context, and do not establish an overall context reduction. Candidate evidence therefore unlocks Task 6, but does not implement it and grants no human direction/design/producer/golden/G1/G2, integrated-acceptance, lifecycle, or finality decision."
 }
