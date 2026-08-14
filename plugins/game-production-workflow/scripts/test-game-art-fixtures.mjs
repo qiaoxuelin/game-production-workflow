@@ -68,6 +68,36 @@ const approvalChangeCount = (before, after) => {
   const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
   return [...keys].filter((key) => JSON.stringify(canonicalValue(before[key])) !== JSON.stringify(canonicalValue(after[key]))).length;
 };
+const replaceTaskField = (runRoot, label, value) => {
+  const taskPath = path.join(runRoot, "production/TASK.md");
+  const task = fs.readFileSync(taskPath, "utf8");
+  const pattern = new RegExp(`^- ${label}:.*$`, "mu");
+  assert.match(task, pattern, `fixture TASK is missing ${label}`);
+  fs.writeFileSync(taskPath, task.replace(pattern, `- ${label}: ${value}`));
+};
+const taskStateFields = ["gate", "currentTask", "status", "nextAction"];
+const writeProjectState = (runRoot, status, nextAction) => {
+  const projectPath = path.join(runRoot, "production/project.json");
+  const project = JSON.parse(fs.readFileSync(projectPath, "utf8"));
+  project.status = status;
+  project.nextAction = nextAction;
+  fs.writeFileSync(projectPath, `${JSON.stringify(project, null, 2)}\n`);
+  return Object.fromEntries(taskStateFields.map((field) => [field, String(project[field] ?? "")]));
+};
+const writeTaskHandoff = (runRoot, values) => {
+  for (const [label, value] of Object.entries(values)) replaceTaskField(runRoot, label, value);
+};
+const declaredResult = (overrides = {}) => ({
+  professionalResult: "Implemented",
+  representativeProof: "Passed",
+  assemblyPrecheck: "Passed",
+  taskResult: "Implemented",
+  nextAction: "Have the named independent reviewer inspect the integrated runtime evidence.",
+  nextActionKind: "independent-review",
+  designAcceptance: "Pending",
+  producerAcceptance: "Pending",
+  ...overrides,
+});
 
 for (const id of ids) {
   const fixturePath = path.join(evalRoot, id, "fixture.json");
@@ -952,6 +982,210 @@ try {
       fs.writeFileSync(path.join(runRoot, "observation.json"), `${JSON.stringify(observation, null, 2)}\n`);
     }
   }
+
+  const prepareLifecycleRun = (fixtureId, name) => {
+    const runRoot = path.join(tempRoot, name);
+    const lock = fixtureApi.prepareFixture({
+      pluginRoot,
+      fixtureId,
+      label: `lifecycle-${name}`,
+      outputRoot: runRoot,
+    });
+    const fixture = fixtureApi.loadFixture(pluginRoot, fixtureId);
+    for (const relative of fixture.requiredArtifacts) {
+      const artifact = path.join(runRoot, relative);
+      fs.mkdirSync(path.dirname(artifact), { recursive: true });
+      fs.writeFileSync(artifact, `lifecycle fixture artifact: ${relative}\n`);
+    }
+    return { runRoot, lock };
+  };
+  const writeLifecycleObservation = (runRoot, lock, taskStateAfter, resultDeclaration) => {
+    const observation = {
+      schemaVersion: 2,
+      sourceTreeHash: lock.sourceTreeHash,
+      outputTreeHash: outputHash(runRoot),
+      taskStateBefore: lock.taskStateBefore,
+      taskStateAfter,
+      loadedContext: { metadataWords: 1, bodyWords: 2, referenceWords: 3, files: ["production/TASK.md"] },
+      cycles: 1,
+      elapsedMinutes: 1,
+      terminalClaim: "Declared lifecycle handoff is ready for semantic verification; subjective authorities remain pending.",
+      declaredResult: resultDeclaration,
+    };
+    fs.writeFileSync(path.join(runRoot, "observation.json"), `${JSON.stringify(observation, null, 2)}\n`);
+    return observation;
+  };
+  const configureImplementedRun = (runRoot, lock, overrides = {}) => {
+    const declaration = declaredResult(overrides.declaredResult);
+    const status = overrides.status ?? "Implementing";
+    const nextAction = declaration.nextAction;
+    writeTaskHandoff(runRoot, {
+      Status: `\`${status}\``,
+      "Representative proof": `\`${declaration.representativeProof}${declaration.representativeProof === "Passed" ? " — representative runtime evidence recorded" : ""}\``,
+      "Assembly precheck": `\`${declaration.assemblyPrecheck}${declaration.assemblyPrecheck === "Passed" ? " — actual-size native assembly recorded" : ""}\``,
+      Result: `\`${declaration.taskResult}${declaration.taskResult === "Implemented" ? " — integrated runtime candidate recorded" : ""}\``,
+      "Next action": nextAction,
+      "Design acceptance": `\`${declaration.designAcceptance}\``,
+      "Producer acceptance": `\`${declaration.producerAcceptance}\``,
+    });
+    const taskStateAfter = writeProjectState(runRoot, status, nextAction);
+    return writeLifecycleObservation(runRoot, lock, taskStateAfter, declaration);
+  };
+
+  const implementedLifecycle = prepareLifecycleRun("composite-runtime", "implemented-lifecycle");
+
+  configureImplementedRun(implementedLifecycle.runRoot, implementedLifecycle.lock, { status: "Ready" });
+  assert.throws(
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /Implemented.*Implementing/i,
+    "Implemented professional results must not remain Ready",
+  );
+
+  configureImplementedRun(implementedLifecycle.runRoot, implementedLifecycle.lock, {
+    declaredResult: { taskResult: "Not started" },
+  });
+  assert.throws(
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /task Result.*Not started/i,
+    "Implemented professional results must update the durable task Result",
+  );
+
+  configureImplementedRun(implementedLifecycle.runRoot, implementedLifecycle.lock, {
+    declaredResult: { representativeProof: "Pending" },
+  });
+  assert.throws(
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /representative proof.*Passed/i,
+    "Implemented professional results must map passed representative proof",
+  );
+
+  configureImplementedRun(implementedLifecycle.runRoot, implementedLifecycle.lock, {
+    declaredResult: { assemblyPrecheck: "Pending" },
+  });
+  assert.throws(
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /assembly precheck.*Passed/i,
+    "Implemented professional results must map the passed assembly precheck",
+  );
+
+  configureImplementedRun(implementedLifecycle.runRoot, implementedLifecycle.lock, {
+    declaredResult: {
+      nextAction: "Build and inspect the first native slice.",
+      nextActionKind: "produce-first-slice",
+    },
+  });
+  assert.throws(
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /next action kind.*post-production/i,
+    "Implemented professional results must reject stale first-slice next actions",
+  );
+
+  const validImplementedObservation = configureImplementedRun(
+    implementedLifecycle.runRoot,
+    implementedLifecycle.lock,
+  );
+  const validImplementedResult = fixtureApi.verifyFixture({
+    pluginRoot,
+    runRoot: implementedLifecycle.runRoot,
+  });
+  assert.equal(validImplementedResult.taskStateAfter.status, "Implementing");
+  assert.deepEqual(validImplementedResult.declaredResult, validImplementedObservation.declaredResult);
+  assert(validImplementedResult.objectiveChecks.some(
+    (entry) => entry.id === "lifecycle-handoff" && entry.status === "Pass",
+  ));
+
+  configureImplementedRun(implementedLifecycle.runRoot, implementedLifecycle.lock, {
+    declaredResult: { taskResult: "Not started" },
+  });
+  const legacyImplementedObservation = {
+    ...validImplementedObservation,
+    schemaVersion: 1,
+    declaredResult: undefined,
+    result: { professionalResult: "Implemented" },
+    outputTreeHash: outputHash(implementedLifecycle.runRoot),
+  };
+  fs.writeFileSync(
+    path.join(implementedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(legacyImplementedObservation, null, 2)}\n`,
+  );
+  assert.throws(
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /task Result.*Not started/i,
+    "legacy nested Implemented results must receive the same lifecycle validation",
+  );
+  configureImplementedRun(implementedLifecycle.runRoot, implementedLifecycle.lock);
+
+  const proposedLifecycle = prepareLifecycleRun("design-direction", "proposed-lifecycle");
+  const proposedNextAction = "Present the runtime-backed candidates for human direction selection.";
+  writeTaskHandoff(proposedLifecycle.runRoot, {
+    Status: "`Clarifying`",
+    "Representative proof": "`Pending`",
+    "Assembly precheck": "`Pending`",
+    Result: "`Proposed — runtime-backed direction candidates await human selection`",
+    "Next action": proposedNextAction,
+    "Design acceptance": "`Pending`",
+    "Producer acceptance": "`Pending`",
+  });
+  const proposedTaskState = writeProjectState(
+    proposedLifecycle.runRoot,
+    "Clarifying",
+    proposedNextAction,
+  );
+  const proposedObservation = writeLifecycleObservation(
+    proposedLifecycle.runRoot,
+    proposedLifecycle.lock,
+    proposedTaskState,
+    declaredResult({
+      professionalResult: "Proposed",
+      representativeProof: "Pending",
+      assemblyPrecheck: "Pending",
+      taskResult: "Proposed",
+      nextAction: proposedNextAction,
+      nextActionKind: "human-selection",
+    }),
+  );
+  const proposedResult = fixtureApi.verifyFixture({
+    pluginRoot,
+    runRoot: proposedLifecycle.runRoot,
+  });
+  assert.equal(proposedResult.taskStateAfter.status, "Clarifying");
+  assert.deepEqual(proposedResult.declaredResult, proposedObservation.declaredResult);
+  assert(proposedResult.objectiveChecks.some(
+    (entry) => entry.id === "lifecycle-handoff" && entry.status === "Pass",
+  ));
+
+  const legacyProposedObservation = {
+    ...proposedObservation,
+    schemaVersion: 1,
+    declaredResult: undefined,
+    professionalResult: "Proposed",
+  };
+  fs.writeFileSync(
+    path.join(proposedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(legacyProposedObservation, null, 2)}\n`,
+  );
+  const legacyProposedResult = fixtureApi.verifyFixture({
+    pluginRoot,
+    runRoot: proposedLifecycle.runRoot,
+  });
+  assert(legacyProposedResult.objectiveChecks.some(
+    (entry) => entry.id === "lifecycle-handoff" && entry.status === "Pass",
+  ));
+
+  const oldLocationClaim = {
+    ...validImplementedObservation,
+    declaredResult: undefined,
+    result: { professionalResult: "Implemented" },
+  };
+  fs.writeFileSync(
+    path.join(implementedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(oldLocationClaim, null, 2)}\n`,
+  );
+  assert.throws(
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /declaredResult/i,
+    "professional results in legacy ad hoc locations must use declaredResult",
+  );
 
   const sourceTestPlugin = path.join(sourceTestRepository, "plugins/game-production-workflow");
   fs.mkdirSync(path.join(sourceTestPlugin, "scripts"), { recursive: true });

@@ -8,6 +8,18 @@ const fixtureIds = new Set(["design-direction", "composite-runtime"]);
 const controlFiles = ["fixture-lock.json", "observation.json", "result.json"];
 const taskStateFields = ["gate", "currentTask", "status", "nextAction"];
 const sha256Pattern = /^sha256:[a-f0-9]{64}$/;
+const declaredResultKeys = [
+  "professionalResult", "representativeProof", "assemblyPrecheck", "taskResult",
+  "nextAction", "nextActionKind", "designAcceptance", "producerAcceptance",
+];
+const resultValues = new Set(["Proposed", "Implemented", "Returned", "Blocked"]);
+const proofValues = new Set(["Pending", "Passed", "Not applicable"]);
+const taskResultValues = new Set(["Not started", "Proposed", "Implemented", "Returned", "Blocked"]);
+const nextActionKinds = new Set([
+  "produce-first-slice", "human-selection", "independent-review", "human-acceptance",
+  "bounded-repair", "replan", "capability-enabling", "alternative-candidate", "stop",
+]);
+const acceptanceValues = new Set(["Pending", "Accepted", "Not applicable"]);
 
 function requireNonEmptyString(value, name) {
   if (typeof value !== "string" || value.trim().length === 0) {
@@ -279,6 +291,194 @@ function validateExactKeys(value, expected, name) {
   }
 }
 
+function validateDeclaredResult(value) {
+  validateExactKeys(value, declaredResultKeys, "observation declaredResult");
+  for (const [field, allowed] of [
+    ["professionalResult", resultValues],
+    ["representativeProof", proofValues],
+    ["assemblyPrecheck", proofValues],
+    ["taskResult", taskResultValues],
+    ["nextActionKind", nextActionKinds],
+    ["designAcceptance", acceptanceValues],
+    ["producerAcceptance", acceptanceValues],
+  ]) {
+    if (!allowed.has(value[field])) {
+      throw new Error(`observation declaredResult.${field} is invalid`);
+    }
+  }
+  requireNonEmptyString(value.nextAction, "observation declaredResult.nextAction");
+}
+
+function extractDeclaredResult(observation) {
+  if (observation.schemaVersion === 2) {
+    if (!observation.declaredResult) {
+      throw new Error("observation schemaVersion 2 requires declaredResult");
+    }
+    validateDeclaredResult(observation.declaredResult);
+    return { value: observation.declaredResult, complete: true };
+  }
+
+  if (observation.declaredResult !== undefined) {
+    validateDeclaredResult(observation.declaredResult);
+    return { value: observation.declaredResult, complete: true };
+  }
+
+  const legacyValues = [
+    observation.professionalResult,
+    observation.result?.professionalResult,
+  ].filter((value) => value !== undefined);
+  if (legacyValues.length === 0) return null;
+  if (legacyValues.some((value) => !resultValues.has(value))) {
+    throw new Error("legacy observation professionalResult is invalid");
+  }
+  if (new Set(legacyValues).size !== 1) {
+    throw new Error("legacy observation professionalResult declarations conflict");
+  }
+  return { value: { professionalResult: legacyValues[0] }, complete: false };
+}
+
+function unquoteTaskValue(value) {
+  const trimmed = value.trim();
+  const quoted = trimmed.match(/^`([\s\S]*)`$/u);
+  return quoted ? quoted[1].trim() : trimmed;
+}
+
+function readTaskHandoff(runRoot) {
+  const taskPath = path.join(runRoot, "production/TASK.md");
+  const task = fs.readFileSync(taskPath, "utf8");
+  const labels = {
+    status: "Status",
+    representativeProof: "Representative proof",
+    assemblyPrecheck: "Assembly precheck",
+    taskResult: "Result",
+    nextAction: "Next action",
+    designAcceptance: "Design acceptance",
+    producerAcceptance: "Producer acceptance",
+  };
+  return Object.fromEntries(Object.entries(labels).map(([field, label]) => {
+    const prefix = `- ${label}:`;
+    const matches = task.split(/\r?\n/u).filter((line) => line.startsWith(prefix));
+    if (matches.length !== 1) {
+      throw new Error(`production/TASK.md must contain exactly one ${label} field`);
+    }
+    return [field, unquoteTaskValue(matches[0].slice(prefix.length))];
+  }));
+}
+
+function classifyTaskValue(value, rules, name) {
+  const normalized = value.trim().toLocaleLowerCase("en-US");
+  const match = rules.find(([, pattern]) => pattern.test(normalized));
+  if (!match) throw new Error(`production/TASK.md ${name} has no supported semantic value`);
+  return match[0];
+}
+
+function classifyProof(value, name) {
+  return classifyTaskValue(value, [
+    ["Not applicable", /^not applicable(?:\b|:|\s|$)/u],
+    ["Pending", /^pending(?:\b|:|\s|$)/u],
+    ["Passed", /^(?:passed|accepted)(?:\b|:|\s|$)/u],
+  ], name);
+}
+
+function classifyTaskResult(value) {
+  return classifyTaskValue(value, [
+    ["Not started", /^not started(?:\b|:|\s|$)/u],
+    ["Proposed", /^proposed(?:\b|:|\s|$)/u],
+    ["Implemented", /^(?:implemented|candidate implemented)(?:\b|:|\s|$)/u],
+    ["Returned", /^(?:returned|candidate returned)(?:\b|:|\s|$)/u],
+    ["Blocked", /^blocked(?:\b|:|\s|$)/u],
+  ], "Result");
+}
+
+function classifyAcceptance(value, name) {
+  return classifyTaskValue(value, [
+    ["Not applicable", /^not applicable(?:\b|:|\s|$)/u],
+    ["Pending", /^pending(?:\b|:|\s|$)/u],
+    ["Accepted", /^(?:accepted|pass|passed)(?:\b|:|\s|$)/u],
+  ], name);
+}
+
+function validateLifecycleHandoff(runRoot, observation, taskStateAfter) {
+  const declaration = extractDeclaredResult(observation);
+  if (!declaration) return null;
+
+  const task = readTaskHandoff(runRoot);
+  if (task.status !== taskStateAfter.status) {
+    throw new Error("lifecycle handoff TASK Status must match taskStateAfter.status");
+  }
+
+  const durable = {
+    representativeProof: classifyProof(task.representativeProof, "Representative proof"),
+    assemblyPrecheck: classifyProof(task.assemblyPrecheck, "Assembly precheck"),
+    taskResult: classifyTaskResult(task.taskResult),
+    designAcceptance: classifyAcceptance(task.designAcceptance, "Design acceptance"),
+    producerAcceptance: classifyAcceptance(task.producerAcceptance, "Producer acceptance"),
+  };
+
+  if (declaration.complete) {
+    for (const field of [
+      "representativeProof", "assemblyPrecheck", "taskResult",
+      "designAcceptance", "producerAcceptance",
+    ]) {
+      if (declaration.value[field] !== durable[field]) {
+        throw new Error(`lifecycle handoff declared ${field} does not match production/TASK.md`);
+      }
+    }
+    if (
+      declaration.value.nextAction !== task.nextAction ||
+      declaration.value.nextAction !== taskStateAfter.nextAction
+    ) {
+      throw new Error("lifecycle handoff declared nextAction must match TASK and project state");
+    }
+  }
+
+  if (declaration.value.professionalResult === "Implemented") {
+    if (taskStateAfter.status !== "Implementing") {
+      throw new Error("Implemented professional result requires Implementing task status");
+    }
+    if (durable.taskResult === "Not started") {
+      throw new Error("Implemented professional result cannot retain task Result Not started");
+    }
+    if (durable.taskResult !== "Implemented") {
+      throw new Error("Implemented professional result requires an Implemented task Result");
+    }
+    if (durable.representativeProof !== "Passed") {
+      throw new Error("Implemented professional result requires representative proof Passed");
+    }
+    if (durable.assemblyPrecheck !== "Passed") {
+      throw new Error("Implemented professional result requires assembly precheck Passed");
+    }
+    if (
+      declaration.complete &&
+      !new Set([
+        "independent-review", "human-acceptance", "bounded-repair", "stop",
+      ]).has(declaration.value.nextActionKind)
+    ) {
+      throw new Error("Implemented professional result next action kind must be post-production");
+    }
+  }
+
+  if (
+    declaration.value.professionalResult === "Proposed" &&
+    taskStateAfter.status !== "Clarifying"
+  ) {
+    throw new Error("Proposed professional result requires Clarifying task status");
+  }
+
+  return {
+    declaredResult: declaration.complete ? declaration.value : undefined,
+    evidence: [
+      `professional result: ${declaration.value.professionalResult}`,
+      `task status: ${taskStateAfter.status}`,
+      `task result: ${durable.taskResult}`,
+      `representative proof: ${durable.representativeProof}`,
+      `assembly precheck: ${durable.assemblyPrecheck}`,
+      `design acceptance: ${durable.designAcceptance}`,
+      `producer acceptance: ${durable.producerAcceptance}`,
+    ],
+  };
+}
+
 function validateLock(lock) {
   validateExactKeys(lock, [
     "schemaVersion", "fixtureId", "label", "policyVersion", "capabilities",
@@ -418,7 +618,9 @@ function runTrustedVerifier(pluginRoot, fixtureDirectory, runRoot, fixture) {
 }
 
 function validateObservation(observation) {
-  if (observation.schemaVersion !== 1) throw new Error("observation schemaVersion must be 1");
+  if (![1, 2].includes(observation.schemaVersion)) {
+    throw new Error("observation schemaVersion must be 1 or 2");
+  }
   if (!sha256Pattern.test(observation.sourceTreeHash)) throw new Error("observation sourceTreeHash must be a SHA-256 value");
   if (!sha256Pattern.test(observation.outputTreeHash)) throw new Error("observation outputTreeHash must be a SHA-256 value");
   if (!Number.isInteger(observation.cycles) || observation.cycles < 0) throw new Error("observation cycles must be a non-negative integer");
@@ -440,6 +642,7 @@ function validateObservation(observation) {
   validateTaskState(observation.taskStateBefore, "observation taskStateBefore");
   validateTaskState(observation.taskStateAfter, "observation taskStateAfter");
   requireNonEmptyString(observation.terminalClaim, "observation terminalClaim");
+  extractDeclaredResult(observation);
 }
 
 export function verifyFixture({ pluginRoot, runRoot }) {
@@ -476,6 +679,11 @@ export function verifyFixture({ pluginRoot, runRoot }) {
   if (!sameValue(lock, expectedLock)) throw new Error("fixture lock does not match the committed fixture and starter");
   const localVerifier = runTrustedVerifier(resolvedPluginRoot, fixtureDirectory, resolvedRunRoot, fixture);
   const taskStateAfter = readTaskState(resolvedRunRoot);
+  const lifecycleHandoff = validateLifecycleHandoff(
+    resolvedRunRoot,
+    observation,
+    taskStateAfter,
+  );
   const currentOutputTreeHash = hashTree(resolvedRunRoot, controlFiles);
 
   const objectiveChecks = [
@@ -506,6 +714,9 @@ export function verifyFixture({ pluginRoot, runRoot }) {
     ),
   ];
   if (localVerifier) objectiveChecks.push(localVerifier);
+  if (lifecycleHandoff) {
+    objectiveChecks.push(check("lifecycle-handoff", true, lifecycleHandoff.evidence));
+  }
 
   const prohibited = fixture.prohibitedClaims.filter((claim) =>
     observation.terminalClaim.toLocaleLowerCase("en-US").includes(claim.toLocaleLowerCase("en-US"))
@@ -526,6 +737,9 @@ export function verifyFixture({ pluginRoot, runRoot }) {
     outputTreeHash: currentOutputTreeHash,
     taskStateBefore: lock.taskStateBefore,
     taskStateAfter,
+    ...(lifecycleHandoff?.declaredResult
+      ? { declaredResult: lifecycleHandoff.declaredResult }
+      : {}),
     loadedContext: {
       metadataWords: observation.loadedContext.metadataWords,
       bodyWords: observation.loadedContext.bodyWords,
