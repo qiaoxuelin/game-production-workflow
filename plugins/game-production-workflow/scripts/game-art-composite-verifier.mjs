@@ -1,11 +1,30 @@
 import assert from "node:assert/strict";
-import { SLOT_COUNT, createInventoryState, reduceInventory } from "./state.mjs";
+import fs from "node:fs";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 
+const [runRoot] = process.argv.slice(2);
+assert(runRoot && path.isAbsolute(runRoot), "trusted composite verifier requires an absolute run root");
+
+const statePath = path.join(runRoot, "web/state.mjs");
+let current = runRoot;
+for (const segment of ["web", "state.mjs"]) {
+  current = path.join(current, segment);
+  assert(fs.existsSync(current), `missing authoritative state input: ${current}`);
+  assert(!fs.lstatSync(current).isSymbolicLink(), `authoritative state input is a symbolic link: ${current}`);
+}
+
+const { SLOT_COUNT, createInventoryState, reduceInventory } = await import(
+  `${pathToFileURL(statePath).href}?trusted=${process.pid}`
+);
 assert.equal(SLOT_COUNT, 8);
+assert.equal(typeof createInventoryState, "function");
+assert.equal(typeof reduceInventory, "function");
 
 const empty = createInventoryState("empty");
 assert.deepEqual(empty.slots, Array(8).fill(null));
 assert.equal(empty.focusedIndex, 0);
+assert.equal(empty.isOpen, true);
 
 const full = createInventoryState("full");
 assert.equal(full.slots.length, 8);
@@ -32,9 +51,8 @@ assert.equal(wrapped.focusedIndex, 7);
 const closed = reduceInventory(empty, { type: "close" });
 assert.equal(closed.isOpen, false);
 assert.equal(closed.name, "empty");
-
 const reopened = reduceInventory(closed, { type: "open" });
 assert.equal(reopened.isOpen, true);
 assert.equal(reopened.name, "empty");
 
-console.log("PASS authoritative inventory state contract");
+console.log("PASS trusted authoritative inventory state contract");

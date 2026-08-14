@@ -10,8 +10,19 @@ function render() {
   concept.alt = "Flattened inventory concept; not production runtime UI";
   inventory.replaceChildren(concept);
   inventory.dataset.state = state.name;
-  description.textContent = state.error ?? `Fixture state: ${state.name}; focused slot ${state.focusedIndex + 1}`;
+  inventory.hidden = !state.isOpen;
+  description.textContent = state.isOpen
+    ? state.error ?? `Fixture state: ${state.name}; focused slot ${state.focusedIndex + 1}`
+    : "Inventory closed";
 }
+
+document.querySelectorAll("[data-action]").forEach((button) => {
+  button.addEventListener("click", () => {
+    state = reduceInventory(state, { type: button.dataset.action });
+    render();
+    if (state.isOpen) inventory.focus();
+  });
+});
 
 document.querySelectorAll("[data-state]").forEach((button) => {
   button.addEventListener("click", () => {

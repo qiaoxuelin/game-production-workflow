@@ -17,6 +17,7 @@ export function createInventoryState(stateName = "empty") {
   const slots = slotsFor(stateName);
   return Object.freeze({
     name: stateName,
+    isOpen: true,
     slots: Object.freeze(slots),
     focusedIndex: stateName === "controller-focus" ? 1 : 0,
     equippedIndex: stateName === "equip" ? 0 : null,
@@ -25,6 +26,13 @@ export function createInventoryState(stateName = "empty") {
 }
 
 export function reduceInventory(state, action) {
+  if (action.type === "open" || action.type === "close") {
+    return Object.freeze({
+      ...state,
+      isOpen: action.type === "open",
+      error: null,
+    });
+  }
   if (action.type === "focus-next" || action.type === "focus-previous") {
     const step = action.type === "focus-next" ? 1 : -1;
     return Object.freeze({

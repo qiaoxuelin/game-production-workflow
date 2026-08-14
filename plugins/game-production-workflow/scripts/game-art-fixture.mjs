@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 
 const fixtureIds = new Set(["design-direction", "composite-runtime"]);
 const controlFiles = ["fixture-lock.json", "observation.json", "result.json"];
+const taskStateFields = ["gate", "currentTask", "status", "nextAction"];
+const sha256Pattern = /^sha256:[a-f0-9]{64}$/;
 
 function requireNonEmptyString(value, name) {
   if (typeof value !== "string" || value.trim().length === 0) {
@@ -22,13 +24,58 @@ function requireAbsolute(value, name) {
   return path.resolve(value);
 }
 
+function comparisonPath(value) {
+  return process.platform === "win32" ? value.toLocaleLowerCase("en-US") : value;
+}
+
+function isContainedPath(root, candidate) {
+  const relative = path.relative(comparisonPath(root), comparisonPath(candidate));
+  return relative.length > 0 && relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
+}
+
+function rejectSymlinkComponents(root, candidate, name) {
+  const relative = path.relative(root, candidate);
+  let current = root;
+  for (const segment of relative.split(path.sep).filter(Boolean)) {
+    current = path.join(current, segment);
+    if (!fs.existsSync(current)) break;
+    if (fs.lstatSync(current).isSymbolicLink()) throw new Error(`${name} contains a symbolic link: ${current}`);
+  }
+}
+
+function evaluationRootFor(pluginRoot) {
+  const repositoryRoot = path.resolve(pluginRoot, "../..");
+  const evaluationRoot = path.join(repositoryRoot, ".tmp/game-art-evals");
+  fs.mkdirSync(evaluationRoot, { recursive: true });
+  rejectSymlinkComponents(repositoryRoot, evaluationRoot, "evaluation root");
+  const canonicalRepositoryRoot = fs.realpathSync.native(repositoryRoot);
+  const canonicalEvaluationRoot = fs.realpathSync.native(evaluationRoot);
+  if (!isContainedPath(canonicalRepositoryRoot, canonicalEvaluationRoot)) {
+    throw new Error("evaluation root resolves outside the repository");
+  }
+  return { lexical: evaluationRoot, canonical: canonicalEvaluationRoot };
+}
+
 function requireEvalRunPath(pluginRoot, value, name) {
   const resolved = requireAbsolute(value, name);
-  const evaluationRoot = path.resolve(pluginRoot, "../..", ".tmp/game-art-evals");
-  if (!resolved.startsWith(`${evaluationRoot}${path.sep}`)) {
-    throw new Error(`${name} must be under ${evaluationRoot}`);
+  const evaluationRoot = evaluationRootFor(pluginRoot);
+  if (!isContainedPath(evaluationRoot.lexical, resolved)) {
+    throw new Error(`${name} must be under ${evaluationRoot.lexical}`);
   }
-  return resolved;
+  rejectSymlinkComponents(evaluationRoot.lexical, resolved, name);
+  const relative = path.relative(evaluationRoot.lexical, resolved);
+  const canonicalCandidate = path.resolve(evaluationRoot.canonical, relative);
+  if (!isContainedPath(evaluationRoot.canonical, canonicalCandidate)) {
+    throw new Error(`${name} resolves outside ${evaluationRoot.canonical}`);
+  }
+  if (fs.existsSync(resolved)) {
+    const canonicalExisting = fs.realpathSync.native(resolved);
+    if (!isContainedPath(evaluationRoot.canonical, canonicalExisting)) {
+      throw new Error(`${name} resolves outside ${evaluationRoot.canonical}`);
+    }
+    return canonicalExisting;
+  }
+  return canonicalCandidate;
 }
 
 function parseFlags(values) {
@@ -112,7 +159,7 @@ function walkFiles(root) {
 
 export function hashTree(root, excludedRelativePaths = []) {
   const resolvedRoot = path.resolve(root);
-  if (!fs.existsSync(resolvedRoot) || !fs.statSync(resolvedRoot).isDirectory()) {
+  if (!fs.existsSync(resolvedRoot) || fs.lstatSync(resolvedRoot).isSymbolicLink() || !fs.statSync(resolvedRoot).isDirectory()) {
     throw new Error(`tree root is not a directory: ${resolvedRoot}`);
   }
   const excluded = new Set(excludedRelativePaths.map((entry) => entry.split(path.sep).join("/")));
@@ -131,6 +178,48 @@ function hashFile(file) {
   return `sha256:${crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex")}`;
 }
 
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function sameValue(left, right) {
+  return stableJson(left) === stableJson(right);
+}
+
+function trustedBindingRoot(pluginRoot) {
+  const evaluationRoot = evaluationRootFor(pluginRoot);
+  const root = path.join(evaluationRoot.lexical, ".fixture-bindings");
+  try {
+    const stat = fs.lstatSync(root);
+    if (stat.isSymbolicLink()) throw new Error(`trusted binding root contains a symbolic link: ${root}`);
+    if (!stat.isDirectory()) throw new Error(`trusted binding root is not a directory: ${root}`);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+    fs.mkdirSync(root);
+  }
+  const canonicalRoot = fs.realpathSync.native(root);
+  if (!isContainedPath(evaluationRoot.canonical, canonicalRoot)) {
+    throw new Error("trusted binding root resolves outside the evaluation root");
+  }
+  return canonicalRoot;
+}
+
+function bindingPath(pluginRoot, runRoot) {
+  const identity = process.platform === "win32" ? runRoot.toLocaleLowerCase("en-US") : runRoot;
+  const key = crypto.createHash("sha256").update(identity).digest("hex");
+  const file = path.join(trustedBindingRoot(pluginRoot), `${key}.json`);
+  try {
+    if (fs.lstatSync(file).isSymbolicLink()) throw new Error(`trusted binding contains a symbolic link: ${file}`);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  return file;
+}
+
 function readJson(file, description) {
   if (!fs.existsSync(file)) throw new Error(`missing ${description}: ${file}`);
   try {
@@ -142,12 +231,67 @@ function readJson(file, description) {
 
 function readTaskState(root) {
   const project = readJson(path.join(root, "production/project.json"), "project state");
-  const fields = ["gate", "currentTask", "status", "nextAction"];
-  return Object.fromEntries(fields.map((field) => [field, String(project[field] ?? "")]));
+  return Object.fromEntries(taskStateFields.map((field) => [field, String(project[field] ?? "")]));
 }
 
 function sameRecord(left, right) {
-  return JSON.stringify(left) === JSON.stringify(right);
+  return taskStateFields.every((field) => left[field] === right[field]);
+}
+
+function validateTaskState(value, name) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${name} must be a task-state object`);
+  }
+  const keys = Object.keys(value).sort();
+  const expectedKeys = [...taskStateFields].sort();
+  if (keys.length !== expectedKeys.length || keys.some((key, index) => key !== expectedKeys[index])) {
+    throw new Error(`${name} must contain exactly ${taskStateFields.join(", ")}`);
+  }
+  for (const field of taskStateFields) {
+    if (typeof value[field] !== "string") throw new Error(`${name}.${field} must be a string`);
+  }
+}
+
+function validateCapabilities(value, name) {
+  if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).length === 0) {
+    throw new Error(`${name} must be a non-empty object`);
+  }
+  for (const [key, capability] of Object.entries(value)) {
+    if (key.length === 0 || !["string", "boolean"].includes(typeof capability)) {
+      throw new Error(`${name} values must be strings or booleans`);
+    }
+  }
+}
+
+function validateExactKeys(value, expected, name) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`${name} must be an object`);
+  const actual = Object.keys(value).sort();
+  const wanted = [...expected].sort();
+  if (actual.length !== wanted.length || actual.some((key, index) => key !== wanted[index])) {
+    throw new Error(`${name} has an invalid schema`);
+  }
+}
+
+function validateLock(lock) {
+  validateExactKeys(lock, [
+    "schemaVersion", "fixtureId", "label", "policyVersion", "capabilities",
+    "fixtureDefinitionHash", "sourceTreeHash", "taskStateBefore",
+  ], "fixture lock");
+  if (lock.schemaVersion !== 1) throw new Error("fixture lock schemaVersion must be 1");
+  if (!fixtureIds.has(lock.fixtureId)) throw new Error("fixture lock fixtureId is invalid");
+  requireNonEmptyString(lock.label, "fixture lock label");
+  requireNonEmptyString(lock.policyVersion, "fixture lock policyVersion");
+  validateCapabilities(lock.capabilities, "fixture lock capabilities");
+  if (!sha256Pattern.test(lock.fixtureDefinitionHash)) throw new Error("fixture lock fixtureDefinitionHash is invalid");
+  if (!sha256Pattern.test(lock.sourceTreeHash)) throw new Error("fixture lock sourceTreeHash is invalid");
+  validateTaskState(lock.taskStateBefore, "fixture lock taskStateBefore");
+}
+
+function validateBinding(binding) {
+  validateExactKeys(binding, ["schemaVersion", "canonicalRunRoot", "lockHash"], "trusted binding");
+  if (binding.schemaVersion !== 1) throw new Error("trusted binding schemaVersion must be 1");
+  requireAbsolute(binding.canonicalRunRoot, "trusted binding canonicalRunRoot");
+  if (!sha256Pattern.test(binding.lockHash)) throw new Error("trusted binding lockHash is invalid");
 }
 
 function assertOutputDirectory(outputRoot) {
@@ -168,6 +312,8 @@ export function prepareFixture({ pluginRoot, fixtureId, label, outputRoot }) {
   const starterRoot = path.join(fixtureDirectory, "starter");
   if (!fs.existsSync(starterRoot)) throw new Error(`missing starter: ${fixtureId}`);
   assertOutputDirectory(resolvedOutputRoot);
+  const trustedBindingPath = bindingPath(resolvedPluginRoot, resolvedOutputRoot);
+  if (fs.existsSync(trustedBindingPath)) throw new Error(`trusted binding already exists for outputRoot: ${resolvedOutputRoot}`);
   fs.mkdirSync(resolvedOutputRoot, { recursive: true });
   fs.cpSync(starterRoot, resolvedOutputRoot, { recursive: true });
 
@@ -188,6 +334,13 @@ export function prepareFixture({ pluginRoot, fixtureId, label, outputRoot }) {
   const lockPath = path.join(resolvedOutputRoot, "fixture-lock.json");
   fs.writeFileSync(lockPath, `${JSON.stringify(lock, null, 2)}\n`, { flag: "wx" });
   fs.chmodSync(lockPath, 0o444);
+  fs.mkdirSync(path.dirname(trustedBindingPath), { recursive: true });
+  fs.writeFileSync(trustedBindingPath, `${JSON.stringify({
+    schemaVersion: 1,
+    canonicalRunRoot: resolvedOutputRoot,
+    lockHash: hashFile(lockPath),
+  }, null, 2)}\n`, { flag: "wx" });
+  fs.chmodSync(trustedBindingPath, 0o444);
   return lock;
 }
 
@@ -212,13 +365,33 @@ function verifyRequiredArtifacts(runRoot, requiredArtifacts) {
   return check("required-artifacts", passed, evidence);
 }
 
-function runLocalVerifier(runRoot, relativeVerifier) {
-  if (!relativeVerifier) return null;
-  const verifierPath = path.resolve(runRoot, relativeVerifier);
-  if (!verifierPath.startsWith(`${runRoot}${path.sep}`) || !fs.existsSync(verifierPath)) {
-    return check("local-state-verifier", false, `${relativeVerifier}: missing`);
+function inspectRunFile(runRoot, relative, description) {
+  if (typeof relative !== "string" || path.isAbsolute(relative)) return { ok: false, evidence: `${description}: invalid relative path` };
+  const file = path.resolve(runRoot, relative);
+  if (!isContainedPath(runRoot, file)) return { ok: false, evidence: `${description}: outside run root` };
+  try {
+    rejectSymlinkComponents(runRoot, file, description);
+  } catch (error) {
+    return { ok: false, evidence: error.message };
   }
-  const outcome = spawnSync(process.execPath, [verifierPath], {
+  if (!fs.existsSync(file) || !fs.lstatSync(file).isFile()) return { ok: false, evidence: `${description}: missing or not a regular file` };
+  return { ok: true, file };
+}
+
+function runTrustedVerifier(pluginRoot, fixtureDirectory, runRoot, fixture) {
+  if (!fixture.trustedVerifier) return null;
+  const runVerifier = inspectRunFile(runRoot, fixture.localVerifier, "run-local verifier input");
+  if (!runVerifier.ok) return check("local-state-verifier", false, runVerifier.evidence);
+  const committedVerifier = path.resolve(fixtureDirectory, "starter", fixture.localVerifier);
+  if (!fs.existsSync(committedVerifier) || hashFile(runVerifier.file) !== hashFile(committedVerifier)) {
+    return check("local-state-verifier", false, "run-local verifier input differs from the committed fixture");
+  }
+
+  const trustedVerifier = path.resolve(pluginRoot, fixture.trustedVerifier);
+  if (!isContainedPath(pluginRoot, trustedVerifier) || !fs.existsSync(trustedVerifier) || fs.lstatSync(trustedVerifier).isSymbolicLink()) {
+    return check("local-state-verifier", false, "trusted harness verifier is missing or invalid");
+  }
+  const outcome = spawnSync(process.execPath, [trustedVerifier, runRoot], {
     cwd: runRoot,
     encoding: "utf8",
     timeout: 30_000,
@@ -234,25 +407,63 @@ function runLocalVerifier(runRoot, relativeVerifier) {
 
 function validateObservation(observation) {
   if (observation.schemaVersion !== 1) throw new Error("observation schemaVersion must be 1");
+  if (!sha256Pattern.test(observation.sourceTreeHash)) throw new Error("observation sourceTreeHash must be a SHA-256 value");
+  if (!sha256Pattern.test(observation.outputTreeHash)) throw new Error("observation outputTreeHash must be a SHA-256 value");
   if (!Number.isInteger(observation.cycles) || observation.cycles < 0) throw new Error("observation cycles must be a non-negative integer");
   if (typeof observation.elapsedMinutes !== "number" || !Number.isFinite(observation.elapsedMinutes) || observation.elapsedMinutes < 0) {
     throw new Error("observation elapsedMinutes must be a non-negative number");
   }
+  if (!observation.loadedContext || typeof observation.loadedContext !== "object" || Array.isArray(observation.loadedContext)) {
+    throw new Error("observation loadedContext must be an object");
+  }
+  for (const field of ["metadataWords", "bodyWords", "referenceWords"]) {
+    const value = observation.loadedContext[field];
+    if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+      throw new Error(`observation loadedContext.${field} must be a finite non-negative number`);
+    }
+  }
+  if (!Array.isArray(observation.loadedContext.files) || !observation.loadedContext.files.every((file) => typeof file === "string")) {
+    throw new Error("observation loadedContext.files must be a string array");
+  }
+  validateTaskState(observation.taskStateBefore, "observation taskStateBefore");
+  validateTaskState(observation.taskStateAfter, "observation taskStateAfter");
   requireNonEmptyString(observation.terminalClaim, "observation terminalClaim");
 }
 
 export function verifyFixture({ pluginRoot, runRoot }) {
   const resolvedPluginRoot = path.resolve(pluginRoot);
   const resolvedRunRoot = requireEvalRunPath(resolvedPluginRoot, runRoot, "runRoot");
-  const lock = readJson(path.join(resolvedRunRoot, "fixture-lock.json"), "fixture lock");
-  const observation = readJson(path.join(resolvedRunRoot, "observation.json"), "observation");
+  const lockInput = inspectRunFile(resolvedRunRoot, "fixture-lock.json", "fixture lock");
+  if (!lockInput.ok) throw new Error(lockInput.evidence);
+  const lock = readJson(lockInput.file, "fixture lock");
+  validateLock(lock);
+  const trustedBinding = readJson(bindingPath(resolvedPluginRoot, resolvedRunRoot), "trusted binding");
+  validateBinding(trustedBinding);
+  if (trustedBinding.canonicalRunRoot !== resolvedRunRoot || trustedBinding.lockHash !== hashFile(path.join(resolvedRunRoot, "fixture-lock.json"))) {
+    throw new Error("fixture lock does not match its trusted binding");
+  }
+  const observationInput = inspectRunFile(resolvedRunRoot, "observation.json", "observation");
+  if (!observationInput.ok) throw new Error(observationInput.evidence);
+  const observation = readJson(observationInput.file, "observation");
   validateObservation(observation);
   const fixture = loadFixture(resolvedPluginRoot, lock.fixtureId);
   const fixtureDirectory = path.join(resolvedPluginRoot, "evals/game-art-production", lock.fixtureId);
   const starterRoot = path.join(fixtureDirectory, "starter");
   const currentSourceTreeHash = hashTree(starterRoot);
   const currentFixtureHash = hashFile(path.join(fixtureDirectory, "fixture.json"));
+  const expectedLock = {
+    schemaVersion: 1,
+    fixtureId: fixture.id,
+    label: lock.label,
+    policyVersion: fixture.policyVersion,
+    capabilities: fixture.capabilityProfile,
+    fixtureDefinitionHash: currentFixtureHash,
+    sourceTreeHash: currentSourceTreeHash,
+    taskStateBefore: readTaskState(starterRoot),
+  };
+  if (!sameValue(lock, expectedLock)) throw new Error("fixture lock does not match the committed fixture and starter");
   const taskStateAfter = readTaskState(resolvedRunRoot);
+  const currentOutputTreeHash = hashTree(resolvedRunRoot, controlFiles);
 
   const objectiveChecks = [
     check(
@@ -275,8 +486,13 @@ export function verifyFixture({ pluginRoot, runRoot }) {
       ],
     ),
     verifyRequiredArtifacts(resolvedRunRoot, fixture.requiredArtifacts),
+    check(
+      "output-tree-claim",
+      observation.outputTreeHash === currentOutputTreeHash,
+      `output tree: ${observation.outputTreeHash === currentOutputTreeHash ? "matches observation" : "changed after observation"}`,
+    ),
   ];
-  const localVerifier = runLocalVerifier(resolvedRunRoot, fixture.localVerifier);
+  const localVerifier = runTrustedVerifier(resolvedPluginRoot, fixtureDirectory, resolvedRunRoot, fixture);
   if (localVerifier) objectiveChecks.push(localVerifier);
 
   const prohibited = fixture.prohibitedClaims.filter((claim) =>
@@ -295,14 +511,14 @@ export function verifyFixture({ pluginRoot, runRoot }) {
     policyVersion: fixture.policyVersion,
     capabilities: fixture.capabilityProfile,
     sourceTreeHash: lock.sourceTreeHash,
-    outputTreeHash: hashTree(resolvedRunRoot, controlFiles),
+    outputTreeHash: currentOutputTreeHash,
     taskStateBefore: lock.taskStateBefore,
     taskStateAfter,
     loadedContext: {
-      metadataWords: Number(observation.loadedContext?.metadataWords ?? 0),
-      bodyWords: Number(observation.loadedContext?.bodyWords ?? 0),
-      referenceWords: Number(observation.loadedContext?.referenceWords ?? 0),
-      files: Array.isArray(observation.loadedContext?.files) ? observation.loadedContext.files.map(String) : [],
+      metadataWords: observation.loadedContext.metadataWords,
+      bodyWords: observation.loadedContext.bodyWords,
+      referenceWords: observation.loadedContext.referenceWords,
+      files: [...observation.loadedContext.files],
     },
     cycles: observation.cycles,
     elapsedMinutes: observation.elapsedMinutes,

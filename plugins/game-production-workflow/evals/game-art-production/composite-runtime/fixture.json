@@ -56,5 +56,6 @@
     "Stop if renderers duplicate authoritative inventory state or the flattened concept is used as the final runtime component.",
     "Stop after two same-root cycles add no new evidence and select one bounded repair or return the candidate."
   ],
-  "localVerifier": "web/verify.mjs"
+  "localVerifier": "web/verify.mjs",
+  "trustedVerifier": "scripts/game-art-composite-verifier.mjs"
 }
