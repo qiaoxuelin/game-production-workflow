@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "commands": {
+    "doctor": null,
+    "import": null,
+    "test": null,
+    "build": null,
+    "smoke": null,
+    "capture": null,
+    "performance": null,
+    "package": null,
+    "install": null,
+    "upload": null,
+    "rollback": null
+  }
+}

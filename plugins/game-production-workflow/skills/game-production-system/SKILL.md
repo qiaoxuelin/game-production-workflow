@@ -333,6 +333,22 @@ evidence, and handoff rules.
     Use `Clarifying` only when design, authority, scope, or architecture is
     genuinely unresolved.
 
+### Execute a ready task
+
+1. Read [execution.md](references/execution.md).
+2. Enter when the user requests implementation and the task is `Ready` or
+   `Implementing`; do not reopen frozen design or repeat planning merely because
+   another workflow is installed.
+3. Run the capability handshake, select the next player-visible slice, edit the
+   actual product source, run the project adapter, inspect the result, repair one
+   root cause, and leave a recoverable checkpoint.
+4. For interactive visual work, execute the player-action-to-runtime chain and
+   keep bulk production locked until assembly and representative runtime proof
+   pass.
+5. A governance-only edit is not a production cycle. Return to `Clarifying`
+   only for a genuinely missing human-owned boundary; use an isolated product
+   precheck for reversible implementation uncertainty.
+
 ### Continue a project
 
 1. Summarize the current gate, task, blockers, frozen decisions, and next action.
@@ -340,7 +356,9 @@ evidence, and handoff rules.
    outcome, whether its representative proof or bulk unlock is satisfied, and
    whether the previous two cycles advanced a failed criterion. Do not create a
    health report when the route is healthy.
-3. Work only inside the current task scope.
+3. When the request authorizes implementation and the task is `Ready` or
+   `Implementing`, run `Execute a ready task` after this health check; work only
+   inside the current task scope.
 4. Do not reopen already frozen decisions unless new evidence creates a real
    contradiction.
 5. Do not interrupt an executing, recoverable work package solely to add a new
@@ -476,25 +494,5 @@ evidence, and handoff rules.
 
 ## Bundled resources
 
-- `references/workflow.md`: clarification, task, evidence, review, and handoff.
-- `references/roles-and-gates.md`: minimal roles, ownership, gates, approvals.
-- `references/profiles.md`: indie/mobile tracks, business models, and composable
-  quality-focus requirements.
-- `references/hypercasual.md`: creative-first hypercasual/IAA incubation.
-- `references/adoption.md`: safe existing-project adoption.
-- `references/design-modules.md`: module discovery, lifecycle, ownership, and
-  task-close harvesting.
-- `references/game-content-design.md`: gameplay, level, balance, economy,
-  progression, content, and narrative craft contracts.
-- `references/visual-production.md`: UX/UI, art direction, animation/VFX, and
-  technical-art production and maturity contracts.
-- `references/audio-production.md`: stock-SFX and generated-BGM sourcing,
-  provenance, integration, and audible acceptance.
-- `references/experience-review.md`: independent player-experience and
-  commercial-quality review without circular self-conformance.
-- `assets/project-template/`: minimal project governance files.
-- `assets/design-module-template/MODULE.md`: copy only when creating a module.
-- `scripts/bootstrap.ps1`: install the template without overwriting.
-- `scripts/check.ps1`: separately validate contracts, task readiness, gate
-  readiness, Git durability, reviewer independence, and evidence integrity.
-- `scripts/evidence.ps1`: validate and register evidence.
+- Read `references/` only for the selected operation/craft; `assets/` holds templates.
+- `scripts/doctor.mjs` detects capability; PowerShell scripts handle governance.

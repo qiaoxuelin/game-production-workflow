@@ -2,7 +2,7 @@
 
 这是现有游戏开发 Skill 流程的可安装版本。一个 GitHub marketplace 插件原子安装两个独立 Skill 和审批 MCP：
 
-- `game-production-system` `1.6.0`：生产规划、领域设计前置、互动视觉合同、任务拆分、执行止损、证据、验收与跨对话交接。
+- `game-production-system` `1.7.0`：从领域设计直接进入独立制作、组装、运行验证、执行止损、证据、验收与跨对话交接。
 - `game-approval-ui` `0.1.3`：可点击审批卡、离线待审批队列、附加意见和项目内持久化。
 
 仓库只包含通用流程、模板、校验脚本和审批工具，不包含具体游戏工程、商业素材、证据文件、账号或密钥。
@@ -18,11 +18,13 @@
    - `reference_replication`：先拆解并冻结原作版本、范围、关键体验、状态、比较方式、容差和允许偏差。
 4. 生产规划明确下一项玩家可见结果、代表性证明、依赖、集成人、并行边界、止损条件和证据预算。
 5. 受影响的玩法、关卡、数值、经济、内容、美术、UX、动画、VFX、音频负责人先完成设计；技术负责人只评估可行性，不补写缺失设计。
-6. 设计与接口冻结后进入有界实现。只有写入路径不重叠、依赖明确且有唯一集成人时才并行。
-7. 先验证最小代表性运行切片；通过后再批量制作关卡、素材或状态覆盖。
-8. 同一根因连续两轮没有新增证据时停止微调，转为一次根因复盘、有限修复或重排计划。
-9. 客观 QA、设计符合性、制作人整体效果和 Gate/发布结论分别记录，互不冒充。
-10. 任务关闭时保留可恢复版本，并把可复用经验沉淀为候选设计模块；只有人工明确采用后才成为项目默认。
+6. 设计与接口冻结后，直接选择下一项玩家可见切片，修改真实代码、场景、数据或素材并立即集成运行；治理文件更新不能冒充制作进展。
+7. 互动界面从玩家操作推导状态、反馈层和素材族，先验证共同空间、透视、遮挡、拆层和实际尺寸组装，再进入运行时证明。
+8. 先验证最小代表性运行切片；通过后再批量制作关卡、素材或状态覆盖。只有写入路径不重叠、依赖明确且有唯一集成人时才并行。
+9. 同一根因连续两轮没有新增证据时停止微调，转为一次根因复盘、有限修复或重排计划。
+10. 客观 QA、设计符合性、制作人整体效果和 Gate/发布结论分别记录，互不冒充；任务关闭时保留可恢复版本。
+
+游戏生产插件自身拥有生命周期状态权威和独立制作入口。Superpowers、ImageGen、浏览器控制、计算机控制或其他 Skill 都是可选加速器；缺失时继续使用基础文件编辑、终端、引擎原语、代码原生 UI 和灰盒素材，不退回重复规划或审批。
 
 ## 角色边界
 
@@ -62,7 +64,31 @@
 
 ## 在另一台设备安装
 
-前置条件：Git、GitHub CLI、可用的 Codex 桌面端或 CLI、Windows PowerShell 5.1+（也兼容 PowerShell 7），以及用于审批 MCP 的 Node.js 18+。私有仓库还需要该设备具备 GitHub 访问权限。
+通用前置条件：Git、GitHub CLI、可用的 Codex 桌面端或 CLI，以及用于安装器、能力探测和审批 MCP 的 Node.js 18+。私有仓库还需要该设备具备 GitHub 访问权限。
+
+### macOS 和 Linux
+
+```bash
+gh auth login
+gh repo clone qiaoxuelin/game-production-workflow
+cd game-production-workflow
+node install.mjs
+```
+
+安装和宿主能力探测不要求 PowerShell。初始化项目、注册证据或运行完整治理检查时，现有兼容脚本仍需要 PowerShell 7（`pwsh`）；`doctor.mjs` 会在当前工作包真正需要这些能力时报告缺失项。
+
+### Windows
+
+推荐使用同一套 Node 安装入口：
+
+```powershell
+gh auth login
+gh repo clone qiaoxuelin/game-production-workflow
+Set-Location game-production-workflow
+node .\install.mjs
+```
+
+也可以继续使用兼容安装器：
 
 ```powershell
 gh auth login
@@ -74,26 +100,26 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 安装器会清理旧版两个插件的安装记录和缓存，但不会删除它们的源码；若发现手工放在 `.codex/skills` 的旧核心 Skill，会提示人工归档。安装完成后重启 Codex，并新建一个任务让插件和 MCP 工具完整加载。首次使用可显式输入：
 
 ```text
-Use $game-production-system to adopt or continue this game project from its repository state.
+Use $game-production-system to execute the next player-visible game slice from repository state.
 ```
 
 之后，匹配 Skill 描述的游戏开发任务可以自动触发；审批决定由核心流程调用 `game-approval-ui`。
 
 ## 更新
 
-```powershell
+```bash
 git pull
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+node install.mjs
 ```
 
 升级后从新任务开始使用新版本。进行中的工作包保持原状态，在自然检查点应用兼容的新策略，不为升级而中断可恢复执行。
 
 ## 本地验证
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\verify.ps1
+```bash
+pwsh -NoProfile -File ./verify.ps1
 ```
 
-`verify.ps1` 检查插件结构、组件版本、PowerShell 语法、Markdown 链接、常见密钥模式和审批 MCP 协议。发布前还应让两个 Skill 分别通过 Codex 内置 `skill-creator` 验证器，并让整合插件通过 `plugin-creator` 验证器。
+`verify.ps1` 检查插件结构、组件版本、PowerShell 语法、Markdown 链接、常见密钥模式、跨平台 doctor/安装器和审批 MCP 协议。维护者的完整验证仍需要 PowerShell 7；普通安装使用 Node 即可。发布前还应让两个 Skill 分别通过 Codex 内置 `skill-creator` 验证器，并让整合插件通过 `plugin-creator` 验证器。
 
 每次发布都更新插件清单中的 `+codex.<UTC 时间戳>` 缓存标识；不要仅修改内容后沿用旧版本。生产策略版本和审批服务组件版本分别保留在其实现中。

@@ -15,6 +15,10 @@ Before acting:
 Rules:
 
 - Work only on the current task unless the user explicitly changes scope.
+- This Game Production System is the lifecycle authority. External Skills are
+  optional accelerators; when used they must reuse `production/TASK.md` and the
+  referenced `production/PLAN.md`, and must not add a duplicate design, plan,
+  approval, task state, or acceptance source.
 - Classify intent before writing: exploration stays in conversation, review is
   read-only, and implementation uses the lightest safe Fast/Standard/Full lane.
 - A tentative idea or proposed scope addition does not authorize implementation.
@@ -41,6 +45,10 @@ Rules:
   work uses Fast/Standard controls unless a frozen boundary changes.
 - Do not enter `Ready` or `Implementing` until design outputs and the
   lane-applicable implementation handoff are frozen, or design is not applicable.
+- When an authorized task is `Ready` or `Implementing`, default to the installed
+  Skill's standalone production loop: edit actual product sources, integrate,
+  observe real output, repair one root cause, and checkpoint. Governance-only
+  edits do not count as a production cycle.
 - Before freezing Standard/Full design with enumerable entities, states, paths,
   branches, dependencies, or budgets, run the smallest applicable completeness
   check. Keep project-specific coverage rules and validators in a task baseline
