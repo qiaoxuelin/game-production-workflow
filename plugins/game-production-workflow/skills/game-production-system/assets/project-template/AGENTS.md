@@ -117,8 +117,11 @@ Rules:
 - Do not add a Recovery state, retrospective file, permanent PM agent, or new
   approval. Keep frozen repairs `Implementing`; use `Clarifying` only for a
   genuinely unresolved design, authority, scope, baseline, or architecture.
-- For UI/GUI work, freeze the design baseline and state matrix before coding,
-  then require runtime comparison evidence.
+- For GUI reconstruction, a material layout/component-system change, or a new
+  visual rule, mark GUI restoration Required, freeze the baseline and state
+  matrix before coding, and require runtime comparison evidence. A routine Fast
+  UI repair that reuses accepted interaction/render and visual baselines marks
+  restoration Not applicable and verifies only the affected region/states.
 - For Standard/Full material interactive visual work, freeze one compact
   interaction/render contract before asset-family production. Use one
   authoritative state source with declared renderers, run the cheapest

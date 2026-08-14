@@ -276,6 +276,10 @@ try {
     "- Execution lane: `Fast`",
   );
   const fastCodes = issueCodes(check(fastTask));
+  assert(
+    !fastCodes.has("gui_restoration_fast_lane_conflict"),
+    "a Fast task that reuses its accepted GUI baseline must remain lightweight",
+  );
   for (const code of [
     "returned_candidate_risk_contract_missing",
     "returned_candidate_next_action_missing",
@@ -292,7 +296,18 @@ try {
     issueCodes(check(fastAmbiguousTask)).has(
       "returned_candidate_result_prefix_invalid",
     ),
-    "Fast work must use unambiguous task Result vocabulary without gaining the detailed handoff",
+      "Fast work must use unambiguous task Result vocabulary without gaining the detailed handoff",
+  );
+
+  const fastGuiRestorationTask = fastTask.replace(
+    "- GUI restoration: `Not applicable`",
+    "- GUI restoration: `Required`",
+  );
+  assert(
+    issueCodes(check(fastGuiRestorationTask)).has(
+      "gui_restoration_fast_lane_conflict",
+    ),
+    "Fast work must not opt into the design-baseline and reviewer ceremony of GUI restoration",
   );
 
   const acceptedHealthyTask = healthyTask.replace(

@@ -294,8 +294,10 @@ learning as a case.
 
 ## 5. GUI restoration and change control
 
-For UI/GUI work, set `GUI restoration` to `Required` in `TASK.md`. Before
-implementation, freeze in `ART_BIBLE.md`:
+Set `GUI restoration` to `Required` only when work reconstructs an approved GUI
+baseline, materially changes layout or the component system, or establishes a
+new visual rule that needs frozen comparison tolerances. This belongs in
+Standard or Full. Before implementation, freeze in `ART_BIBLE.md`:
 
 - the approved design file/URL plus version or hash;
 - screens, target viewports, safe areas, and required interaction states;
@@ -304,6 +306,11 @@ implementation, freeze in `ART_BIBLE.md`:
 
 Register passing `gui` comparison evidence plus runtime screenshot/video
 evidence. Source designs or mockups alone cannot prove restoration.
+
+For a routine Fast UI repair that reuses accepted interaction/render and visual
+baselines, set `GUI restoration` to `Not applicable`. Compare only the affected
+region and representative states, run the relevant regression, and close on
+objective evidence and recovery without adding a reviewer or approval.
 
 If scope, the approved baseline, or protected behavior changes materially,
 return to `Clarifying`, create a new task ID, and re-register affected evidence.
