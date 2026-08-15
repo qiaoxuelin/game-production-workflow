@@ -38,6 +38,7 @@ $gameArtFixtureTestPath = Join-Path $plugin "scripts/test-game-art-fixtures.mjs"
 $skillEvalCorpusPath = Join-Path $plugin "evals/game-production-system.json"
 $doctorTestPath = Join-Path $plugin "scripts/test-doctor.mjs"
 $installTestPath = Join-Path $plugin "scripts/test-install.mjs"
+$platformWorkflowTestPath = Join-Path $repo "scripts/test-platform-rc-workflow.mjs"
 
 function Assert-True {
     param([bool]$Condition, [string]$Message)
@@ -153,7 +154,8 @@ foreach ($required in @(
     $gameArtFixtureTestPath,
     $skillEvalCorpusPath,
     $doctorTestPath,
-    $installTestPath
+    $installTestPath,
+    $platformWorkflowTestPath
 )) {
     Assert-True (Test-Path -LiteralPath $required -PathType Leaf) "Missing required file: $required"
 }
@@ -359,5 +361,7 @@ Assert-True ($LASTEXITCODE -eq 0) "Game-art fixture harness test failed."
 Assert-True ($LASTEXITCODE -eq 0) "Production capability doctor test failed."
 & $node.Source $installTestPath
 Assert-True ($LASTEXITCODE -eq 0) "Cross-platform installer test failed."
+& $node.Source $platformWorkflowTestPath
+Assert-True ($LASTEXITCODE -eq 0) "Task 8 platform workflow contract test failed."
 
 Write-Host "PASS atomic plugin structure, versions, skills, policy, scripts, links, secret scan, and approval MCP protocol"

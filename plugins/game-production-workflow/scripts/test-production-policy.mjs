@@ -23,6 +23,35 @@ function runFixtureCommand(command, args, options = {}) {
   return result;
 }
 
+function installCompareOnlyVerifier(fixtureRepository) {
+  const verifySource = fs.readFileSync(
+    path.join(repositoryRoot, "verify.ps1"),
+    "utf8",
+  );
+  const compareOnlyVerify = verifySource.replace(
+    "\n$node = Get-Command node -ErrorAction SilentlyContinue",
+    "\nexit 0\n\n$node = Get-Command node -ErrorAction SilentlyContinue",
+  );
+  assert.notEqual(
+    compareOnlyVerify,
+    verifySource,
+    "fixture could not isolate the real CompareRef block",
+  );
+  fs.writeFileSync(
+    path.join(fixtureRepository, "verify.ps1"),
+    compareOnlyVerify,
+    "utf8",
+  );
+
+  const workflowTestRelative = "scripts/test-platform-rc-workflow.mjs";
+  const workflowTestTarget = path.join(fixtureRepository, workflowTestRelative);
+  fs.mkdirSync(path.dirname(workflowTestTarget), { recursive: true });
+  fs.copyFileSync(
+    path.join(repositoryRoot, workflowTestRelative),
+    workflowTestTarget,
+  );
+}
+
 function testCompareRefRequiresVersionValueChange() {
   const fixtureRoot = fs.mkdtempSync(
     path.join(os.tmpdir(), "game production verify "),
@@ -34,24 +63,7 @@ function testCompareRefRequiresVersionValueChange() {
       ["clone", "--quiet", "--no-hardlinks", repositoryRoot, fixtureRepository],
       { cwd: fixtureRoot },
     );
-    const verifySource = fs.readFileSync(
-      path.join(repositoryRoot, "verify.ps1"),
-      "utf8",
-    );
-    const compareOnlyVerify = verifySource.replace(
-      "\n$node = Get-Command node -ErrorAction SilentlyContinue",
-      "\nexit 0\n\n$node = Get-Command node -ErrorAction SilentlyContinue",
-    );
-    assert.notEqual(
-      compareOnlyVerify,
-      verifySource,
-      "fixture could not isolate the real CompareRef block",
-    );
-    fs.writeFileSync(
-      path.join(fixtureRepository, "verify.ps1"),
-      compareOnlyVerify,
-      "utf8",
-    );
+    installCompareOnlyVerifier(fixtureRepository);
 
     const fixtureManifestPath = path.join(
       fixtureRepository,
@@ -136,20 +148,7 @@ function testCompareRefRequiresLatestContentCoveredByVersion() {
       ["clone", "--quiet", "--no-hardlinks", repositoryRoot, fixtureRepository],
       { cwd: fixtureRoot },
     );
-    const verifySource = fs.readFileSync(
-      path.join(repositoryRoot, "verify.ps1"),
-      "utf8",
-    );
-    const compareOnlyVerify = verifySource.replace(
-      "\n$node = Get-Command node -ErrorAction SilentlyContinue",
-      "\nexit 0\n\n$node = Get-Command node -ErrorAction SilentlyContinue",
-    );
-    assert.notEqual(compareOnlyVerify, verifySource);
-    fs.writeFileSync(
-      path.join(fixtureRepository, "verify.ps1"),
-      compareOnlyVerify,
-      "utf8",
-    );
+    installCompareOnlyVerifier(fixtureRepository);
 
     const baseRevision = runFixtureCommand(
       "git",
@@ -328,20 +327,7 @@ function testCompareRefMergeCoverageIsParentOrderInvariant() {
       ["clone", "--quiet", "--no-hardlinks", repositoryRoot, fixtureRepository],
       { cwd: fixtureRoot },
     );
-    const verifySource = fs.readFileSync(
-      path.join(repositoryRoot, "verify.ps1"),
-      "utf8",
-    );
-    const compareOnlyVerify = verifySource.replace(
-      "\n$node = Get-Command node -ErrorAction SilentlyContinue",
-      "\nexit 0\n\n$node = Get-Command node -ErrorAction SilentlyContinue",
-    );
-    assert.notEqual(compareOnlyVerify, verifySource);
-    fs.writeFileSync(
-      path.join(fixtureRepository, "verify.ps1"),
-      compareOnlyVerify,
-      "utf8",
-    );
+    installCompareOnlyVerifier(fixtureRepository);
 
     const baseRevision = runFixtureCommand(
       "git",

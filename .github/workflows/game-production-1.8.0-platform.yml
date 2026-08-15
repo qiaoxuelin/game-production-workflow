@@ -1,0 +1,92 @@
+name: Game Production 1.8.0 platform RC
+
+on:
+  push:
+    branches:
+      - agent/game-art-production-implementation
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: game-production-1.8.0-platform-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Check out exact candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch comparison ref
+        shell: pwsh
+        run: git fetch --no-tags origin main:refs/remotes/origin/main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Verify candidate and installer dry-run
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $evidenceRoot = '.tmp/task8-platform'
+          New-Item -ItemType Directory -Force -Path $evidenceRoot | Out-Null
+
+          @(
+            "runnerOS=$env:RUNNER_OS"
+            "runnerArch=$env:RUNNER_ARCH"
+            "candidateCommit=$env:GITHUB_SHA"
+            "nodeVersion=$(& node --version)"
+            "powerShellVersion=$($PSVersionTable.PSVersion)"
+            "gitVersion=$(& git --version)"
+            "osDescription=$([System.Runtime.InteropServices.RuntimeInformation]::OSDescription)"
+          ) | Set-Content -Encoding utf8 "$evidenceRoot/environment.log"
+
+          $verifyOutput = @(& pwsh -NoProfile -File ./verify.ps1 -CompareRef origin/main 2>&1)
+          $verifyExit = $LASTEXITCODE
+          $verifyOutput | Tee-Object -FilePath "$evidenceRoot/verify.log"
+
+          $installOutput = @(
+            & node ./install.mjs --dry-run --json `
+              --repository qiaoxuelin/game-production-workflow `
+              --ref $env:GITHUB_SHA 2>&1
+          )
+          $installExit = $LASTEXITCODE
+          $installOutput | Tee-Object -FilePath "$evidenceRoot/install-dry-run.json"
+
+          @(
+            "verifyExit=$verifyExit"
+            "installDryRunExit=$installExit"
+          ) | Set-Content -Encoding utf8 "$evidenceRoot/exit-status.log"
+
+          Get-ChildItem -LiteralPath $evidenceRoot -File |
+            Sort-Object Name |
+            ForEach-Object {
+              $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash.ToLowerInvariant()
+              "$hash  $($_.Name)"
+            } | Set-Content -Encoding utf8 "$evidenceRoot/SHA256SUMS"
+
+          if ($verifyExit -ne 0 -or $installExit -ne 0) {
+            throw "Platform verification failed: verify=$verifyExit installDryRun=$installExit"
+          }
+
+      - name: Upload platform evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: task8-platform-${{ runner.os }}-${{ github.sha }}
+          path: .tmp/task8-platform/
+          if-no-files-found: error
+          retention-days: 14
