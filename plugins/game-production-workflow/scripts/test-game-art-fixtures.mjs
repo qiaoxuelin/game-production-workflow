@@ -678,6 +678,12 @@ assert.throws(
 );
 
 const tempParent = path.join(repositoryRoot, ".tmp/game-art-evals");
+const evaluationRootMessagePattern = /\.tmp[\\/]game-art-evals/;
+assert.match(
+  String.raw`D:\repository\.tmp\game-art-evals`,
+  evaluationRootMessagePattern,
+  "evaluation-root error matching must accept Windows separators",
+);
 const tempRoot = path.join(tempParent, `fixture-test-${process.pid}`);
 const outsideEvalRoot = path.join(repositoryRoot, ".tmp", `fixture-outside-${process.pid}`);
 const symlinkTarget = path.join(repositoryRoot, ".tmp", `fixture-symlink-target-${process.pid}`);
@@ -721,7 +727,7 @@ try {
       label: "outside-contract",
       outputRoot: outsideEvalRoot,
     }),
-    /\.tmp\/game-art-evals/,
+    evaluationRootMessagePattern,
   );
 
   fs.mkdirSync(symlinkTarget, { recursive: true });
