@@ -23,7 +23,37 @@ function runFixtureCommand(command, args, options = {}) {
   return result;
 }
 
+function assertFixtureGitIdentity(fixtureRepository) {
+  for (const [key, expected] of [
+    ["user.name", "CompareRef Fixture"],
+    ["user.email", "compare-ref@example.invalid"],
+  ]) {
+    const result = spawnSync(
+      "git",
+      ["config", "--local", "--get", key],
+      { cwd: fixtureRepository, encoding: "utf8" },
+    );
+    assert.equal(
+      result.status,
+      0,
+      `fixture repository is missing local ${key}: ${result.stderr || result.stdout}`,
+    );
+    assert.equal(result.stdout.trim(), expected);
+  }
+}
+
 function installCompareOnlyVerifier(fixtureRepository) {
+  for (const [key, value] of [
+    ["user.name", "CompareRef Fixture"],
+    ["user.email", "compare-ref@example.invalid"],
+  ]) {
+    runFixtureCommand(
+      "git",
+      ["config", "--local", key, value],
+      { cwd: fixtureRepository },
+    );
+  }
+
   const verifySource = fs.readFileSync(
     path.join(repositoryRoot, "verify.ps1"),
     "utf8",
@@ -149,6 +179,7 @@ function testCompareRefRequiresLatestContentCoveredByVersion() {
       { cwd: fixtureRoot },
     );
     installCompareOnlyVerifier(fixtureRepository);
+    assertFixtureGitIdentity(fixtureRepository);
 
     const baseRevision = runFixtureCommand(
       "git",
