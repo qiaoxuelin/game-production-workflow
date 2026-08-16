@@ -4,29 +4,26 @@ import path from "node:path";
 import zlib from "node:zlib";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import {
+  aggregateLoadedContext,
+  buildObservationTemplate,
+  hashTree,
+  observationContractPath,
+  observationControlFiles,
+  observationHelperPath,
+  observationTemplatePath,
+  publicObservationContract,
+  sameContractValue,
+  validateObservationV2,
+} from "./game-art-observation-contract.mjs";
+
+export { hashTree };
 
 const fixtureIds = new Set(["design-direction", "composite-runtime"]);
-const controlFiles = ["fixture-lock.json", "observation.json", "result.json"];
+const controlFiles = observationControlFiles;
 const taskStateFields = ["gate", "currentTask", "status", "nextAction"];
 const sha256Pattern = /^sha256:[a-f0-9]{64}$/;
-const declaredResultKeys = [
-  "professionalResult", "representativeProof", "assemblyPrecheck", "taskResult",
-  "nextAction", "nextActionKind", "designAcceptance", "producerAcceptance",
-];
 const resultValues = new Set(["Proposed", "Implemented", "Returned", "Blocked"]);
-const proofValues = new Set(["Pending", "Passed", "Not applicable"]);
-const taskResultValues = new Set(["Not started", "Proposed", "Implemented", "Returned", "Blocked"]);
-const nextActionKinds = new Set([
-  "produce-first-slice", "human-selection", "independent-review", "human-acceptance",
-  "bounded-repair", "replan", "capability-enabling", "alternative-candidate", "stop",
-]);
-const acceptanceValues = new Set(["Pending", "Accepted", "Not applicable"]);
-const actionKindsByProfessionalResult = new Map([
-  ["Proposed", new Set(["human-selection", "bounded-repair", "stop"])],
-  ["Implemented", new Set(["independent-review", "human-acceptance", "bounded-repair", "stop"])],
-  ["Returned", new Set(["bounded-repair", "replan", "capability-enabling", "alternative-candidate", "stop"])],
-  ["Blocked", new Set(["replan", "capability-enabling", "alternative-candidate", "stop"])],
-]);
 const actionKindRequirements = new Map([
   ["Proposed", "human-selection, bounded-repair, or stop"],
   ["Implemented", "post-production"],
@@ -41,69 +38,7 @@ const auditedLegacyNextActions = new Map([
     "Human producer reviews the three candidate desktop captures and recommended portrait overflow capture, then selects, returns, or bounds one direction.",
   ])],
 ]);
-const publicResultContract = {
-  schemaVersion: 2,
-  observationField: "declaredResult",
-  requiredKeys: [...declaredResultKeys],
-  stringFields: ["nextAction"],
-  enums: {
-    professionalResult: [...resultValues],
-    representativeProof: [...proofValues],
-    assemblyPrecheck: [...proofValues],
-    taskResult: [...taskResultValues],
-    nextActionKind: [...nextActionKinds],
-    designAcceptance: [...acceptanceValues],
-    producerAcceptance: [...acceptanceValues],
-  },
-  lifecycle: {
-    durableEqualityFields: [
-      "representativeProof", "assemblyPrecheck", "taskResult",
-      "designAcceptance", "producerAcceptance",
-    ],
-    taskStatusMustMatch: true,
-    nextActionMustMatch: true,
-    defaultAllowedFields: {
-      representativeProof: [...proofValues],
-      assemblyPrecheck: [...proofValues],
-      designAcceptance: [...acceptanceValues],
-      producerAcceptance: [...acceptanceValues],
-    },
-    byProfessionalResult: {
-      Proposed: {
-        taskStatuses: ["Clarifying"],
-        taskResults: ["Proposed"],
-        nextActionKinds: [...actionKindsByProfessionalResult.get("Proposed")],
-        fieldOverrides: {},
-      },
-      Implemented: {
-        taskStatuses: ["Implementing"],
-        taskResults: ["Implemented"],
-        nextActionKinds: [...actionKindsByProfessionalResult.get("Implemented")],
-        fieldOverrides: {
-          representativeProof: ["Passed"],
-          assemblyPrecheck: ["Passed"],
-        },
-      },
-      Returned: {
-        taskStatuses: ["Implementing"],
-        taskResults: ["Returned"],
-        nextActionKinds: [...actionKindsByProfessionalResult.get("Returned")],
-        fieldOverrides: {
-          producerAcceptance: ["Pending", "Not applicable"],
-        },
-      },
-      Blocked: {
-        taskStatuses: ["Clarifying", "Ready", "Implementing", "Blocked"],
-        taskResults: ["Blocked"],
-        nextActionKinds: [...actionKindsByProfessionalResult.get("Blocked")],
-        fieldOverrides: {
-          producerAcceptance: ["Pending", "Not applicable"],
-        },
-      },
-    },
-  },
-};
-const resultContractPointer = "fixture.resultContract";
+const resultContractPointer = `${observationContractPath}#resultContract`;
 
 function requireNonEmptyString(value, name) {
   if (typeof value !== "string" || value.trim().length === 0) {
@@ -234,48 +169,10 @@ export function loadFixture(pluginRoot, fixtureId) {
   if (!fs.existsSync(fixturePath)) throw new Error(`missing fixture: ${fixtureId}`);
   const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
   if (fixture.id !== fixtureId) throw new Error(`fixture id mismatch: ${fixtureId}`);
-  validateResultContract(fixture.resultContract);
+  if (fixture.observationContract !== observationContractPath) {
+    throw new Error(`fixture observationContract must point to ${observationContractPath}`);
+  }
   return fixture;
-}
-
-function normalizedRelativePath(root, entryPath) {
-  return path.relative(root, entryPath).split(path.sep).join("/");
-}
-
-function walkFiles(root) {
-  const files = [];
-  const visit = (directory) => {
-    for (const name of fs.readdirSync(directory).sort()) {
-      const entryPath = path.join(directory, name);
-      const stat = fs.lstatSync(entryPath);
-      if (stat.isSymbolicLink()) throw new Error(`symbolic links are not supported: ${entryPath}`);
-      if (stat.isDirectory()) visit(entryPath);
-      else if (stat.isFile()) files.push(entryPath);
-    }
-  };
-  visit(root);
-  return files.sort((left, right) => {
-    const leftRelative = normalizedRelativePath(root, left);
-    const rightRelative = normalizedRelativePath(root, right);
-    return leftRelative < rightRelative ? -1 : leftRelative > rightRelative ? 1 : 0;
-  });
-}
-
-export function hashTree(root, excludedRelativePaths = []) {
-  const resolvedRoot = path.resolve(root);
-  if (!fs.existsSync(resolvedRoot) || fs.lstatSync(resolvedRoot).isSymbolicLink() || !fs.statSync(resolvedRoot).isDirectory()) {
-    throw new Error(`tree root is not a directory: ${resolvedRoot}`);
-  }
-  const excluded = new Set(excludedRelativePaths.map((entry) => entry.split(path.sep).join("/")));
-  const hash = crypto.createHash("sha256");
-  for (const file of walkFiles(resolvedRoot)) {
-    const relative = normalizedRelativePath(resolvedRoot, file);
-    if (excluded.has(relative)) continue;
-    const content = fs.readFileSync(file);
-    hash.update(`${Buffer.byteLength(relative)}:${relative}:${content.length}:`);
-    hash.update(content);
-  }
-  return `sha256:${hash.digest("hex")}`;
 }
 
 function hashFile(file) {
@@ -292,12 +189,6 @@ function stableJson(value) {
 
 function sameValue(left, right) {
   return stableJson(left) === stableJson(right);
-}
-
-function validateResultContract(contract) {
-  if (!sameValue(contract, publicResultContract)) {
-    throw new Error(`${resultContractPointer} must exactly match the public observation schema and lifecycle semantics`);
-  }
 }
 
 function trustedBindingRoot(pluginRoot) {
@@ -582,7 +473,7 @@ function validateLifecycleHandoff(runRoot, observation, taskStateAfter, resultCo
 function validateLock(lock) {
   validateExactKeys(lock, [
     "schemaVersion", "fixtureId", "label", "policyVersion", "capabilities",
-    "fixtureDefinitionHash", "sourceTreeHash", "taskStateBefore",
+    "fixtureDefinitionHash", "sourceTreeHash", "taskStateBefore", "observationGuidance",
   ], "fixture lock");
   if (lock.schemaVersion !== 1) throw new Error("fixture lock schemaVersion must be 1");
   if (!fixtureIds.has(lock.fixtureId)) throw new Error("fixture lock fixtureId is invalid");
@@ -592,6 +483,7 @@ function validateLock(lock) {
   if (!sha256Pattern.test(lock.fixtureDefinitionHash)) throw new Error("fixture lock fixtureDefinitionHash is invalid");
   if (!sha256Pattern.test(lock.sourceTreeHash)) throw new Error("fixture lock sourceTreeHash is invalid");
   validateTaskState(lock.taskStateBefore, "fixture lock taskStateBefore");
+  validateObservationGuidanceIdentity(lock.observationGuidance);
 }
 
 function validateBinding(binding) {
@@ -599,6 +491,85 @@ function validateBinding(binding) {
   if (binding.schemaVersion !== 1) throw new Error("trusted binding schemaVersion must be 1");
   requireAbsolute(binding.canonicalRunRoot, "trusted binding canonicalRunRoot");
   if (!sha256Pattern.test(binding.lockHash)) throw new Error("trusted binding lockHash is invalid");
+}
+
+function canonicalObservationHelper(pluginRoot) {
+  const helper = path.resolve(pluginRoot, "scripts/game-art-observation-contract.mjs");
+  if (!isContainedPath(pluginRoot, helper) || !fs.existsSync(helper) || fs.lstatSync(helper).isSymbolicLink() || !fs.lstatSync(helper).isFile()) {
+    throw new Error("canonical observation helper is missing or invalid");
+  }
+  return helper;
+}
+
+function observationGuidanceIdentity(runRoot) {
+  return {
+    contractPath: observationContractPath,
+    contractHash: hashFile(path.join(runRoot, observationContractPath)),
+    templatePath: observationTemplatePath,
+    templateHash: hashFile(path.join(runRoot, observationTemplatePath)),
+    helperPath: observationHelperPath,
+    helperHash: hashFile(path.join(runRoot, observationHelperPath)),
+  };
+}
+
+function validateObservationGuidanceIdentity(value) {
+  validateExactKeys(value, [
+    "contractPath", "contractHash", "templatePath", "templateHash", "helperPath", "helperHash",
+  ], "fixture lock observationGuidance");
+  const expectedPaths = {
+    contractPath: observationContractPath,
+    templatePath: observationTemplatePath,
+    helperPath: observationHelperPath,
+  };
+  for (const [field, expected] of Object.entries(expectedPaths)) {
+    if (value[field] !== expected) throw new Error(`fixture lock observationGuidance.${field} must be ${expected}`);
+  }
+  for (const field of ["contractHash", "templateHash", "helperHash"]) {
+    if (!sha256Pattern.test(value[field])) throw new Error(`fixture lock observationGuidance.${field} is invalid`);
+  }
+}
+
+function validatePreparedObservationGuidance(pluginRoot, runRoot, lock) {
+  const inputs = {};
+  for (const [field, relative] of [
+    ["contract", observationContractPath],
+    ["template", observationTemplatePath],
+    ["helper", observationHelperPath],
+  ]) {
+    const inspected = inspectRunFile(runRoot, relative, `worker-visible observation ${field}`);
+    if (!inspected.ok) throw new Error(`${inspected.evidence}; see ${observationContractPath}`);
+    inputs[field] = inspected.file;
+  }
+
+  const actualIdentity = observationGuidanceIdentity(runRoot);
+  if (!sameValue(actualIdentity, lock.observationGuidance)) {
+    throw new Error(`worker-visible observation contract/template/helper drifted from fixture lock; see ${observationContractPath}`);
+  }
+
+  const expectedContractText = `${JSON.stringify(publicObservationContract, null, 2)}\n`;
+  if (fs.readFileSync(inputs.contract, "utf8") !== expectedContractText) {
+    throw new Error(`worker-visible observation contract drifted from the verifier's canonical contract; see ${observationContractPath}`);
+  }
+  const expectedTemplate = buildObservationTemplate({
+    fixtureId: lock.fixtureId,
+    sourceTreeHash: lock.sourceTreeHash,
+    taskStateBefore: lock.taskStateBefore,
+  });
+  const actualTemplate = readJson(inputs.template, "worker-visible observation template");
+  if (!sameContractValue(actualTemplate, expectedTemplate)) {
+    throw new Error(`worker-visible observation template drifted from the canonical fixture template; see ${observationTemplatePath}`);
+  }
+  try {
+    validateObservationV2(actualTemplate);
+  } catch (error) {
+    throw new Error(`worker-visible observation template is invalid: ${error.message}; see ${observationContractPath}`);
+  }
+
+  const canonicalHelper = canonicalObservationHelper(pluginRoot);
+  if (hashFile(inputs.helper) !== hashFile(canonicalHelper)) {
+    throw new Error(`worker-visible observation helper drifted from the canonical helper; see ${observationHelperPath}`);
+  }
+  return actualIdentity;
 }
 
 function assertOutputDirectory(outputRoot) {
@@ -628,6 +599,19 @@ export function prepareFixture({ pluginRoot, fixtureId, label, outputRoot }) {
   const copiedTreeHash = hashTree(resolvedOutputRoot, controlFiles);
   if (sourceTreeHash !== copiedTreeHash) throw new Error("prepared starter does not match its source tree");
   const taskStateBefore = readTaskState(resolvedOutputRoot);
+  const guidanceRoot = path.join(resolvedOutputRoot, path.dirname(observationContractPath));
+  fs.mkdirSync(guidanceRoot);
+  const contractPath = path.join(resolvedOutputRoot, observationContractPath);
+  const templatePath = path.join(resolvedOutputRoot, observationTemplatePath);
+  const helperPath = path.join(resolvedOutputRoot, observationHelperPath);
+  fs.writeFileSync(contractPath, `${JSON.stringify(publicObservationContract, null, 2)}\n`, { flag: "wx" });
+  fs.writeFileSync(templatePath, `${JSON.stringify(buildObservationTemplate({
+    fixtureId,
+    sourceTreeHash,
+    taskStateBefore,
+  }), null, 2)}\n`, { flag: "wx" });
+  fs.copyFileSync(canonicalObservationHelper(resolvedPluginRoot), helperPath, fs.constants.COPYFILE_EXCL);
+  for (const file of [contractPath, templatePath, helperPath]) fs.chmodSync(file, 0o444);
   const lock = {
     schemaVersion: 1,
     fixtureId,
@@ -637,6 +621,7 @@ export function prepareFixture({ pluginRoot, fixtureId, label, outputRoot }) {
     fixtureDefinitionHash: hashFile(path.join(fixtureDirectory, "fixture.json")),
     sourceTreeHash,
     taskStateBefore,
+    observationGuidance: observationGuidanceIdentity(resolvedOutputRoot),
   };
   const lockPath = path.join(resolvedOutputRoot, "fixture-lock.json");
   fs.writeFileSync(lockPath, `${JSON.stringify(lock, null, 2)}\n`, { flag: "wx" });
@@ -1047,10 +1032,20 @@ function runTrustedVerifier(pluginRoot, fixtureDirectory, runRoot, fixture) {
   );
 }
 
-function validateObservation(observation, resultContract) {
+function validateObservation(observation) {
   if (![1, 2].includes(observation.schemaVersion)) {
-    throw new Error("observation schemaVersion must be 1 or 2");
+    throw new Error(`observation schemaVersion must be 1 or 2; see ${observationContractPath}`);
   }
+  if (observation.schemaVersion === 2) {
+    extractDeclaredResult(observation, publicObservationContract.resultContract);
+    try {
+      validateObservationV2(observation);
+    } catch (error) {
+      throw new Error(`${error.message}; see ${observationContractPath} and ${observationTemplatePath}`);
+    }
+    return;
+  }
+  extractDeclaredResult(observation, publicObservationContract.resultContract);
   if (!sha256Pattern.test(observation.sourceTreeHash)) throw new Error("observation sourceTreeHash must be a SHA-256 value");
   if (!sha256Pattern.test(observation.outputTreeHash)) throw new Error("observation outputTreeHash must be a SHA-256 value");
   if (!Number.isInteger(observation.cycles) || observation.cycles < 0) throw new Error("observation cycles must be a non-negative integer");
@@ -1072,7 +1067,6 @@ function validateObservation(observation, resultContract) {
   validateTaskState(observation.taskStateBefore, "observation taskStateBefore");
   validateTaskState(observation.taskStateAfter, "observation taskStateAfter");
   requireNonEmptyString(observation.terminalClaim, "observation terminalClaim");
-  extractDeclaredResult(observation, resultContract);
 }
 
 export function verifyFixture({ pluginRoot, runRoot }) {
@@ -1088,10 +1082,15 @@ export function verifyFixture({ pluginRoot, runRoot }) {
     throw new Error("fixture lock does not match its trusted binding");
   }
   const fixture = loadFixture(resolvedPluginRoot, lock.fixtureId);
+  const observationGuidance = validatePreparedObservationGuidance(
+    resolvedPluginRoot,
+    resolvedRunRoot,
+    lock,
+  );
   const observationInput = inspectRunFile(resolvedRunRoot, "observation.json", "observation");
   if (!observationInput.ok) throw new Error(observationInput.evidence);
   const observation = readJson(observationInput.file, "observation");
-  validateObservation(observation, fixture.resultContract);
+  validateObservation(observation);
   const fixtureDirectory = path.join(resolvedPluginRoot, "evals/game-art-production", lock.fixtureId);
   const starterRoot = path.join(fixtureDirectory, "starter");
   const currentSourceTreeHash = hashTree(starterRoot);
@@ -1105,6 +1104,7 @@ export function verifyFixture({ pluginRoot, runRoot }) {
     fixtureDefinitionHash: currentFixtureHash,
     sourceTreeHash: currentSourceTreeHash,
     taskStateBefore: readTaskState(starterRoot),
+    observationGuidance,
   };
   if (!sameValue(lock, expectedLock)) throw new Error("fixture lock does not match the committed fixture and starter");
   const localVerifier = runTrustedVerifier(resolvedPluginRoot, fixtureDirectory, resolvedRunRoot, fixture);
@@ -1113,7 +1113,7 @@ export function verifyFixture({ pluginRoot, runRoot }) {
     resolvedRunRoot,
     observation,
     taskStateAfter,
-    fixture.resultContract,
+    publicObservationContract.resultContract,
   );
   const currentOutputTreeHash = hashTree(resolvedRunRoot, controlFiles);
 
@@ -1132,16 +1132,16 @@ export function verifyFixture({ pluginRoot, runRoot }) {
         sameRecord(observation.taskStateBefore, lock.taskStateBefore) &&
         sameRecord(observation.taskStateAfter, taskStateAfter),
       [
-        `source claim: ${observation.sourceTreeHash === lock.sourceTreeHash ? "matches lock" : "mismatch"}`,
-        `before claim: ${sameRecord(observation.taskStateBefore, lock.taskStateBefore) ? "matches lock" : "mismatch"}`,
-        `after claim: ${sameRecord(observation.taskStateAfter, taskStateAfter) ? "matches repository" : "mismatch"}`,
+        `source claim: ${observation.sourceTreeHash === lock.sourceTreeHash ? "matches lock" : "mismatch"}; see ${observationContractPath}`,
+        `before claim: ${sameRecord(observation.taskStateBefore, lock.taskStateBefore) ? "matches lock" : "mismatch"}; see ${observationContractPath}`,
+        `after claim: ${sameRecord(observation.taskStateAfter, taskStateAfter) ? "matches repository" : "mismatch"}; see ${observationContractPath}`,
       ],
     ),
     verifyRequiredArtifacts(resolvedRunRoot, fixture.artifactContract),
     check(
       "output-tree-claim",
       observation.outputTreeHash === currentOutputTreeHash,
-      `output tree: ${observation.outputTreeHash === currentOutputTreeHash ? "matches observation" : "changed after observation"}`,
+      `output tree: ${observation.outputTreeHash === currentOutputTreeHash ? "matches observation" : "changed after observation"}; see ${observationContractPath}`,
     ),
   ];
   if (localVerifier) objectiveChecks.push(localVerifier);
@@ -1158,6 +1158,17 @@ export function verifyFixture({ pluginRoot, runRoot }) {
     prohibited.length === 0 ? "terminal claim contains no prohibited artistic passage" : prohibited.map((claim) => `prohibited claim: ${claim}`),
   ));
 
+  const loadedContext = observation.schemaVersion === 2
+    ? aggregateLoadedContext(observation.loadedContext)
+    : {
+        product: {
+          metadataWords: observation.loadedContext.metadataWords,
+          bodyWords: observation.loadedContext.bodyWords,
+          referenceWords: observation.loadedContext.referenceWords,
+          files: [...observation.loadedContext.files],
+        },
+        support: null,
+      };
   const result = {
     schemaVersion: 1,
     fixtureId: fixture.id,
@@ -1171,12 +1182,8 @@ export function verifyFixture({ pluginRoot, runRoot }) {
     ...(lifecycleHandoff?.declaredResult
       ? { declaredResult: lifecycleHandoff.declaredResult }
       : {}),
-    loadedContext: {
-      metadataWords: observation.loadedContext.metadataWords,
-      bodyWords: observation.loadedContext.bodyWords,
-      referenceWords: observation.loadedContext.referenceWords,
-      files: [...observation.loadedContext.files],
-    },
+    loadedContext: loadedContext.product,
+    ...(loadedContext.support ? { supportContext: loadedContext.support } : {}),
     cycles: observation.cycles,
     elapsedMinutes: observation.elapsedMinutes,
     objectiveChecks,

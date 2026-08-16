@@ -12,6 +12,10 @@ import {
   validateCandidateDocuments,
   validateCandidateRepository,
 } from "./game-art-candidate-evidence.mjs";
+import {
+  contextCategoryHash,
+  publicObservationContract,
+} from "./game-art-observation-contract.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const pluginRoot = path.resolve(scriptDirectory, "..");
@@ -52,7 +56,12 @@ const hasContent = (value) => Array.isArray(value)
   : value && typeof value === "object"
     ? Object.keys(value).length > 0
     : typeof value === "string" && value.trim().length > 0;
-const operationalFiles = ["fixture-lock.json", "observation.json", "result.json"];
+const publicObservationFiles = [
+  "fixture-guidance/observation-contract.json",
+  "fixture-guidance/observation-template.json",
+  "fixture-guidance/observation-helper.mjs",
+];
+const operationalFiles = ["fixture-lock.json", "observation.json", "result.json", ...publicObservationFiles];
 const outputHash = (runRoot) => fixtureApi.hashTree(runRoot, operationalFiles);
 const canonicalValue = (value) => Array.isArray(value)
   ? value.map(canonicalValue)
@@ -99,87 +108,50 @@ const declaredResult = (overrides = {}) => ({
   producerAcceptance: "Pending",
   ...overrides,
 });
-const expectedResultContract = {
-  schemaVersion: 2,
-  observationField: "declaredResult",
-  requiredKeys: [
-    "professionalResult", "representativeProof", "assemblyPrecheck", "taskResult",
-    "nextAction", "nextActionKind", "designAcceptance", "producerAcceptance",
-  ],
-  stringFields: ["nextAction"],
-  enums: {
-    professionalResult: ["Proposed", "Implemented", "Returned", "Blocked"],
-    representativeProof: ["Pending", "Passed", "Not applicable"],
-    assemblyPrecheck: ["Pending", "Passed", "Not applicable"],
-    taskResult: ["Not started", "Proposed", "Implemented", "Returned", "Blocked"],
-    nextActionKind: [
-      "produce-first-slice", "human-selection", "independent-review", "human-acceptance",
-      "bounded-repair", "replan", "capability-enabling", "alternative-candidate", "stop",
-    ],
-    designAcceptance: ["Pending", "Accepted", "Not applicable"],
-    producerAcceptance: ["Pending", "Accepted", "Not applicable"],
-  },
-  lifecycle: {
-    durableEqualityFields: [
-      "representativeProof", "assemblyPrecheck", "taskResult",
-      "designAcceptance", "producerAcceptance",
-    ],
-    taskStatusMustMatch: true,
-    nextActionMustMatch: true,
-    defaultAllowedFields: {
-      representativeProof: ["Pending", "Passed", "Not applicable"],
-      assemblyPrecheck: ["Pending", "Passed", "Not applicable"],
-      designAcceptance: ["Pending", "Accepted", "Not applicable"],
-      producerAcceptance: ["Pending", "Accepted", "Not applicable"],
-    },
-    byProfessionalResult: {
-      Proposed: {
-        taskStatuses: ["Clarifying"],
-        taskResults: ["Proposed"],
-        nextActionKinds: ["human-selection", "bounded-repair", "stop"],
-        fieldOverrides: {},
-      },
-      Implemented: {
-        taskStatuses: ["Implementing"],
-        taskResults: ["Implemented"],
-        nextActionKinds: ["independent-review", "human-acceptance", "bounded-repair", "stop"],
-        fieldOverrides: {
-          representativeProof: ["Passed"],
-          assemblyPrecheck: ["Passed"],
-        },
-      },
-      Returned: {
-        taskStatuses: ["Implementing"],
-        taskResults: ["Returned"],
-        nextActionKinds: ["bounded-repair", "replan", "capability-enabling", "alternative-candidate", "stop"],
-        fieldOverrides: {
-          producerAcceptance: ["Pending", "Not applicable"],
-        },
-      },
-      Blocked: {
-        taskStatuses: ["Clarifying", "Ready", "Implementing", "Blocked"],
-        taskResults: ["Blocked"],
-        nextActionKinds: ["replan", "capability-enabling", "alternative-candidate", "stop"],
-        fieldOverrides: {
-          producerAcceptance: ["Pending", "Not applicable"],
-        },
-      },
-    },
-  },
+const contextCategory = (category, overrides = {}) => {
+  const value = {
+    metadataWords: 0,
+    bodyWords: 0,
+    referenceWords: 0,
+    files: [],
+    ...overrides,
+  };
+  return { ...value, hash: contextCategoryHash(category, value) };
 };
+const categorizedLoadedContext = (overrides = {}) => ({
+  schemaVersion: 1,
+  project: contextCategory("project", {
+    metadataWords: 1,
+    bodyWords: 2,
+    files: ["project://production/TASK.md"],
+  }),
+  route: contextCategory("route", {
+    referenceWords: 3,
+    files: ["route://game-production-system/SKILL.md"],
+  }),
+  support: contextCategory("support"),
+  ...overrides,
+});
+const legacyLoadedContext = {
+  metadataWords: 1,
+  bodyWords: 2,
+  referenceWords: 3,
+  files: ["production/TASK.md"],
+};
+const expectedResultContract = publicObservationContract.resultContract;
 
 for (const id of ids) {
   const fixturePath = path.join(evalRoot, id, "fixture.json");
   assert(fs.existsSync(fixturePath), `missing fixture: ${id}`);
   const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
   assert.equal(fixture.id, id);
-  for (const field of ["operation", "request", "capabilityProfile", "artifactContract", "resultContract", "objectiveChecks", "subjectiveChecks", "prohibitedClaims", "stopConditions"]) {
+  for (const field of ["operation", "request", "capabilityProfile", "artifactContract", "observationContract", "objectiveChecks", "subjectiveChecks", "prohibitedClaims", "stopConditions"]) {
     assert(hasContent(fixture[field]), `${id}: ${field} is empty`);
   }
-  assert.deepEqual(fixture.resultContract, expectedResultContract, `${id}: worker-visible result contract differs from the trusted lifecycle schema`);
-  assert.match(fixture.request, /resultContract.*schemaVersion 2.*declaredResult.*TASK.*project/iu, `${id}: raw request must route workers to the public result contract`);
-  assert(!JSON.stringify(fixture.resultContract).includes(".tmp"), `${id}: result contract must not depend on an evaluation-root name`);
-  assert(!JSON.stringify(fixture.resultContract).includes(repositoryRoot), `${id}: result contract must remain portable across repository relocation`);
+  assert.equal(fixture.observationContract, "fixture-guidance/observation-contract.json");
+  assert.match(fixture.request, /fixture-guidance\/observation-contract\.json.*observation-template\.json.*observation-helper\.mjs/iu, `${id}: raw request must route workers to the complete public observation contract`);
+  assert(!fixture.request.includes(".tmp"), `${id}: observation guidance must not depend on an evaluation-root name`);
+  assert(!fixture.request.includes(repositoryRoot), `${id}: observation guidance must remain portable across repository relocation`);
   assert.deepEqual(Object.keys(fixture.artifactContract).sort(), [
     "excludedPaths",
     "manifestPath",
@@ -922,11 +894,35 @@ try {
     assert.equal(prepared.fixtureId, id);
     assert.match(prepared.sourceTreeHash, /^sha256:[a-f0-9]{64}$/);
     assert(fs.existsSync(path.join(runRoot, "fixture-lock.json")));
+    for (const relative of publicObservationFiles) {
+      assert(fs.existsSync(path.join(runRoot, relative)), `${id}: fresh prepared fixture lacks worker-visible ${relative}`);
+    }
 
     const lock = JSON.parse(fs.readFileSync(path.join(runRoot, "fixture-lock.json"), "utf8"));
+    const publicContractPath = path.join(runRoot, publicObservationFiles[0]);
+    const publicTemplatePath = path.join(runRoot, publicObservationFiles[1]);
+    const publicHelperPath = path.join(runRoot, publicObservationFiles[2]);
+    const preparedContract = JSON.parse(fs.readFileSync(publicContractPath, "utf8"));
+    const preparedTemplate = JSON.parse(fs.readFileSync(publicTemplatePath, "utf8"));
+    assert.deepEqual(preparedContract, publicObservationContract, `${id}: prepared observation contract drifted from its canonical source`);
+    assert.deepEqual(Object.keys(preparedTemplate).sort(), [...publicObservationContract.observation.requiredKeys].sort());
+    assert.equal(preparedTemplate.schemaVersion, 2);
+    assert.equal(preparedTemplate.sourceTreeHash, lock.sourceTreeHash);
+    assert.deepEqual(preparedTemplate.taskStateBefore, lock.taskStateBefore);
+    assert.deepEqual(Object.keys(preparedTemplate.loadedContext).sort(), ["project", "route", "schemaVersion", "support"]);
+    assert.deepEqual(lock.observationGuidance, {
+      contractPath: publicObservationFiles[0],
+      contractHash: fileHash(publicContractPath),
+      templatePath: publicObservationFiles[1],
+      templateHash: fileHash(publicTemplatePath),
+      helperPath: publicObservationFiles[2],
+      helperHash: fileHash(publicHelperPath),
+    });
+    assert(!JSON.stringify(preparedContract).includes(repositoryRoot), `${id}: public observation contract contains a machine path`);
+    assert(!JSON.stringify(preparedTemplate).includes(repositoryRoot), `${id}: public observation template contains a machine path`);
     assert.equal(lock.sourceTreeHash, prepared.sourceTreeHash);
     assert.deepEqual(lock.taskStateBefore, prepared.taskStateBefore);
-    assert.equal(fixtureApi.hashTree(runRoot, operationalFiles), fixtureApi.hashTree(runRoot, operationalFiles));
+    assert.equal(fixtureApi.hashTree(runRoot, operationalFiles), lock.sourceTreeHash);
     assert.throws(
       () => fixtureApi.prepareFixture({ pluginRoot, fixtureId: id, label: "again", outputRoot: runRoot }),
       /non-empty/,
@@ -1388,7 +1384,7 @@ try {
       outputTreeHash: outputHash(runRoot),
       taskStateBefore: lock.taskStateBefore,
       taskStateAfter,
-      loadedContext: { metadataWords: 1, bodyWords: 2, referenceWords: 3, files: ["production/TASK.md"] },
+      loadedContext: categorizedLoadedContext(),
       cycles: 1,
       elapsedMinutes: 1,
       terminalClaim: "Declared lifecycle handoff is ready for semantic verification; subjective authorities remain pending.",
@@ -1424,6 +1420,83 @@ try {
   };
   const auditedLegacyImplementedAction = "Have the named independent reviewer inspect the running 1280×720 experience and record design/producer decisions without treating deterministic checks as artistic passage.";
   const auditedLegacyProposedAction = "Human producer reviews the three candidate desktop captures and recommended portrait overflow capture, then selects, returns, or bounds one direction.";
+
+  const contractOnlyLifecycle = prepareLifecycleRun("design-direction", "public-contract-only");
+  const contractOnlyNextAction = "Present the runtime-backed candidates for human direction selection.";
+  writeTaskHandoff(contractOnlyLifecycle.runRoot, {
+    Status: "`Clarifying`",
+    "Representative proof": "`Pending`",
+    "Assembly precheck": "`Pending`",
+    Result: "`Proposed — runtime-backed direction candidates await human selection`",
+    "Next action": contractOnlyNextAction,
+    "Design acceptance": "`Pending`",
+    "Producer acceptance": "`Pending`",
+  });
+  writeProjectState(contractOnlyLifecycle.runRoot, "Clarifying", contractOnlyNextAction);
+  const workerContract = JSON.parse(fs.readFileSync(
+    path.join(contractOnlyLifecycle.runRoot, "fixture-guidance/observation-contract.json"),
+    "utf8",
+  ));
+  const workerObservation = JSON.parse(fs.readFileSync(
+    path.join(contractOnlyLifecycle.runRoot, "fixture-guidance/observation-template.json"),
+    "utf8",
+  ));
+  assert.deepEqual(Object.keys(workerContract.observation.fields).sort(), [...workerContract.observation.requiredKeys].sort());
+  assert.deepEqual(workerContract.loadedContext.exactCategories, ["project", "route", "support"]);
+  assert.match(workerContract.loadedContext.categoryMeaning.support, /environment-mandated.*excluded from routed-product/iu);
+  workerObservation.loadedContext.project = {
+    metadataWords: 2,
+    bodyWords: 4,
+    referenceWords: 0,
+    files: ["project://production/TASK.md", "fixture://request"],
+    hash: "refreshed-by-public-helper",
+  };
+  workerObservation.loadedContext.route = {
+    metadataWords: 0,
+    bodyWords: 0,
+    referenceWords: 6,
+    files: ["route://game-production-system/SKILL.md"],
+    hash: "refreshed-by-public-helper",
+  };
+  workerObservation.loadedContext.support = {
+    metadataWords: 0,
+    bodyWords: 0,
+    referenceWords: 3,
+    files: ["support://superpowers/test-driven-development/SKILL.md"],
+    hash: "refreshed-by-public-helper",
+  };
+  workerObservation.cycles = 2;
+  workerObservation.elapsedMinutes = 7;
+  workerObservation.terminalClaim = "Runtime-backed direction is proposed; independent subjective review and human selection remain pending.";
+  workerObservation.declaredResult.nextAction = contractOnlyNextAction;
+  fs.writeFileSync(
+    path.join(contractOnlyLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(workerObservation, null, 2)}\n`,
+  );
+  const publicHelperRun = spawnSync(
+    process.execPath,
+    [path.join(contractOnlyLifecycle.runRoot, "fixture-guidance/observation-helper.mjs"), "refresh"],
+    { cwd: contractOnlyLifecycle.runRoot, encoding: "utf8" },
+  );
+  assert.equal(publicHelperRun.status, 0, publicHelperRun.stderr || publicHelperRun.stdout);
+  assert.match(publicHelperRun.stdout, /PASS refreshed observation\.json sha256:/u);
+  const contractOnlyResult = fixtureApi.verifyFixture({
+    pluginRoot,
+    runRoot: contractOnlyLifecycle.runRoot,
+  });
+  assert(contractOnlyResult.objectiveChecks.every(({ status }) => status === "Pass"), JSON.stringify(contractOnlyResult.objectiveChecks, null, 2));
+  assert.deepEqual(contractOnlyResult.loadedContext, {
+    metadataWords: 2,
+    bodyWords: 4,
+    referenceWords: 6,
+    files: ["project://production/TASK.md", "fixture://request", "route://game-production-system/SKILL.md"],
+  });
+  assert.deepEqual(contractOnlyResult.supportContext, {
+    metadataWords: 0,
+    bodyWords: 0,
+    referenceWords: 3,
+    files: ["support://superpowers/test-driven-development/SKILL.md"],
+  });
 
   const implementedLifecycle = prepareLifecycleRun("composite-runtime", "implemented-lifecycle");
 
@@ -1487,6 +1560,70 @@ try {
     (entry) => entry.id === "lifecycle-handoff" && entry.status === "Pass",
   ));
 
+  const expectObservationContractRejection = (name, mutate, expectedError) => {
+    const mutated = structuredClone(validImplementedObservation);
+    mutate(mutated);
+    fs.writeFileSync(
+      path.join(implementedLifecycle.runRoot, "observation.json"),
+      `${JSON.stringify(mutated, null, 2)}\n`,
+    );
+    assert.throws(
+      () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+      (error) => {
+        assert.match(error.message, expectedError, `${name}: wrong contract failure`);
+        assert.match(error.message, /fixture-guidance\/observation-contract\.json/u, `${name}: diagnostic omitted the public contract`);
+        return true;
+      },
+      `${name}: observation mutation passed`,
+    );
+  };
+  for (const [name, mutate, expectedError] of [
+    ["negative cycles", (value) => { value.cycles = -1; }, /cycles.*non-negative integer/i],
+    ["fractional cycles", (value) => { value.cycles = 1.5; }, /cycles.*non-negative integer/i],
+    ["negative elapsed minutes", (value) => { value.elapsedMinutes = -1; }, /elapsedMinutes.*non-negative/i],
+    ["missing loaded context", (value) => { delete value.loadedContext; }, /loadedContext/i],
+    ["missing context category", (value) => { delete value.loadedContext.support; }, /loadedContext.*support/i],
+    ["project metadata count drift", (value) => { value.loadedContext.project.metadataWords += 1; }, /project\.hash.*category\/count\/files/i],
+    ["route body count drift", (value) => { value.loadedContext.route.bodyWords += 1; }, /route\.hash.*category\/count\/files/i],
+    ["support reference count drift", (value) => { value.loadedContext.support.referenceWords += 1; }, /support\.hash.*category\/count\/files/i],
+    ["loaded context hash drift", (value) => { value.loadedContext.project.hash = `sha256:${"0".repeat(64)}`; }, /project\.hash.*category\/count\/files/i],
+    ["loaded context category drift", (value) => {
+      value.loadedContext.project.files = ["route://game-production-system/SKILL.md"];
+      value.loadedContext.project.hash = contextCategoryHash("project", value.loadedContext.project);
+    }, /wrong logical category/i],
+    ["loaded context evidence leakage", (value) => {
+      value.loadedContext.route.files = ["route://candidate-additive/evidence.json"];
+      value.loadedContext.route.hash = contextCategoryHash("route", value.loadedContext.route);
+    }, /prohibited sibling\/evidence\/test leakage/i],
+  ]) {
+    expectObservationContractRejection(name, mutate, expectedError);
+  }
+  for (const [name, field, checkId] of [
+    ["source tree hash drift", "sourceTreeHash", "task-state-claims"],
+    ["output tree hash drift", "outputTreeHash", "output-tree-claim"],
+  ]) {
+    const mutated = {
+      ...validImplementedObservation,
+      [field]: `sha256:${"0".repeat(64)}`,
+    };
+    fs.writeFileSync(
+      path.join(implementedLifecycle.runRoot, "observation.json"),
+      `${JSON.stringify(mutated, null, 2)}\n`,
+    );
+    const mutationResult = fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot });
+    const failedCheck = mutationResult.objectiveChecks.find((entry) => entry.id === checkId);
+    assert.equal(failedCheck?.status, "Fail", `${name}: valid but false hash claim passed objective verification`);
+    assert.match(
+      failedCheck.evidence.join("\n"),
+      /fixture-guidance\/observation-contract\.json/u,
+      `${name}: objective diagnostic omitted the public contract`,
+    );
+  }
+  fs.writeFileSync(
+    path.join(implementedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(validImplementedObservation, null, 2)}\n`,
+  );
+
   const missingPublicDeclaration = { ...validImplementedObservation, declaredResult: undefined };
   fs.writeFileSync(
     path.join(implementedLifecycle.runRoot, "observation.json"),
@@ -1494,7 +1631,7 @@ try {
   );
   assert.throws(
     () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
-    /schemaVersion 2 requires declaredResult.*fixture\.resultContract/i,
+    /declaredResult.*fixture-guidance\/observation-contract\.json/i,
     "missing schema-2 declarations must route workers to the public contract",
   );
 
@@ -1508,7 +1645,7 @@ try {
   );
   assert.throws(
     () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
-    /declaredResult\.professionalResult.*fixture\.resultContract/i,
+    /declaredResult\.professionalResult.*fixture-guidance\/observation-contract\.json/i,
     "invalid schema-2 enum diagnostics must route workers to the public contract",
   );
   fs.writeFileSync(
@@ -1729,6 +1866,7 @@ try {
     schemaVersion: 1,
     declaredResult: undefined,
     result: { professionalResult: "Implemented" },
+    loadedContext: legacyLoadedContext,
     outputTreeHash: outputHash(implementedLifecycle.runRoot),
   };
   fs.writeFileSync(
@@ -1804,6 +1942,7 @@ try {
     schemaVersion: 1,
     declaredResult: undefined,
     result: { professionalResult: "Implemented" },
+    loadedContext: legacyLoadedContext,
     taskStateAfter: validLegacyImplementedTaskState,
     outputTreeHash: outputHash(implementedLifecycle.runRoot),
   };
@@ -1858,6 +1997,7 @@ try {
     schemaVersion: 1,
     declaredResult: undefined,
     result: { professionalResult: "Implemented" },
+    loadedContext: legacyLoadedContext,
     outputTreeHash: outputHash(implementedLifecycle.runRoot),
   };
   fs.writeFileSync(
@@ -1967,6 +2107,7 @@ try {
     schemaVersion: 1,
     declaredResult: undefined,
     professionalResult: "Proposed",
+    loadedContext: legacyLoadedContext,
     taskStateAfter: legacyProposedNotStartedTaskState,
     outputTreeHash: outputHash(proposedLifecycle.runRoot),
   };
@@ -2049,6 +2190,7 @@ try {
     schemaVersion: 1,
     declaredResult: undefined,
     professionalResult: "Proposed",
+    loadedContext: legacyLoadedContext,
     taskStateAfter: legacyProposedTaskState,
     outputTreeHash: outputHash(proposedLifecycle.runRoot),
   };
@@ -2075,7 +2217,7 @@ try {
   );
   assert.throws(
     () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
-    /declaredResult.*fixture\.resultContract/i,
+    /declaredResult.*fixture-guidance\/observation-contract\.json/i,
     "professional results in legacy ad hoc locations must use declaredResult",
   );
 
@@ -2092,30 +2234,33 @@ try {
     path.join(scriptDirectory, "game-art-composite-verifier.mjs"),
     path.join(sourceTestPlugin, "scripts/game-art-composite-verifier.mjs"),
   );
+  fs.copyFileSync(
+    path.join(scriptDirectory, "game-art-observation-contract.mjs"),
+    path.join(sourceTestPlugin, "scripts/game-art-observation-contract.mjs"),
+  );
   const publicContractFixturePath = path.join(
     sourceTestPlugin,
     "evals/game-art-production/design-direction/fixture.json",
   );
   const publicContractFixture = JSON.parse(fs.readFileSync(publicContractFixturePath, "utf8"));
-  for (const [name, mutate] of [
-    ["missing declared key", (contract) => { contract.requiredKeys.pop(); }],
-    ["invented enum", (contract) => { contract.enums.professionalResult.push("Accepted"); }],
-    ["passage lifecycle row", (contract) => { contract.lifecycle.byProfessionalResult.Blocked.taskStatuses.push("Accepted"); }],
+  for (const [name, observationContract] of [
+    ["missing path", undefined],
+    ["path substitution", "fixture-guidance/alternate-contract.json"],
+    ["machine path", path.join(sourceTestRepository, "observation-contract.json")],
   ]) {
-    const mutatedFixture = structuredClone(publicContractFixture);
-    mutate(mutatedFixture.resultContract);
+    const mutatedFixture = { ...publicContractFixture, observationContract };
     fs.writeFileSync(publicContractFixturePath, `${JSON.stringify(mutatedFixture, null, 2)}\n`);
     assert.throws(
       () => fixtureApi.loadFixture(sourceTestPlugin, "design-direction"),
-      /fixture\.resultContract.*exactly match.*lifecycle semantics/i,
-      `${name}: public contract drift must fail closed in a relocated plugin`,
+      /fixture observationContract must point to fixture-guidance\/observation-contract\.json/i,
+      `${name}: fixture contract path drift must fail closed after repository relocation`,
     );
   }
   fs.writeFileSync(publicContractFixturePath, `${JSON.stringify(publicContractFixture, null, 2)}\n`);
-  assert.deepEqual(
-    fixtureApi.loadFixture(sourceTestPlugin, "design-direction").resultContract,
-    expectedResultContract,
-    "restored public result contract must validate after repository relocation",
+  assert.equal(
+    fixtureApi.loadFixture(sourceTestPlugin, "design-direction").observationContract,
+    "fixture-guidance/observation-contract.json",
+    "restored public observation contract path must validate after repository relocation",
   );
   const reservedBindingNamespace = path.join(sourceTestRepository, ".tmp/game-art-evals/.fixture-bindings");
   assert.throws(
@@ -2166,6 +2311,49 @@ try {
     terminalClaim: "Objective source tamper test; subjective review pending.",
   };
   fs.writeFileSync(path.join(sourceTestRun, "observation.json"), `${JSON.stringify(sourceTestObservation, null, 2)}\n`);
+  for (const relative of publicObservationFiles) {
+    const guidanceFile = path.join(sourceTestRun, relative);
+    const original = fs.readFileSync(guidanceFile);
+    fs.chmodSync(guidanceFile, 0o644);
+    fs.appendFileSync(guidanceFile, "\nDRIFT\n");
+    assert.throws(
+      () => fixtureApi.verifyFixture({ pluginRoot: sourceTestPlugin, runRoot: sourceTestRun }),
+      /worker-visible observation contract\/template\/helper drifted from fixture lock.*fixture-guidance\/observation-contract\.json/i,
+      `${relative}: prepared public guidance drift must fail closed`,
+    );
+    fs.writeFileSync(guidanceFile, original);
+    fs.chmodSync(guidanceFile, 0o444);
+  }
+  if (symlinksSupported) {
+    for (const relative of publicObservationFiles) {
+      const guidanceFile = path.join(sourceTestRun, relative);
+      const original = fs.readFileSync(guidanceFile);
+      const externalGuidance = path.join(symlinkTarget, `substituted-${path.basename(relative)}`);
+      fs.writeFileSync(externalGuidance, original);
+      fs.chmodSync(guidanceFile, 0o644);
+      fs.rmSync(guidanceFile);
+      fs.symlinkSync(externalGuidance, guidanceFile);
+      assert.throws(
+        () => fixtureApi.verifyFixture({ pluginRoot: sourceTestPlugin, runRoot: sourceTestRun }),
+        /worker-visible observation.*symbolic link.*fixture-guidance\/observation-contract\.json/i,
+        `${relative}: prepared public guidance path substitution must fail closed`,
+      );
+      fs.rmSync(guidanceFile);
+      fs.writeFileSync(guidanceFile, original);
+      fs.chmodSync(guidanceFile, 0o444);
+    }
+  }
+  const relocatedCanonicalHelper = path.join(sourceTestPlugin, "scripts/game-art-observation-contract.mjs");
+  const relocatedCanonicalHelperContent = fs.readFileSync(relocatedCanonicalHelper);
+  fs.appendFileSync(relocatedCanonicalHelper, "\n// canonical drift mutation\n");
+  assert.throws(
+    () => fixtureApi.verifyFixture({ pluginRoot: sourceTestPlugin, runRoot: sourceTestRun }),
+    /worker-visible observation helper drifted from the canonical helper.*fixture-guidance\/observation-helper\.mjs/i,
+    "canonical/public helper drift must fail closed after repository relocation",
+  );
+  fs.writeFileSync(relocatedCanonicalHelper, relocatedCanonicalHelperContent);
+  const relocatedValidResult = fixtureApi.verifyFixture({ pluginRoot: sourceTestPlugin, runRoot: sourceTestRun });
+  assert(relocatedValidResult.objectiveChecks.every(({ status }) => status === "Pass"), JSON.stringify(relocatedValidResult.objectiveChecks, null, 2));
   fs.appendFileSync(
     path.join(sourceTestPlugin, "evals/game-art-production/design-direction/starter/AGENTS.md"),
     "\nUnexpected committed-source mutation.\n",

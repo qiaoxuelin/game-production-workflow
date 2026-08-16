@@ -3,97 +3,14 @@
   "id": "design-direction",
   "policyVersion": "1.7.2",
   "operation": "Produce and integrate an original 2D/UI design direction for the frozen result-screen experience.",
-  "request": "Create a production-ready original visual direction for the result screen without changing the frozen player flow, platform, interaction semantics, or content extremes. Demonstrate all required states and both target viewports in the runtime shell, retain editable separated source assets, document source/export/import handling, and provide real raster runtime captures. The human producer owns selection of the visual direction and final product-quality judgment. Write artifacts/artifact-manifest.json with exactly schemaVersion 1 and an artifacts array. Each entry has run-relative path and role. Use design-document, editable-source, and source-export-import entries with only path and role; use runtime-capture entries with path, role, mediaType (image/png or image/jpeg), state, and viewport. Supply at least the role counts and runtime state/viewport pairs declared by artifactContract; filenames are otherwise your choice. For observation.json, resultContract requires schemaVersion 2 and declaredResult with its exact keys and enums. Select the matching lifecycle row, copy durableEqualityFields from production/TASK.md, and match Status and Next action to TASK/project state; this records evidence and grants no acceptance or gate passage.",
+  "request": "Create a production-ready original visual direction for the result screen without changing the frozen player flow, platform, interaction semantics, or content extremes. Demonstrate all required states and both target viewports in the runtime shell, retain editable separated source assets, document source/export/import handling, and provide real raster runtime captures. The human producer owns selection of the visual direction and final product-quality judgment. Write artifacts/artifact-manifest.json with exactly schemaVersion 1 and an artifacts array. Each entry has run-relative path and role. Use design-document, editable-source, and source-export-import entries with only path and role; use runtime-capture entries with path, role, mediaType (image/png or image/jpeg), state, and viewport. Supply at least the role counts and runtime state/viewport pairs declared by artifactContract; filenames are otherwise your choice. Follow fixture-guidance/observation-contract.json: copy fixture-guidance/observation-template.json to observation.json, fill truthful lifecycle, context-category, cycle, and elapsed-time values, then run node fixture-guidance/observation-helper.mjs refresh. Do not read verifier, test, sibling-run, candidate, or review evidence sources.",
+  "observationContract": "fixture-guidance/observation-contract.json",
   "capabilityProfile": {
     "gameProductionSystem": "1.7.2",
     "imageGenerationAvailable": true,
     "imageEditingAvailable": true,
     "browserRuntimeInspection": true,
     "externalArtDirectionSelected": false
-  },
-  "resultContract": {
-    "schemaVersion": 2,
-    "observationField": "declaredResult",
-    "requiredKeys": [
-      "professionalResult",
-      "representativeProof",
-      "assemblyPrecheck",
-      "taskResult",
-      "nextAction",
-      "nextActionKind",
-      "designAcceptance",
-      "producerAcceptance"
-    ],
-    "stringFields": ["nextAction"],
-    "enums": {
-      "professionalResult": ["Proposed", "Implemented", "Returned", "Blocked"],
-      "representativeProof": ["Pending", "Passed", "Not applicable"],
-      "assemblyPrecheck": ["Pending", "Passed", "Not applicable"],
-      "taskResult": ["Not started", "Proposed", "Implemented", "Returned", "Blocked"],
-      "nextActionKind": [
-        "produce-first-slice",
-        "human-selection",
-        "independent-review",
-        "human-acceptance",
-        "bounded-repair",
-        "replan",
-        "capability-enabling",
-        "alternative-candidate",
-        "stop"
-      ],
-      "designAcceptance": ["Pending", "Accepted", "Not applicable"],
-      "producerAcceptance": ["Pending", "Accepted", "Not applicable"]
-    },
-    "lifecycle": {
-      "durableEqualityFields": [
-        "representativeProof",
-        "assemblyPrecheck",
-        "taskResult",
-        "designAcceptance",
-        "producerAcceptance"
-      ],
-      "taskStatusMustMatch": true,
-      "nextActionMustMatch": true,
-      "defaultAllowedFields": {
-        "representativeProof": ["Pending", "Passed", "Not applicable"],
-        "assemblyPrecheck": ["Pending", "Passed", "Not applicable"],
-        "designAcceptance": ["Pending", "Accepted", "Not applicable"],
-        "producerAcceptance": ["Pending", "Accepted", "Not applicable"]
-      },
-      "byProfessionalResult": {
-        "Proposed": {
-          "taskStatuses": ["Clarifying"],
-          "taskResults": ["Proposed"],
-          "nextActionKinds": ["human-selection", "bounded-repair", "stop"],
-          "fieldOverrides": {}
-        },
-        "Implemented": {
-          "taskStatuses": ["Implementing"],
-          "taskResults": ["Implemented"],
-          "nextActionKinds": ["independent-review", "human-acceptance", "bounded-repair", "stop"],
-          "fieldOverrides": {
-            "representativeProof": ["Passed"],
-            "assemblyPrecheck": ["Passed"]
-          }
-        },
-        "Returned": {
-          "taskStatuses": ["Implementing"],
-          "taskResults": ["Returned"],
-          "nextActionKinds": ["bounded-repair", "replan", "capability-enabling", "alternative-candidate", "stop"],
-          "fieldOverrides": {
-            "producerAcceptance": ["Pending", "Not applicable"]
-          }
-        },
-        "Blocked": {
-          "taskStatuses": ["Clarifying", "Ready", "Implementing", "Blocked"],
-          "taskResults": ["Blocked"],
-          "nextActionKinds": ["replan", "capability-enabling", "alternative-candidate", "stop"],
-          "fieldOverrides": {
-            "producerAcceptance": ["Pending", "Not applicable"]
-          }
-        }
-      }
-    }
   },
   "artifactContract": {
     "schemaVersion": 1,
