@@ -41,6 +41,69 @@ const auditedLegacyNextActions = new Map([
     "Human producer reviews the three candidate desktop captures and recommended portrait overflow capture, then selects, returns, or bounds one direction.",
   ])],
 ]);
+const publicResultContract = {
+  schemaVersion: 2,
+  observationField: "declaredResult",
+  requiredKeys: [...declaredResultKeys],
+  stringFields: ["nextAction"],
+  enums: {
+    professionalResult: [...resultValues],
+    representativeProof: [...proofValues],
+    assemblyPrecheck: [...proofValues],
+    taskResult: [...taskResultValues],
+    nextActionKind: [...nextActionKinds],
+    designAcceptance: [...acceptanceValues],
+    producerAcceptance: [...acceptanceValues],
+  },
+  lifecycle: {
+    durableEqualityFields: [
+      "representativeProof", "assemblyPrecheck", "taskResult",
+      "designAcceptance", "producerAcceptance",
+    ],
+    taskStatusMustMatch: true,
+    nextActionMustMatch: true,
+    defaultAllowedFields: {
+      representativeProof: [...proofValues],
+      assemblyPrecheck: [...proofValues],
+      designAcceptance: [...acceptanceValues],
+      producerAcceptance: [...acceptanceValues],
+    },
+    byProfessionalResult: {
+      Proposed: {
+        taskStatuses: ["Clarifying"],
+        taskResults: ["Proposed"],
+        nextActionKinds: [...actionKindsByProfessionalResult.get("Proposed")],
+        fieldOverrides: {},
+      },
+      Implemented: {
+        taskStatuses: ["Implementing"],
+        taskResults: ["Implemented"],
+        nextActionKinds: [...actionKindsByProfessionalResult.get("Implemented")],
+        fieldOverrides: {
+          representativeProof: ["Passed"],
+          assemblyPrecheck: ["Passed"],
+        },
+      },
+      Returned: {
+        taskStatuses: ["Implementing"],
+        taskResults: ["Returned"],
+        nextActionKinds: [...actionKindsByProfessionalResult.get("Returned")],
+        fieldOverrides: {
+          producerAcceptance: ["Pending", "Not applicable"],
+        },
+      },
+      Blocked: {
+        taskStatuses: ["Clarifying", "Ready", "Implementing", "Blocked"],
+        taskResults: ["Blocked"],
+        nextActionKinds: [...actionKindsByProfessionalResult.get("Blocked")],
+        fieldOverrides: {
+          producerAcceptance: ["Pending", "Not applicable"],
+        },
+      },
+    },
+  },
+};
+const resultContractPointer = "fixture.resultContract";
 
 function requireNonEmptyString(value, name) {
   if (typeof value !== "string" || value.trim().length === 0) {
@@ -171,6 +234,7 @@ export function loadFixture(pluginRoot, fixtureId) {
   if (!fs.existsSync(fixturePath)) throw new Error(`missing fixture: ${fixtureId}`);
   const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
   if (fixture.id !== fixtureId) throw new Error(`fixture id mismatch: ${fixtureId}`);
+  validateResultContract(fixture.resultContract);
   return fixture;
 }
 
@@ -228,6 +292,12 @@ function stableJson(value) {
 
 function sameValue(left, right) {
   return stableJson(left) === stableJson(right);
+}
+
+function validateResultContract(contract) {
+  if (!sameValue(contract, publicResultContract)) {
+    throw new Error(`${resultContractPointer} must exactly match the public observation schema and lifecycle semantics`);
+  }
 }
 
 function trustedBindingRoot(pluginRoot) {
@@ -312,25 +382,27 @@ function validateExactKeys(value, expected, name) {
   }
 }
 
-function validateDeclaredResult(value) {
-  validateExactKeys(value, declaredResultKeys, "observation declaredResult");
-  for (const [field, allowed] of [
-    ["professionalResult", resultValues],
-    ["representativeProof", proofValues],
-    ["assemblyPrecheck", proofValues],
-    ["taskResult", taskResultValues],
-    ["nextActionKind", nextActionKinds],
-    ["designAcceptance", acceptanceValues],
-    ["producerAcceptance", acceptanceValues],
-  ]) {
-    if (!allowed.has(value[field])) {
-      throw new Error(`observation declaredResult.${field} is invalid`);
+function validateDeclaredResult(value, resultContract) {
+  try {
+    validateExactKeys(value, resultContract.requiredKeys, "observation declaredResult");
+  } catch (error) {
+    throw new Error(`${error.message}; see ${resultContractPointer}`);
+  }
+  for (const [field, allowed] of Object.entries(resultContract.enums)) {
+    if (!allowed.includes(value[field])) {
+      throw new Error(`observation declaredResult.${field} is invalid; see ${resultContractPointer}`);
     }
   }
-  requireNonEmptyString(value.nextAction, "observation declaredResult.nextAction");
+  for (const field of resultContract.stringFields) {
+    try {
+      requireNonEmptyString(value[field], `observation declaredResult.${field}`);
+    } catch (error) {
+      throw new Error(`${error.message}; see ${resultContractPointer}`);
+    }
+  }
 }
 
-function extractDeclaredResult(observation) {
+function extractDeclaredResult(observation, resultContract) {
   const hasTopLevelLegacy = Object.hasOwn(observation, "professionalResult");
   const hasNestedLegacy = Boolean(
     observation.result &&
@@ -341,21 +413,21 @@ function extractDeclaredResult(observation) {
 
   if (observation.schemaVersion === 2) {
     if (hasTopLevelLegacy || hasNestedLegacy) {
-      throw new Error("observation schemaVersion 2 permits only declaredResult; legacy professionalResult fields are forbidden");
+      throw new Error(`observation schemaVersion 2 permits only declaredResult; legacy professionalResult fields are forbidden; see ${resultContractPointer}`);
     }
     if (!observation.declaredResult) {
-      throw new Error("observation schemaVersion 2 requires declaredResult");
+      throw new Error(`observation schemaVersion 2 requires declaredResult; see ${resultContractPointer}`);
     }
-    validateDeclaredResult(observation.declaredResult);
+    validateDeclaredResult(observation.declaredResult, resultContract);
     return { value: observation.declaredResult, complete: true };
   }
 
   if (Object.hasOwn(observation, "declaredResult")) {
-    throw new Error("observation schemaVersion 1 must not contain declaredResult");
+    throw new Error(`observation schemaVersion 1 must not contain declaredResult; see ${resultContractPointer}`);
   }
 
   if (hasTopLevelLegacy && hasNestedLegacy) {
-    throw new Error("observation schemaVersion 1 permits only one legacy professionalResult declaration");
+    throw new Error(`observation schemaVersion 1 permits only one legacy professionalResult declaration; see ${resultContractPointer}`);
   }
   if (!hasTopLevelLegacy && !hasNestedLegacy) return null;
 
@@ -363,7 +435,7 @@ function extractDeclaredResult(observation) {
     ? observation.professionalResult
     : observation.result.professionalResult;
   if (!resultValues.has(legacyValue)) {
-    throw new Error("legacy observation professionalResult is invalid");
+    throw new Error(`legacy observation professionalResult is invalid; see ${resultContractPointer}`);
   }
   return { value: { professionalResult: legacyValue }, complete: false };
 }
@@ -429,16 +501,16 @@ function classifyAcceptance(value, name) {
   ], name);
 }
 
-function validateLifecycleHandoff(runRoot, observation, taskStateAfter) {
-  const declaration = extractDeclaredResult(observation);
+function validateLifecycleHandoff(runRoot, observation, taskStateAfter, resultContract) {
+  const declaration = extractDeclaredResult(observation, resultContract);
   if (!declaration) return null;
 
   const task = readTaskHandoff(runRoot);
   if (task.status !== taskStateAfter.status) {
-    throw new Error("lifecycle handoff TASK Status must match taskStateAfter.status");
+    throw new Error(`lifecycle handoff TASK Status must match taskStateAfter.status; see ${resultContractPointer}`);
   }
   if (task.nextAction !== taskStateAfter.nextAction) {
-    throw new Error("lifecycle handoff TASK Next action must match project state");
+    throw new Error(`lifecycle handoff TASK Next action must match project state; see ${resultContractPointer}`);
   }
 
   const durable = {
@@ -450,81 +522,46 @@ function validateLifecycleHandoff(runRoot, observation, taskStateAfter) {
   };
 
   if (declaration.complete) {
-    for (const field of [
-      "representativeProof", "assemblyPrecheck", "taskResult",
-      "designAcceptance", "producerAcceptance",
-    ]) {
+    for (const field of resultContract.lifecycle.durableEqualityFields) {
       if (declaration.value[field] !== durable[field]) {
-        throw new Error(`lifecycle handoff declared ${field} does not match production/TASK.md`);
+        throw new Error(`lifecycle handoff declared ${field} does not match production/TASK.md; see ${resultContractPointer}`);
       }
     }
     if (declaration.value.nextAction !== task.nextAction) {
-      throw new Error("lifecycle handoff declared nextAction must match TASK and project state");
+      throw new Error(`lifecycle handoff declared nextAction must match TASK and project state; see ${resultContractPointer}`);
     }
-    const allowedKinds = actionKindsByProfessionalResult.get(
-      declaration.value.professionalResult,
-    );
-    if (!allowedKinds.has(declaration.value.nextActionKind)) {
+    const lifecycleRow = resultContract.lifecycle.byProfessionalResult[
+      declaration.value.professionalResult
+    ];
+    if (!lifecycleRow.nextActionKinds.includes(declaration.value.nextActionKind)) {
       const requirement = actionKindRequirements.get(declaration.value.professionalResult);
-      throw new Error(`${declaration.value.professionalResult} professional result next action kind must be ${requirement}`);
+      throw new Error(`${declaration.value.professionalResult} professional result next action kind must be ${requirement}; see ${resultContractPointer}`);
     }
   } else {
     const allowedActions = auditedLegacyNextActions.get(
       declaration.value.professionalResult,
     );
     if (!allowedActions?.has(task.nextAction)) {
-      throw new Error("observation schemaVersion 1 professionalResult requires an audited legacy Next action; migrate to schemaVersion 2");
+      throw new Error(`observation schemaVersion 1 professionalResult requires an audited legacy Next action; migrate to schemaVersion 2; see ${resultContractPointer}`);
     }
   }
 
-  if (declaration.value.professionalResult === "Implemented") {
-    if (taskStateAfter.status !== "Implementing") {
-      throw new Error("Implemented professional result requires Implementing task status");
-    }
-    if (durable.taskResult === "Not started") {
-      throw new Error("Implemented professional result cannot retain task Result Not started");
-    }
-    if (durable.taskResult !== "Implemented") {
-      throw new Error("Implemented professional result requires an Implemented task Result");
-    }
-    if (durable.representativeProof !== "Passed") {
-      throw new Error("Implemented professional result requires representative proof Passed");
-    }
-    if (durable.assemblyPrecheck !== "Passed") {
-      throw new Error("Implemented professional result requires assembly precheck Passed");
-    }
-  }
-
-  if (declaration.value.professionalResult === "Proposed") {
-    if (taskStateAfter.status !== "Clarifying") {
-      throw new Error("Proposed professional result requires Clarifying task status");
-    }
-    if (durable.taskResult !== "Proposed") {
-      throw new Error("Proposed professional result requires task Result Proposed");
-    }
-  }
-
-  if (declaration.value.professionalResult === "Returned") {
-    if (taskStateAfter.status !== "Implementing") {
-      throw new Error("Returned professional result requires Implementing task status and cannot use Accepted");
-    }
-    if (durable.taskResult !== "Returned") {
-      throw new Error("Returned professional result requires task Result Returned");
-    }
-    if (durable.producerAcceptance === "Accepted") {
-      throw new Error("Returned professional result requires producer acceptance Pending or Not applicable");
-    }
-  }
-
-  if (declaration.value.professionalResult === "Blocked") {
-    if (!["Clarifying", "Ready", "Implementing", "Blocked"].includes(taskStateAfter.status)) {
-      throw new Error("Blocked professional result requires a non-passage task status and cannot use Accepted");
-    }
-    if (durable.taskResult !== "Blocked") {
-      throw new Error("Blocked professional result requires task Result Blocked");
-    }
-    if (durable.producerAcceptance === "Accepted") {
-      throw new Error("Blocked professional result requires producer acceptance Pending or Not applicable");
+  const lifecycleRow = resultContract.lifecycle.byProfessionalResult[
+    declaration.value.professionalResult
+  ];
+  const requirements = [
+    ["task status", taskStateAfter.status, lifecycleRow.taskStatuses],
+    ["task Result", durable.taskResult, lifecycleRow.taskResults],
+    ...Object.entries(resultContract.lifecycle.defaultAllowedFields).map(([field, defaults]) => [
+      field.replace(/[A-Z]/gu, (character) => ` ${character.toLocaleLowerCase("en-US")}`),
+      durable[field],
+      lifecycleRow.fieldOverrides[field] ?? defaults,
+    ]),
+  ];
+  for (const [label, actual, allowed] of requirements) {
+    if (!allowed.includes(actual)) {
+      const expected = allowed.length === 1 ? allowed[0] : `one of ${allowed.join(", ")}`;
+      throw new Error(`${declaration.value.professionalResult} professional result requires ${label} ${expected}; got ${actual}; see ${resultContractPointer}`);
     }
   }
 
@@ -1010,7 +1047,7 @@ function runTrustedVerifier(pluginRoot, fixtureDirectory, runRoot, fixture) {
   );
 }
 
-function validateObservation(observation) {
+function validateObservation(observation, resultContract) {
   if (![1, 2].includes(observation.schemaVersion)) {
     throw new Error("observation schemaVersion must be 1 or 2");
   }
@@ -1035,7 +1072,7 @@ function validateObservation(observation) {
   validateTaskState(observation.taskStateBefore, "observation taskStateBefore");
   validateTaskState(observation.taskStateAfter, "observation taskStateAfter");
   requireNonEmptyString(observation.terminalClaim, "observation terminalClaim");
-  extractDeclaredResult(observation);
+  extractDeclaredResult(observation, resultContract);
 }
 
 export function verifyFixture({ pluginRoot, runRoot }) {
@@ -1050,11 +1087,11 @@ export function verifyFixture({ pluginRoot, runRoot }) {
   if (trustedBinding.canonicalRunRoot !== resolvedRunRoot || trustedBinding.lockHash !== hashFile(path.join(resolvedRunRoot, "fixture-lock.json"))) {
     throw new Error("fixture lock does not match its trusted binding");
   }
+  const fixture = loadFixture(resolvedPluginRoot, lock.fixtureId);
   const observationInput = inspectRunFile(resolvedRunRoot, "observation.json", "observation");
   if (!observationInput.ok) throw new Error(observationInput.evidence);
   const observation = readJson(observationInput.file, "observation");
-  validateObservation(observation);
-  const fixture = loadFixture(resolvedPluginRoot, lock.fixtureId);
+  validateObservation(observation, fixture.resultContract);
   const fixtureDirectory = path.join(resolvedPluginRoot, "evals/game-art-production", lock.fixtureId);
   const starterRoot = path.join(fixtureDirectory, "starter");
   const currentSourceTreeHash = hashTree(starterRoot);
@@ -1076,6 +1113,7 @@ export function verifyFixture({ pluginRoot, runRoot }) {
     resolvedRunRoot,
     observation,
     taskStateAfter,
+    fixture.resultContract,
   );
   const currentOutputTreeHash = hashTree(resolvedRunRoot, controlFiles);
 

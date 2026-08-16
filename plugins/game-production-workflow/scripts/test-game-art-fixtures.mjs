@@ -99,15 +99,87 @@ const declaredResult = (overrides = {}) => ({
   producerAcceptance: "Pending",
   ...overrides,
 });
+const expectedResultContract = {
+  schemaVersion: 2,
+  observationField: "declaredResult",
+  requiredKeys: [
+    "professionalResult", "representativeProof", "assemblyPrecheck", "taskResult",
+    "nextAction", "nextActionKind", "designAcceptance", "producerAcceptance",
+  ],
+  stringFields: ["nextAction"],
+  enums: {
+    professionalResult: ["Proposed", "Implemented", "Returned", "Blocked"],
+    representativeProof: ["Pending", "Passed", "Not applicable"],
+    assemblyPrecheck: ["Pending", "Passed", "Not applicable"],
+    taskResult: ["Not started", "Proposed", "Implemented", "Returned", "Blocked"],
+    nextActionKind: [
+      "produce-first-slice", "human-selection", "independent-review", "human-acceptance",
+      "bounded-repair", "replan", "capability-enabling", "alternative-candidate", "stop",
+    ],
+    designAcceptance: ["Pending", "Accepted", "Not applicable"],
+    producerAcceptance: ["Pending", "Accepted", "Not applicable"],
+  },
+  lifecycle: {
+    durableEqualityFields: [
+      "representativeProof", "assemblyPrecheck", "taskResult",
+      "designAcceptance", "producerAcceptance",
+    ],
+    taskStatusMustMatch: true,
+    nextActionMustMatch: true,
+    defaultAllowedFields: {
+      representativeProof: ["Pending", "Passed", "Not applicable"],
+      assemblyPrecheck: ["Pending", "Passed", "Not applicable"],
+      designAcceptance: ["Pending", "Accepted", "Not applicable"],
+      producerAcceptance: ["Pending", "Accepted", "Not applicable"],
+    },
+    byProfessionalResult: {
+      Proposed: {
+        taskStatuses: ["Clarifying"],
+        taskResults: ["Proposed"],
+        nextActionKinds: ["human-selection", "bounded-repair", "stop"],
+        fieldOverrides: {},
+      },
+      Implemented: {
+        taskStatuses: ["Implementing"],
+        taskResults: ["Implemented"],
+        nextActionKinds: ["independent-review", "human-acceptance", "bounded-repair", "stop"],
+        fieldOverrides: {
+          representativeProof: ["Passed"],
+          assemblyPrecheck: ["Passed"],
+        },
+      },
+      Returned: {
+        taskStatuses: ["Implementing"],
+        taskResults: ["Returned"],
+        nextActionKinds: ["bounded-repair", "replan", "capability-enabling", "alternative-candidate", "stop"],
+        fieldOverrides: {
+          producerAcceptance: ["Pending", "Not applicable"],
+        },
+      },
+      Blocked: {
+        taskStatuses: ["Clarifying", "Ready", "Implementing", "Blocked"],
+        taskResults: ["Blocked"],
+        nextActionKinds: ["replan", "capability-enabling", "alternative-candidate", "stop"],
+        fieldOverrides: {
+          producerAcceptance: ["Pending", "Not applicable"],
+        },
+      },
+    },
+  },
+};
 
 for (const id of ids) {
   const fixturePath = path.join(evalRoot, id, "fixture.json");
   assert(fs.existsSync(fixturePath), `missing fixture: ${id}`);
   const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
   assert.equal(fixture.id, id);
-  for (const field of ["operation", "request", "capabilityProfile", "artifactContract", "objectiveChecks", "subjectiveChecks", "prohibitedClaims", "stopConditions"]) {
+  for (const field of ["operation", "request", "capabilityProfile", "artifactContract", "resultContract", "objectiveChecks", "subjectiveChecks", "prohibitedClaims", "stopConditions"]) {
     assert(hasContent(fixture[field]), `${id}: ${field} is empty`);
   }
+  assert.deepEqual(fixture.resultContract, expectedResultContract, `${id}: worker-visible result contract differs from the trusted lifecycle schema`);
+  assert.match(fixture.request, /resultContract.*schemaVersion 2.*declaredResult.*TASK.*project/iu, `${id}: raw request must route workers to the public result contract`);
+  assert(!JSON.stringify(fixture.resultContract).includes(".tmp"), `${id}: result contract must not depend on an evaluation-root name`);
+  assert(!JSON.stringify(fixture.resultContract).includes(repositoryRoot), `${id}: result contract must remain portable across repository relocation`);
   assert.deepEqual(Object.keys(fixture.artifactContract).sort(), [
     "excludedPaths",
     "manifestPath",
@@ -1415,6 +1487,35 @@ try {
     (entry) => entry.id === "lifecycle-handoff" && entry.status === "Pass",
   ));
 
+  const missingPublicDeclaration = { ...validImplementedObservation, declaredResult: undefined };
+  fs.writeFileSync(
+    path.join(implementedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(missingPublicDeclaration, null, 2)}\n`,
+  );
+  assert.throws(
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /schemaVersion 2 requires declaredResult.*fixture\.resultContract/i,
+    "missing schema-2 declarations must route workers to the public contract",
+  );
+
+  const invalidPublicEnum = {
+    ...validImplementedObservation,
+    declaredResult: { ...validImplementedObservation.declaredResult, professionalResult: "Accepted" },
+  };
+  fs.writeFileSync(
+    path.join(implementedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(invalidPublicEnum, null, 2)}\n`,
+  );
+  assert.throws(
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /declaredResult\.professionalResult.*fixture\.resultContract/i,
+    "invalid schema-2 enum diagnostics must route workers to the public contract",
+  );
+  fs.writeFileSync(
+    path.join(implementedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify(validImplementedObservation, null, 2)}\n`,
+  );
+
   const nonPassageCases = [
     {
       professionalResult: "Returned",
@@ -1974,7 +2075,7 @@ try {
   );
   assert.throws(
     () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
-    /declaredResult/i,
+    /declaredResult.*fixture\.resultContract/i,
     "professional results in legacy ad hoc locations must use declaredResult",
   );
 
@@ -1990,6 +2091,31 @@ try {
   fs.copyFileSync(
     path.join(scriptDirectory, "game-art-composite-verifier.mjs"),
     path.join(sourceTestPlugin, "scripts/game-art-composite-verifier.mjs"),
+  );
+  const publicContractFixturePath = path.join(
+    sourceTestPlugin,
+    "evals/game-art-production/design-direction/fixture.json",
+  );
+  const publicContractFixture = JSON.parse(fs.readFileSync(publicContractFixturePath, "utf8"));
+  for (const [name, mutate] of [
+    ["missing declared key", (contract) => { contract.requiredKeys.pop(); }],
+    ["invented enum", (contract) => { contract.enums.professionalResult.push("Accepted"); }],
+    ["passage lifecycle row", (contract) => { contract.lifecycle.byProfessionalResult.Blocked.taskStatuses.push("Accepted"); }],
+  ]) {
+    const mutatedFixture = structuredClone(publicContractFixture);
+    mutate(mutatedFixture.resultContract);
+    fs.writeFileSync(publicContractFixturePath, `${JSON.stringify(mutatedFixture, null, 2)}\n`);
+    assert.throws(
+      () => fixtureApi.loadFixture(sourceTestPlugin, "design-direction"),
+      /fixture\.resultContract.*exactly match.*lifecycle semantics/i,
+      `${name}: public contract drift must fail closed in a relocated plugin`,
+    );
+  }
+  fs.writeFileSync(publicContractFixturePath, `${JSON.stringify(publicContractFixture, null, 2)}\n`);
+  assert.deepEqual(
+    fixtureApi.loadFixture(sourceTestPlugin, "design-direction").resultContract,
+    expectedResultContract,
+    "restored public result contract must validate after repository relocation",
   );
   const reservedBindingNamespace = path.join(sourceTestRepository, ".tmp/game-art-evals/.fixture-bindings");
   assert.throws(
