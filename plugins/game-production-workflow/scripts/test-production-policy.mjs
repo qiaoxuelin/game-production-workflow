@@ -727,7 +727,7 @@ const substantialFeatureRoute = coreSkill.match(
 assert(substantialFeatureRoute, "core is missing the substantial-feature route");
 assert.match(
   substantialFeatureRoute,
-  /game-art-production[\s\S]*must\s+not[\s\S]*routine accepted-baseline Fast repairs[\s\S]*non-art\/non-visual work/i,
+  /game-art-production[\s\S]*must\s+not[\s\S]*accepted-baseline Fast repairs[\s\S]*non-art\/non-visual work/i,
   "accepted-baseline Fast repairs and non-visual work must not load the art Skill",
 );
 assert.match(

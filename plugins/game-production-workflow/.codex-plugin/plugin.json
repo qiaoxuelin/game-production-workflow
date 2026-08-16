@@ -1,6 +1,6 @@
 {
   "name": "game-production-workflow",
-  "version": "1.8.0+codex.20260815113302",
+  "version": "1.8.0+codex.20260816121239",
   "description": "Standalone repository-resident game production execution, governance, and durable approvals.",
   "author": {
     "name": "qiaoxuelin",

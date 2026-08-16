@@ -73,12 +73,17 @@ const startRoute = coreSkill.match(
 assert(startRoute, "core is missing the substantial-feature route");
 assert.match(
   startRoute,
-  /unresolved\s+interactive UI\/2D direction[\s\S]*game-art-production[\s\S]*`Design`/i,
+  /unresolved\s+or\s+selected-without-frozen-implementable-production-design\s+interactive UI\/2D direction[\s\S]*game-art-production[\s\S]*`Design`/i,
   "unresolved interactive UI/2D direction must route to Design",
 );
 assert.match(
   startRoute,
-  /must\s+not load for routine accepted-baseline Fast repairs or non-art\/non-visual work/i,
+  /selected-without-frozen-implementable-production-design[\s\S]{0,160}game-art-production[\s\S]{0,80}`Design`/i,
+  "a selected Direction without frozen implementable Production design must route to the second Design pass",
+);
+assert.match(
+  startRoute,
+  /must\s+not load for accepted-baseline Fast repairs or non-art\/non-visual work/i,
   "accepted-baseline Fast repairs and non-art work must stay off the art route",
 );
 

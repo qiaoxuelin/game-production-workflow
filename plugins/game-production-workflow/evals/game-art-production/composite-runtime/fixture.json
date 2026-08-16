@@ -3,7 +3,7 @@
   "id": "composite-runtime",
   "policyVersion": "1.7.2",
   "operation": "Replace a flattened inventory concept with editable separated assets and project-native runtime components.",
-  "request": "Implement the frozen inventory direction as editable separated source assets and project-native components. Preserve state.mjs as the single authoritative source for empty, full, error, equip, and controller-focus behavior. Integrate actual keyboard and pointer input, prove multiple runtime states, document source/export/import handling, and provide runtime captures. The supplied inventory-concept.svg is a flattened concept only and must not be claimed as runtime UI or a production asset inventory.",
+  "request": "Implement the frozen inventory direction as editable separated source assets and project-native components. Preserve state.mjs as the single authoritative source for empty, full, error, equip, and controller-focus behavior. Integrate actual keyboard and pointer input, prove multiple runtime states, document source/export/import handling, and provide real raster runtime captures. The supplied inventory-concept.svg is a flattened concept only and must not be claimed as runtime UI or a production asset inventory. Write artifacts/artifact-manifest.json with exactly schemaVersion 1 and an artifacts array. Each entry has run-relative path and role. Use runtime-component, editable-source, and source-export-import entries with only path and role; use runtime-capture entries with path, role, mediaType (image/png or image/jpeg), state, and viewport. Supply at least the role counts and runtime state/viewport pairs declared by artifactContract; filenames are otherwise your choice.",
   "capabilityProfile": {
     "gameProductionSystem": "1.7.2",
     "imageGenerationAvailable": true,
@@ -11,21 +11,44 @@
     "browserRuntimeInspection": true,
     "projectNativeComponentsRequired": true
   },
-  "requiredArtifacts": [
-    "web/components/inventory-panel.mjs",
-    "web/assets/inventory-frame.svg",
-    "web/assets/inventory-icons.svg",
-    "artifacts/source-export-import.md",
-    "artifacts/runtime-captures/empty.svg",
-    "artifacts/runtime-captures/full.svg",
-    "artifacts/runtime-captures/error.svg",
-    "artifacts/runtime-captures/equip.svg",
-    "artifacts/runtime-captures/controller-focus.svg"
-  ],
+  "artifactContract": {
+    "schemaVersion": 1,
+    "manifestPath": "artifacts/artifact-manifest.json",
+    "excludedPaths": ["web/assets/inventory-concept.svg"],
+    "requirements": [
+      {
+        "role": "runtime-component",
+        "minCount": 1,
+        "extensions": [".js", ".mjs", ".ts", ".tsx"]
+      },
+      {
+        "role": "editable-source",
+        "minCount": 2,
+        "extensions": [".svg", ".css", ".html"]
+      },
+      {
+        "role": "source-export-import",
+        "minCount": 1,
+        "extensions": [".md"]
+      },
+      {
+        "role": "runtime-capture",
+        "minCount": 5,
+        "extensions": [".png", ".jpg", ".jpeg"],
+        "requiredCoverage": [
+          { "state": "empty", "viewport": "1280x720" },
+          { "state": "full", "viewport": "1280x720" },
+          { "state": "error", "viewport": "1280x720" },
+          { "state": "equip", "viewport": "1280x720" },
+          { "state": "controller-focus", "viewport": "1280x720" }
+        ]
+      }
+    ]
+  },
   "objectiveChecks": [
     {
       "id": "required-artifacts",
-      "description": "Every separated source, native component, handoff note, and runtime capture exists and is non-empty."
+      "description": "The disclosed semantic artifact manifest proves a native component, separated editable sources, source/export/import notes, and real raster runtime captures for every required state."
     },
     {
       "id": "local-state-verifier",

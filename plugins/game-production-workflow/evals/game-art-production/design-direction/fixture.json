@@ -3,7 +3,7 @@
   "id": "design-direction",
   "policyVersion": "1.7.2",
   "operation": "Produce and integrate an original 2D/UI design direction for the frozen result-screen experience.",
-  "request": "Create a production-ready original visual direction for the result screen without changing the frozen player flow, platform, interaction semantics, or content extremes. Demonstrate all required states and both target viewports in the runtime shell, retain editable separated source assets, document source/export/import handling, and provide runtime captures. The human producer owns selection of the visual direction and final product-quality judgment.",
+  "request": "Create a production-ready original visual direction for the result screen without changing the frozen player flow, platform, interaction semantics, or content extremes. Demonstrate all required states and both target viewports in the runtime shell, retain editable separated source assets, document source/export/import handling, and provide real raster runtime captures. The human producer owns selection of the visual direction and final product-quality judgment. Write artifacts/artifact-manifest.json with exactly schemaVersion 1 and an artifacts array. Each entry has run-relative path and role. Use design-document, editable-source, and source-export-import entries with only path and role; use runtime-capture entries with path, role, mediaType (image/png or image/jpeg), state, and viewport. Supply at least the role counts and runtime state/viewport pairs declared by artifactContract; filenames are otherwise your choice.",
   "capabilityProfile": {
     "gameProductionSystem": "1.7.2",
     "imageGenerationAvailable": true,
@@ -11,18 +11,43 @@
     "browserRuntimeInspection": true,
     "externalArtDirectionSelected": false
   },
-  "requiredArtifacts": [
-    "artifacts/design-direction.md",
-    "artifacts/source-export-import.md",
-    "artifacts/runtime-captures/1280x720-success.svg",
-    "artifacts/runtime-captures/1280x720-failure.svg",
-    "artifacts/runtime-captures/390x844-reward-overflow.svg",
-    "artifacts/runtime-captures/390x844-controller-focus.svg"
-  ],
+  "artifactContract": {
+    "schemaVersion": 1,
+    "manifestPath": "artifacts/artifact-manifest.json",
+    "excludedPaths": [],
+    "requirements": [
+      {
+        "role": "design-document",
+        "minCount": 1,
+        "extensions": [".md"]
+      },
+      {
+        "role": "editable-source",
+        "minCount": 2,
+        "extensions": [".svg", ".css", ".html", ".js", ".mjs"]
+      },
+      {
+        "role": "source-export-import",
+        "minCount": 1,
+        "extensions": [".md"]
+      },
+      {
+        "role": "runtime-capture",
+        "minCount": 4,
+        "extensions": [".png", ".jpg", ".jpeg"],
+        "requiredCoverage": [
+          { "state": "success", "viewport": "1280x720" },
+          { "state": "failure", "viewport": "1280x720" },
+          { "state": "reward-overflow", "viewport": "390x844" },
+          { "state": "controller-focus", "viewport": "390x844" }
+        ]
+      }
+    ]
+  },
   "objectiveChecks": [
     {
       "id": "required-artifacts",
-      "description": "Every declared direction, source handoff, and runtime capture artifact exists and is non-empty."
+      "description": "The disclosed semantic artifact manifest proves separated editable sources, source/export/import notes, and real raster runtime captures for every required state/viewport pair."
     },
     {
       "id": "task-state-claims",

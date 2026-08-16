@@ -294,9 +294,9 @@ standalone for production.
    define the applicable completeness representation and run and pass its cheapest
    static validator before `Frozen`.
 8. Read [game-content-design.md](references/game-content-design.md) for gameplay,
-   level, balance, economy, progression, content, or narrative. Unresolved
-   interactive UI/2D direction requires `game-art-production` `Design`; it must
-   not load for routine accepted-baseline Fast repairs or non-art/non-visual work.
+   level, balance, economy, progression, content, or narrative. Unresolved or
+   selected-without-frozen-implementable-production-design interactive UI/2D direction requires
+   `game-art-production` `Design`; must not load for accepted-baseline Fast repairs or non-art/non-visual work.
    Character, environment, 3D, animation, VFX, technical-art, and broad visual
    work remain on [visual-production.md](references/visual-production.md). Apply
    its asset-family split for material shared-master, variant, ownership, import,

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import zlib from "node:zlib";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
@@ -104,9 +105,22 @@ for (const id of ids) {
   assert(fs.existsSync(fixturePath), `missing fixture: ${id}`);
   const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
   assert.equal(fixture.id, id);
-  for (const field of ["operation", "request", "capabilityProfile", "requiredArtifacts", "objectiveChecks", "subjectiveChecks", "prohibitedClaims", "stopConditions"]) {
+  for (const field of ["operation", "request", "capabilityProfile", "artifactContract", "objectiveChecks", "subjectiveChecks", "prohibitedClaims", "stopConditions"]) {
     assert(hasContent(fixture[field]), `${id}: ${field} is empty`);
   }
+  assert.deepEqual(Object.keys(fixture.artifactContract).sort(), [
+    "excludedPaths",
+    "manifestPath",
+    "requirements",
+    "schemaVersion",
+  ]);
+  assert.equal(fixture.artifactContract.schemaVersion, 1);
+  assert.equal(fixture.artifactContract.manifestPath, "artifacts/artifact-manifest.json");
+  assert(fixture.request.includes(fixture.artifactContract.manifestPath), `${id}: request must disclose the artifact manifest path`);
+  assert(Array.isArray(fixture.artifactContract.requirements) && fixture.artifactContract.requirements.length > 0);
+  assert(fixture.artifactContract.requirements.some(({ role }) => role === "editable-source"));
+  assert(fixture.artifactContract.requirements.some(({ role }) => role === "source-export-import"));
+  assert(fixture.artifactContract.requirements.some(({ role }) => role === "runtime-capture"));
 
   const starterRoot = path.join(evalRoot, id, "starter");
   const starterFiles = fs.readdirSync(starterRoot, { recursive: true, withFileTypes: true })
@@ -227,6 +241,81 @@ const fixtureApi = await import(pathToFileURL(cliPath));
 for (const name of ["parseFixtureArguments", "loadFixture", "hashTree", "prepareFixture", "verifyFixture"]) {
   assert.equal(typeof fixtureApi[name], "function", `missing exported CLI function: ${name}`);
 }
+
+const crc32 = (content) => {
+  let crc = 0xffffffff;
+  for (const byte of content) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+};
+const pngChunk = (type, payload = Buffer.alloc(0)) => {
+  const typeBytes = Buffer.from(type, "ascii");
+  const chunk = Buffer.alloc(12 + payload.length);
+  chunk.writeUInt32BE(payload.length, 0);
+  typeBytes.copy(chunk, 4);
+  payload.copy(chunk, 8);
+  chunk.writeUInt32BE(crc32(Buffer.concat([typeBytes, payload])), 8 + payload.length);
+  return chunk;
+};
+const pngFixture = (width, height) => {
+  const header = Buffer.alloc(13);
+  header.writeUInt32BE(width, 0);
+  header.writeUInt32BE(height, 4);
+  header[8] = 8;
+  header[9] = 2;
+  const scanline = Buffer.alloc(1 + width * 3);
+  return Buffer.concat([
+    Buffer.from("89504e470d0a1a0a", "hex"),
+    pngChunk("IHDR", header),
+    pngChunk("IDAT", zlib.deflateSync(Buffer.concat(Array.from({ length: height }, () => scanline)))),
+    pngChunk("IEND"),
+  ]);
+};
+
+const materializeArtifactContract = (runRoot, fixture) => {
+  const artifacts = [];
+  for (const requirement of fixture.artifactContract.requirements) {
+    for (let index = 0; index < requirement.minCount; index += 1) {
+      const stem = `${requirement.role}-${index + 1}`;
+      if (requirement.role === "runtime-capture") {
+        const coverage = requirement.requiredCoverage[index];
+        const relative = `artifacts/contract/${stem}.png`;
+        const target = path.join(runRoot, relative);
+        fs.mkdirSync(path.dirname(target), { recursive: true });
+        const [width, height] = coverage.viewport.split("x").map(Number);
+        fs.writeFileSync(target, pngFixture(width, height));
+        artifacts.push({
+          path: relative,
+          role: requirement.role,
+          mediaType: "image/png",
+          state: coverage.state,
+          viewport: coverage.viewport,
+        });
+        continue;
+      }
+      const extension = requirement.extensions[0];
+      const relative = `artifacts/contract/${stem}${extension}`;
+      const target = path.join(runRoot, relative);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      const content = extension === ".svg"
+        ? `<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0h1v1z"/></svg>\n`
+        : extension === ".css"
+          ? `.fixture { display: block; }\n`
+          : extension === ".html"
+            ? `<div>fixture</div>\n`
+            : `fixture test artifact: ${requirement.role}\n`;
+      fs.writeFileSync(target, content);
+      artifacts.push({ path: relative, role: requirement.role });
+    }
+  }
+  const manifestPath = path.join(runRoot, fixture.artifactContract.manifestPath);
+  fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+  const manifest = { schemaVersion: 1, artifacts };
+  fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  return { manifest, manifestPath };
+};
 
 assert(fs.existsSync(controlSummaryPath), "missing 1.7.2 control summary");
 const controlSummary = JSON.parse(fs.readFileSync(controlSummaryPath, "utf8"));
@@ -772,11 +861,8 @@ try {
     );
 
     const fixture = fixtureApi.loadFixture(pluginRoot, id);
-    for (const relative of fixture.requiredArtifacts) {
-      const artifact = path.join(runRoot, relative);
-      fs.mkdirSync(path.dirname(artifact), { recursive: true });
-      fs.writeFileSync(artifact, `fixture test artifact: ${relative}\n`);
-    }
+    const { manifest: artifactManifest, manifestPath: artifactManifestPath } =
+      materializeArtifactContract(runRoot, fixture);
 
     const observation = {
       schemaVersion: 1,
@@ -956,14 +1042,224 @@ try {
       assert(terminatingStateResult.objectiveChecks.some((check) => check.id === "local-state-verifier" && check.status === "Fail"));
       fs.writeFileSync(statePath, stateContent);
 
-      const missingArtifact = path.join(runRoot, fixture.requiredArtifacts[0]);
-      const missingArtifactContent = fs.readFileSync(missingArtifact, "utf8");
+      const missingArtifactRelative = artifactManifest.artifacts.find(
+        ({ role }) => role === "editable-source",
+      ).path;
+      const missingArtifact = path.join(runRoot, missingArtifactRelative);
+      const missingArtifactContent = fs.readFileSync(missingArtifact);
       fs.rmSync(missingArtifact);
       const missingArtifactObservation = { ...observation, outputTreeHash: outputHash(runRoot) };
       fs.writeFileSync(path.join(runRoot, "observation.json"), `${JSON.stringify(missingArtifactObservation, null, 2)}\n`);
       const missingArtifactResult = fixtureApi.verifyFixture({ pluginRoot, runRoot });
       assert(missingArtifactResult.objectiveChecks.some((check) => check.id === "required-artifacts" && check.status === "Fail"));
       fs.writeFileSync(missingArtifact, missingArtifactContent);
+
+      const writeArtifactMutation = (manifest) => {
+        fs.writeFileSync(artifactManifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+        const mutatedObservation = { ...observation, outputTreeHash: outputHash(runRoot) };
+        fs.writeFileSync(path.join(runRoot, "observation.json"), `${JSON.stringify(mutatedObservation, null, 2)}\n`);
+        return fixtureApi.verifyFixture({ pluginRoot, runRoot });
+      };
+      const expectArtifactFailure = (name, manifest, evidencePattern) => {
+        const mutationResult = writeArtifactMutation(manifest);
+        const artifactCheck = mutationResult.objectiveChecks.find(({ id: checkId }) => checkId === "required-artifacts");
+        assert.equal(artifactCheck.status, "Fail", `${name}: artifact mutation passed`);
+        assert.match(artifactCheck.evidence.join("\n"), evidencePattern, `${name}: wrong failure evidence`);
+      };
+      const captureEntry = artifactManifest.artifacts.find(({ role }) => role === "runtime-capture");
+      const editableEntry = artifactManifest.artifacts.find(({ role }) => role === "editable-source");
+      const outsidePath = path.join(tempRoot, "outside-artifact.svg");
+      fs.writeFileSync(outsidePath, "<svg/>\n");
+
+      expectArtifactFailure(
+        "missing required role",
+        {
+          ...artifactManifest,
+          artifacts: artifactManifest.artifacts.filter(({ role }) => role !== "source-export-import"),
+        },
+        /source-export-import.*requires/i,
+      );
+      expectArtifactFailure(
+        "outside-run artifact path",
+        {
+          ...artifactManifest,
+          artifacts: artifactManifest.artifacts.map((entry) => entry === editableEntry
+            ? { ...entry, path: path.relative(runRoot, outsidePath) }
+            : entry),
+        },
+        /outside run root/i,
+      );
+
+      const emptyArtifactContent = fs.readFileSync(missingArtifact);
+      fs.writeFileSync(missingArtifact, "");
+      expectArtifactFailure("empty artifact", artifactManifest, /empty/i);
+      fs.writeFileSync(missingArtifact, emptyArtifactContent);
+
+      const unsupportedCapture = "artifacts/contract/unsupported-capture.svg";
+      fs.writeFileSync(path.join(runRoot, unsupportedCapture), "<svg/>\n");
+      expectArtifactFailure(
+        "unsupported capture type",
+        {
+          ...artifactManifest,
+          artifacts: artifactManifest.artifacts.map((entry) => entry === captureEntry
+            ? { ...entry, path: unsupportedCapture, mediaType: "image/svg+xml" }
+            : entry),
+        },
+        /runtime-capture.*(?:extension|media type)/i,
+      );
+
+      const falseEditable = "artifacts/contract/false-editable.png";
+      fs.writeFileSync(path.join(runRoot, falseEditable), pngFixture(1280, 720));
+      expectArtifactFailure(
+        "false editable role",
+        {
+          ...artifactManifest,
+          artifacts: artifactManifest.artifacts.map((entry) => entry === editableEntry
+            ? { ...entry, path: falseEditable }
+            : entry),
+        },
+        /editable-source.*extension/i,
+      );
+
+      const falseEditableSource = "artifacts/contract/false-editable.svg";
+      fs.writeFileSync(path.join(runRoot, falseEditableSource), "plain text is not editable SVG source\n");
+      expectArtifactFailure(
+        "false editable source role",
+        {
+          ...artifactManifest,
+          artifacts: artifactManifest.artifacts.map((entry) => entry === editableEntry
+            ? { ...entry, path: falseEditableSource }
+            : entry),
+        },
+        /editable-source.*not recognizable/i,
+      );
+
+      const excludedEditable = fixture.artifactContract.excludedPaths[0];
+      assert(excludedEditable, "composite fixture must exclude its flattened concept input");
+      expectArtifactFailure(
+        "excluded fixture input role",
+        {
+          ...artifactManifest,
+          artifacts: artifactManifest.artifacts.map((entry) => entry === editableEntry
+            ? { ...entry, path: excludedEditable }
+            : entry),
+        },
+        /editable-source.*excluded fixture input/i,
+      );
+
+      const falseRuntime = "artifacts/contract/false-runtime.png";
+      fs.writeFileSync(path.join(runRoot, falseRuntime), "not a raster capture\n");
+      expectArtifactFailure(
+        "false runtime role",
+        {
+          ...artifactManifest,
+          artifacts: artifactManifest.artifacts.map((entry) => entry === captureEntry
+            ? { ...entry, path: falseRuntime }
+            : entry),
+        },
+        /runtime-capture.*signature/i,
+      );
+
+      const falseDimensions = "artifacts/contract/false-dimensions.png";
+      fs.writeFileSync(path.join(runRoot, falseDimensions), pngFixture(1, 1));
+      expectArtifactFailure(
+        "false runtime dimensions",
+        {
+          ...artifactManifest,
+          artifacts: artifactManifest.artifacts.map((entry) => entry === captureEntry
+            ? { ...entry, path: falseDimensions }
+            : entry),
+        },
+        /runtime-capture.*declared viewport.*does not match raster dimensions/i,
+      );
+
+      const truncatedRuntime = "artifacts/contract/truncated-runtime.png";
+      const truncatedPng = Buffer.alloc(24);
+      Buffer.from("89504e470d0a1a0a", "hex").copy(truncatedPng, 0);
+      truncatedPng.writeUInt32BE(1280, 16);
+      truncatedPng.writeUInt32BE(720, 20);
+      fs.writeFileSync(path.join(runRoot, truncatedRuntime), truncatedPng);
+      expectArtifactFailure(
+        "truncated raster container",
+        {
+          ...artifactManifest,
+          artifacts: artifactManifest.artifacts.map((entry) => entry === captureEntry
+            ? { ...entry, path: truncatedRuntime }
+            : entry),
+        },
+        /runtime-capture.*PNG.*(?:IDAT|structure)/i,
+      );
+
+      const falseInterlacedRuntime = "artifacts/contract/false-interlaced-dimensions.png";
+      const falseInterlacedHeader = Buffer.alloc(13);
+      falseInterlacedHeader.writeUInt32BE(1280, 0);
+      falseInterlacedHeader.writeUInt32BE(720, 4);
+      falseInterlacedHeader[8] = 8;
+      falseInterlacedHeader[9] = 2;
+      falseInterlacedHeader[12] = 1;
+      fs.writeFileSync(path.join(runRoot, falseInterlacedRuntime), Buffer.concat([
+        Buffer.from("89504e470d0a1a0a", "hex"),
+        pngChunk("IHDR", falseInterlacedHeader),
+        pngChunk("IDAT", zlib.deflateSync(Buffer.from([0]))),
+        pngChunk("IEND"),
+      ]));
+      expectArtifactFailure(
+        "false interlaced runtime dimensions",
+        {
+          ...artifactManifest,
+          artifacts: artifactManifest.artifacts.map((entry) => entry === captureEntry
+            ? { ...entry, path: falseInterlacedRuntime }
+            : entry),
+        },
+        /runtime-capture.*PNG.*(?:IDAT dimensions|scanline)/i,
+      );
+
+      const truncatedJpegRuntime = "artifacts/contract/truncated-runtime.jpg";
+      const truncatedJpeg = Buffer.alloc(13);
+      Buffer.from("ffd8ffc00008", "hex").copy(truncatedJpeg, 0);
+      truncatedJpeg.writeUInt16BE(720, 7);
+      truncatedJpeg.writeUInt16BE(1280, 9);
+      fs.writeFileSync(path.join(runRoot, truncatedJpegRuntime), truncatedJpeg);
+      expectArtifactFailure(
+        "truncated JPEG container",
+        {
+          ...artifactManifest,
+          artifacts: artifactManifest.artifacts.map((entry) => entry === captureEntry
+            ? { ...entry, path: truncatedJpegRuntime, mediaType: "image/jpeg" }
+            : entry),
+        },
+        /runtime-capture.*JPEG.*(?:scan|EOI|structure)/i,
+      );
+
+      const emptyScanJpegRuntime = "artifacts/contract/empty-scan-runtime.jpg";
+      const frameHeader = Buffer.alloc(11);
+      frameHeader.writeUInt16BE(11, 0);
+      frameHeader[2] = 8;
+      frameHeader.writeUInt16BE(720, 3);
+      frameHeader.writeUInt16BE(1280, 5);
+      frameHeader[7] = 1;
+      frameHeader[8] = 1;
+      frameHeader[9] = 0x11;
+      const scanHeader = Buffer.from([0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3f, 0x00]);
+      fs.writeFileSync(path.join(runRoot, emptyScanJpegRuntime), Buffer.concat([
+        Buffer.from("ffd8ffc0", "hex"),
+        frameHeader,
+        Buffer.from("ffda", "hex"),
+        scanHeader,
+        Buffer.from("ffd9", "hex"),
+      ]));
+      expectArtifactFailure(
+        "empty JPEG scan data",
+        {
+          ...artifactManifest,
+          artifacts: artifactManifest.artifacts.map((entry) => entry === captureEntry
+            ? { ...entry, path: emptyScanJpegRuntime, mediaType: "image/jpeg" }
+            : entry),
+        },
+        /runtime-capture.*JPEG.*scan data/i,
+      );
+
+      fs.writeFileSync(artifactManifestPath, `${JSON.stringify(artifactManifest, null, 2)}\n`);
 
       if (symlinksSupported) {
         const externalArtifact = path.join(symlinkTarget, "external-artifact.txt");
@@ -976,6 +1272,17 @@ try {
         );
         fs.rmSync(missingArtifact);
         fs.writeFileSync(missingArtifact, missingArtifactContent);
+
+        const manifestTarget = path.join(symlinkTarget, "external-manifest.json");
+        fs.writeFileSync(manifestTarget, `${JSON.stringify(artifactManifest, null, 2)}\n`);
+        fs.rmSync(artifactManifestPath);
+        fs.symlinkSync(manifestTarget, artifactManifestPath);
+        assert.throws(
+          () => fixtureApi.verifyFixture({ pluginRoot, runRoot }),
+          /symbolic links/,
+        );
+        fs.rmSync(artifactManifestPath);
+        fs.writeFileSync(artifactManifestPath, `${JSON.stringify(artifactManifest, null, 2)}\n`);
 
         fs.rmSync(runVerifier);
         fs.symlinkSync(externalArtifact, runVerifier);
@@ -999,11 +1306,7 @@ try {
       outputRoot: runRoot,
     });
     const fixture = fixtureApi.loadFixture(pluginRoot, fixtureId);
-    for (const relative of fixture.requiredArtifacts) {
-      const artifact = path.join(runRoot, relative);
-      fs.mkdirSync(path.dirname(artifact), { recursive: true });
-      fs.writeFileSync(artifact, `lifecycle fixture artifact: ${relative}\n`);
-    }
+    materializeArtifactContract(runRoot, fixture);
     return { runRoot, lock };
   };
   const writeLifecycleObservation = (runRoot, lock, taskStateAfter, resultDeclaration) => {
@@ -1111,6 +1414,100 @@ try {
   assert(validImplementedResult.objectiveChecks.some(
     (entry) => entry.id === "lifecycle-handoff" && entry.status === "Pass",
   ));
+
+  const nonPassageCases = [
+    {
+      professionalResult: "Returned",
+      status: "Implementing",
+      taskResult: "Returned",
+      nextAction: "Repair the frozen runtime criterion, then repeat independent review.",
+      nextActionKind: "bounded-repair",
+    },
+    {
+      professionalResult: "Blocked",
+      status: "Clarifying",
+      taskResult: "Blocked",
+      nextAction: "Restore the missing observation path before any passage decision.",
+      nextActionKind: "capability-enabling",
+    },
+  ];
+  for (const fixtureCase of nonPassageCases) {
+    const observation = configureImplementedRun(
+      implementedLifecycle.runRoot,
+      implementedLifecycle.lock,
+      {
+        status: fixtureCase.status,
+        declaredResult: {
+          professionalResult: fixtureCase.professionalResult,
+          taskResult: fixtureCase.taskResult,
+          nextAction: fixtureCase.nextAction,
+          nextActionKind: fixtureCase.nextActionKind,
+          designAcceptance: "Accepted",
+          producerAcceptance: "Pending",
+        },
+      },
+    );
+    const result = fixtureApi.verifyFixture({
+      pluginRoot,
+      runRoot: implementedLifecycle.runRoot,
+    });
+    assert.equal(result.taskStateAfter.status, fixtureCase.status);
+    assert.deepEqual(result.declaredResult, observation.declaredResult);
+    assert(result.objectiveChecks.some(
+      (entry) => entry.id === "lifecycle-handoff" && entry.status === "Pass",
+    ));
+  }
+
+  for (const professionalResult of ["Returned", "Blocked"]) {
+    const nextActionKind = professionalResult === "Returned" ? "bounded-repair" : "capability-enabling";
+    const nextAction = `${professionalResult} work must remain in a non-passage state.`;
+    configureImplementedRun(implementedLifecycle.runRoot, implementedLifecycle.lock, {
+      status: "Accepted",
+      declaredResult: {
+        professionalResult,
+        taskResult: professionalResult,
+        nextAction,
+        nextActionKind,
+      },
+    });
+    assert.throws(
+      () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+      new RegExp(`${professionalResult}.*Accepted|Accepted.*${professionalResult}`, "i"),
+      `${professionalResult} professional results must never accept Accepted task status`,
+    );
+
+    configureImplementedRun(implementedLifecycle.runRoot, implementedLifecycle.lock, {
+      status: professionalResult === "Returned" ? "Implementing" : "Clarifying",
+      declaredResult: {
+        professionalResult,
+        taskResult: "Implemented",
+        nextAction,
+        nextActionKind,
+      },
+    });
+    assert.throws(
+      () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+      new RegExp(`${professionalResult}.*task Result ${professionalResult}`, "i"),
+      `${professionalResult} professional results must not retain an Implemented task result`,
+    );
+
+    configureImplementedRun(implementedLifecycle.runRoot, implementedLifecycle.lock, {
+      status: professionalResult === "Returned" ? "Implementing" : "Clarifying",
+      declaredResult: {
+        professionalResult,
+        taskResult: professionalResult,
+        nextAction,
+        nextActionKind,
+        producerAcceptance: "Accepted",
+      },
+    });
+    assert.throws(
+      () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+      new RegExp(`${professionalResult}.*producer acceptance.*Pending|Not applicable`, "i"),
+      `${professionalResult} professional results must not smuggle producer passage`,
+    );
+  }
+  configureImplementedRun(implementedLifecycle.runRoot, implementedLifecycle.lock);
 
   for (const [professionalResult, nextActionKind] of [
     ["Returned", "human-acceptance"],
@@ -1630,11 +2027,7 @@ try {
     outputRoot: sourceTestRun,
   });
   const sourceTestFixture = fixtureApi.loadFixture(sourceTestPlugin, "design-direction");
-  for (const relative of sourceTestFixture.requiredArtifacts) {
-    const artifact = path.join(sourceTestRun, relative);
-    fs.mkdirSync(path.dirname(artifact), { recursive: true });
-    fs.writeFileSync(artifact, `source test artifact: ${relative}\n`);
-  }
+  materializeArtifactContract(sourceTestRun, sourceTestFixture);
   const sourceTestObservation = {
     schemaVersion: 1,
     sourceTreeHash: sourceTestLock.sourceTreeHash,
@@ -1683,11 +2076,7 @@ try {
     label: "verifier-mutation",
     outputRoot: mutationRun,
   });
-  for (const relative of mutationFixture.requiredArtifacts) {
-    const artifact = path.join(mutationRun, relative);
-    fs.mkdirSync(path.dirname(artifact), { recursive: true });
-    fs.writeFileSync(artifact, `mutation test artifact: ${relative}\n`);
-  }
+  materializeArtifactContract(mutationRun, mutationFixture);
   const mutationObservation = {
     schemaVersion: 1,
     sourceTreeHash: mutationLock.sourceTreeHash,
@@ -1716,11 +2105,7 @@ try {
   assert(fs.existsSync(path.join(cliOutput, "fixture-lock.json")));
 
   const cliFixture = fixtureApi.loadFixture(pluginRoot, "design-direction");
-  for (const relative of cliFixture.requiredArtifacts) {
-    const artifact = path.join(cliOutput, relative);
-    fs.mkdirSync(path.dirname(artifact), { recursive: true });
-    fs.writeFileSync(artifact, `CLI fixture artifact: ${relative}\n`);
-  }
+  materializeArtifactContract(cliOutput, cliFixture);
   const cliLock = JSON.parse(fs.readFileSync(path.join(cliOutput, "fixture-lock.json"), "utf8"));
   const cliObservation = {
     schemaVersion: 1,

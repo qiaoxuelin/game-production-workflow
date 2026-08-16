@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import zlib from "node:zlib";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
@@ -503,6 +504,30 @@ function validateLifecycleHandoff(runRoot, observation, taskStateAfter) {
     }
   }
 
+  if (declaration.value.professionalResult === "Returned") {
+    if (taskStateAfter.status !== "Implementing") {
+      throw new Error("Returned professional result requires Implementing task status and cannot use Accepted");
+    }
+    if (durable.taskResult !== "Returned") {
+      throw new Error("Returned professional result requires task Result Returned");
+    }
+    if (durable.producerAcceptance === "Accepted") {
+      throw new Error("Returned professional result requires producer acceptance Pending or Not applicable");
+    }
+  }
+
+  if (declaration.value.professionalResult === "Blocked") {
+    if (!["Clarifying", "Ready", "Implementing", "Blocked"].includes(taskStateAfter.status)) {
+      throw new Error("Blocked professional result requires a non-passage task status and cannot use Accepted");
+    }
+    if (durable.taskResult !== "Blocked") {
+      throw new Error("Blocked professional result requires task Result Blocked");
+    }
+    if (durable.producerAcceptance === "Accepted") {
+      throw new Error("Blocked professional result requires producer acceptance Pending or Not applicable");
+    }
+  }
+
   return {
     declaredResult: declaration.complete ? declaration.value : undefined,
     evidence: [
@@ -597,16 +622,346 @@ function check(id, passed, evidence, blocked = false) {
   };
 }
 
-function verifyRequiredArtifacts(runRoot, requiredArtifacts) {
-  const evidence = [];
-  let passed = true;
-  for (const relative of requiredArtifacts) {
-    const artifactPath = path.resolve(runRoot, relative);
-    const insideRun = artifactPath.startsWith(`${runRoot}${path.sep}`);
-    const exists = insideRun && fs.existsSync(artifactPath) && fs.statSync(artifactPath).isFile() && fs.statSync(artifactPath).size > 0;
-    passed &&= exists;
-    evidence.push(`${relative}: ${exists ? "present" : "missing or empty"}`);
+function validateArtifactContract(contract) {
+  validateExactKeys(
+    contract,
+    ["schemaVersion", "manifestPath", "requirements", "excludedPaths"],
+    "fixture artifactContract",
+  );
+  if (contract.schemaVersion !== 1) throw new Error("fixture artifactContract schemaVersion must be 1");
+  requireNonEmptyString(contract.manifestPath, "fixture artifactContract.manifestPath");
+  if (path.isAbsolute(contract.manifestPath) || contract.manifestPath.includes("\\")) {
+    throw new Error("fixture artifactContract.manifestPath must be a canonical run-relative path");
   }
+  if (!Array.isArray(contract.excludedPaths) || !contract.excludedPaths.every((entry) => typeof entry === "string" && entry.length > 0)) {
+    throw new Error("fixture artifactContract.excludedPaths must be a string array");
+  }
+  if (!Array.isArray(contract.requirements) || contract.requirements.length === 0) {
+    throw new Error("fixture artifactContract.requirements must be non-empty");
+  }
+  const roles = new Set();
+  for (const requirement of contract.requirements) {
+    const runtimeCapture = requirement?.role === "runtime-capture";
+    validateExactKeys(
+      requirement,
+      runtimeCapture
+        ? ["role", "minCount", "extensions", "requiredCoverage"]
+        : ["role", "minCount", "extensions"],
+      "fixture artifact requirement",
+    );
+    requireNonEmptyString(requirement.role, "fixture artifact requirement role");
+    if (roles.has(requirement.role)) throw new Error(`duplicate fixture artifact role: ${requirement.role}`);
+    roles.add(requirement.role);
+    if (!Number.isInteger(requirement.minCount) || requirement.minCount < 1) {
+      throw new Error(`fixture artifact role ${requirement.role} minCount must be a positive integer`);
+    }
+    if (!Array.isArray(requirement.extensions) || requirement.extensions.length === 0 ||
+      !requirement.extensions.every((extension) => /^\.[a-z0-9]+$/u.test(extension))) {
+      throw new Error(`fixture artifact role ${requirement.role} extensions are invalid`);
+    }
+    if (runtimeCapture) {
+      if (!Array.isArray(requirement.requiredCoverage) || requirement.requiredCoverage.length !== requirement.minCount) {
+        throw new Error("fixture runtime-capture coverage must contain one entry per required capture");
+      }
+      for (const coverage of requirement.requiredCoverage) {
+        validateExactKeys(coverage, ["state", "viewport"], "fixture runtime-capture coverage");
+        requireNonEmptyString(coverage.state, "fixture runtime-capture coverage state");
+        if (!/^\d+x\d+$/u.test(coverage.viewport)) {
+          throw new Error("fixture runtime-capture coverage viewport must use WIDTHxHEIGHT");
+        }
+      }
+    }
+  }
+}
+
+function crc32(content) {
+  let crc = 0xffffffff;
+  for (const byte of content) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) {
+      crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
+    }
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function validatePngScanlines(header, scanlines) {
+  const channels = new Map([[0, 1], [2, 3], [3, 1], [4, 2], [6, 4]]).get(header.colorType);
+  const passes = header.interlace === 0
+    ? [[0, 0, 1, 1]]
+    : [[0, 0, 8, 8], [4, 0, 8, 8], [0, 4, 4, 8], [2, 0, 4, 4], [0, 2, 2, 4], [1, 0, 2, 2], [0, 1, 1, 2]];
+  let offset = 0;
+  for (const [startX, startY, stepX, stepY] of passes) {
+    const width = header.width <= startX ? 0 : Math.ceil((header.width - startX) / stepX);
+    const height = header.height <= startY ? 0 : Math.ceil((header.height - startY) / stepY);
+    if (width === 0 || height === 0) continue;
+    const rowBytes = Math.ceil(width * channels * header.bitDepth / 8);
+    const stride = rowBytes + 1;
+    const passLength = height * stride;
+    if (!Number.isSafeInteger(passLength) || offset + passLength > scanlines.length) {
+      throw new Error("PNG IDAT dimensions do not match IHDR");
+    }
+    for (let row = 0; row < height; row += 1) {
+      if (scanlines[offset + row * stride] > 4) throw new Error("PNG scanline uses an invalid filter");
+    }
+    offset += passLength;
+  }
+  if (offset !== scanlines.length) throw new Error("PNG IDAT dimensions do not match IHDR");
+}
+
+function pngIdentity(content) {
+  let offset = 8;
+  let header = null;
+  let sawImageData = false;
+  let sawEnd = false;
+  const imageData = [];
+  while (offset < content.length) {
+    if (offset + 12 > content.length) throw new Error("truncated PNG chunk");
+    const length = content.readUInt32BE(offset);
+    const chunkEnd = offset + 12 + length;
+    if (chunkEnd > content.length) throw new Error("truncated PNG chunk payload");
+    const type = content.toString("ascii", offset + 4, offset + 8);
+    const payload = content.subarray(offset + 8, offset + 8 + length);
+    const declaredCrc = content.readUInt32BE(offset + 8 + length);
+    if (crc32(content.subarray(offset + 4, offset + 8 + length)) !== declaredCrc) {
+      throw new Error(`invalid PNG ${type} checksum`);
+    }
+    if (!header && type !== "IHDR") throw new Error("PNG must begin with IHDR");
+    if (type === "IHDR") {
+      if (header || length !== 13) throw new Error("invalid PNG IHDR");
+      const width = payload.readUInt32BE(0);
+      const height = payload.readUInt32BE(4);
+      const bitDepth = payload[8];
+      const colorType = payload[9];
+      const compression = payload[10];
+      const filter = payload[11];
+      const interlace = payload[12];
+      const validBitDepths = new Map([
+        [0, new Set([1, 2, 4, 8, 16])],
+        [2, new Set([8, 16])],
+        [3, new Set([1, 2, 4, 8])],
+        [4, new Set([8, 16])],
+        [6, new Set([8, 16])],
+      ]);
+      if (!width || !height || !validBitDepths.get(colorType)?.has(bitDepth) || compression !== 0 || filter !== 0 || ![0, 1].includes(interlace)) {
+        throw new Error("invalid PNG IHDR fields");
+      }
+      header = { width, height, bitDepth, colorType, interlace };
+    } else if (type === "IDAT") {
+      if (!header || sawEnd || length === 0) throw new Error("invalid PNG IDAT sequence");
+      sawImageData = true;
+      imageData.push(payload);
+    } else if (type === "IEND") {
+      if (!sawImageData || length !== 0) throw new Error("PNG IEND requires image data");
+      sawEnd = true;
+      offset = chunkEnd;
+      break;
+    }
+    offset = chunkEnd;
+  }
+  if (!header || !sawImageData || !sawEnd || offset !== content.length) {
+    throw new Error("PNG structure requires IHDR, IDAT, and final IEND chunks");
+  }
+  let scanlines;
+  try {
+    scanlines = zlib.inflateSync(Buffer.concat(imageData), { maxOutputLength: 128 * 1024 * 1024 });
+  } catch {
+    throw new Error("PNG IDAT is not valid compressed image data");
+  }
+  validatePngScanlines(header, scanlines);
+  return { mediaType: "image/png", width: header.width, height: header.height };
+}
+
+function jpegIdentity(content) {
+  const startOfFrameMarkers = new Set([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf]);
+  let offset = 2;
+  let dimensions = null;
+  let sawScan = false;
+  let sawEnd = false;
+  let scanDataBytes = 0;
+  while (offset < content.length) {
+    if (content[offset] !== 0xff) throw new Error("invalid JPEG marker sequence");
+    while (offset < content.length && content[offset] === 0xff) offset += 1;
+    if (offset >= content.length) break;
+    const marker = content[offset];
+    offset += 1;
+    if (marker === 0xd9) {
+      sawEnd = true;
+      break;
+    }
+    if (marker === 0xd8 || marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) continue;
+    if (offset + 2 > content.length) throw new Error("truncated JPEG segment");
+    const length = content.readUInt16BE(offset);
+    if (length < 2 || offset + length > content.length) throw new Error("invalid JPEG segment length");
+    if (startOfFrameMarkers.has(marker)) {
+      if (length < 8) throw new Error("invalid JPEG frame header");
+      const height = content.readUInt16BE(offset + 3);
+      const width = content.readUInt16BE(offset + 5);
+      if (!width || !height) throw new Error("invalid JPEG dimensions");
+      dimensions = { width, height };
+    }
+    offset += length;
+    if (marker === 0xda) {
+      sawScan = true;
+      while (offset < content.length - 1) {
+        if (content[offset] !== 0xff) {
+          scanDataBytes += 1;
+          offset += 1;
+          continue;
+        }
+        const next = content[offset + 1];
+        if (next === 0x00) {
+          scanDataBytes += 1;
+          offset += 2;
+          continue;
+        }
+        if (next >= 0xd0 && next <= 0xd7) {
+          offset += 2;
+          continue;
+        }
+        break;
+      }
+    }
+  }
+  if (!dimensions || !sawScan || scanDataBytes === 0 || !sawEnd || offset !== content.length) {
+    throw new Error("JPEG structure requires a frame, non-empty scan data, and final EOI marker");
+  }
+  return { mediaType: "image/jpeg", ...dimensions };
+}
+
+function rasterIdentity(file) {
+  const content = fs.readFileSync(file);
+  const pngSignature = Buffer.from("89504e470d0a1a0a", "hex");
+  if (content.length >= 8 && content.subarray(0, 8).equals(pngSignature)) {
+    try {
+      return pngIdentity(content);
+    } catch (error) {
+      throw new Error(`runtime-capture: PNG structure invalid: ${error.message}`);
+    }
+  }
+  if (content.length >= 3 && content[0] === 0xff && content[1] === 0xd8 && content[2] === 0xff) {
+    try {
+      return jpegIdentity(content);
+    } catch (error) {
+      throw new Error(`runtime-capture: JPEG structure invalid: ${error.message}`);
+    }
+  }
+  return null;
+}
+
+function sourceLooksEditable(file, extension) {
+  const content = fs.readFileSync(file, "utf8").trim();
+  if (extension === ".svg") return /<svg(?:\s|>)/iu.test(content);
+  if (extension === ".css") return /\{[\s\S]*\}/u.test(content);
+  if (extension === ".html") return /<[^>]+>/u.test(content);
+  return content.length > 0;
+}
+
+function verifyRequiredArtifacts(runRoot, artifactContract) {
+  validateArtifactContract(artifactContract);
+  const evidence = [];
+  const manifestInput = inspectRunFile(
+    runRoot,
+    artifactContract.manifestPath,
+    "artifact manifest",
+  );
+  if (!manifestInput.ok) return check("required-artifacts", false, manifestInput.evidence);
+
+  let manifest;
+  try {
+    manifest = JSON.parse(fs.readFileSync(manifestInput.file, "utf8"));
+    validateExactKeys(manifest, ["schemaVersion", "artifacts"], "artifact manifest");
+    if (manifest.schemaVersion !== artifactContract.schemaVersion) {
+      throw new Error("artifact manifest schemaVersion does not match the fixture contract");
+    }
+    if (!Array.isArray(manifest.artifacts) || manifest.artifacts.length === 0) {
+      throw new Error("artifact manifest artifacts must be non-empty");
+    }
+  } catch (error) {
+    return check("required-artifacts", false, `artifact manifest invalid: ${error.message}`);
+  }
+
+  const requirements = new Map(artifactContract.requirements.map((entry) => [entry.role, entry]));
+  const entriesByRole = new Map([...requirements.keys()].map((role) => [role, []]));
+  const seenPaths = new Set();
+  let passed = true;
+  for (const [index, entry] of manifest.artifacts.entries()) {
+    const description = `artifact manifest entry ${index + 1}`;
+    try {
+      const runtimeCapture = entry?.role === "runtime-capture";
+      validateExactKeys(
+        entry,
+        runtimeCapture
+          ? ["path", "role", "mediaType", "state", "viewport"]
+          : ["path", "role"],
+        description,
+      );
+      requireNonEmptyString(entry.path, `${description}.path`);
+      requireNonEmptyString(entry.role, `${description}.role`);
+      const requirement = requirements.get(entry.role);
+      if (!requirement) throw new Error(`${description}: unsupported role ${entry.role}`);
+      const normalizedPath = entry.path.split(path.sep).join("/");
+      if (path.isAbsolute(entry.path) || entry.path.includes("\\") || normalizedPath !== path.posix.normalize(normalizedPath)) {
+        throw new Error(`${entry.role}: path must be canonical and run-relative`);
+      }
+      const pathKey = process.platform === "win32" ? normalizedPath.toLocaleLowerCase("en-US") : normalizedPath;
+      if (seenPaths.has(pathKey)) throw new Error(`${entry.role}: one file cannot satisfy multiple artifact roles`);
+      seenPaths.add(pathKey);
+      if (artifactContract.excludedPaths.includes(normalizedPath)) {
+        throw new Error(`${entry.role}: excluded fixture input cannot satisfy the artifact contract`);
+      }
+      const inspected = inspectRunFile(runRoot, entry.path, entry.role);
+      if (!inspected.ok) throw new Error(inspected.evidence);
+      if (fs.statSync(inspected.file).size === 0) throw new Error(`${entry.role}: ${entry.path} is empty`);
+      const extension = path.extname(normalizedPath).toLocaleLowerCase("en-US");
+      if (!requirement.extensions.includes(extension)) {
+        throw new Error(`${entry.role}: extension ${extension || "(none)"} is not supported`);
+      }
+      if (entry.role === "editable-source" && !sourceLooksEditable(inspected.file, extension)) {
+        throw new Error(`editable-source: ${entry.path} is not recognizable editable source`);
+      }
+      if (runtimeCapture) {
+        requireNonEmptyString(entry.mediaType, `${description}.mediaType`);
+        requireNonEmptyString(entry.state, `${description}.state`);
+        requireNonEmptyString(entry.viewport, `${description}.viewport`);
+        const expectedMedia = extension === ".png" ? "image/png" : "image/jpeg";
+        if (entry.mediaType !== expectedMedia) {
+          throw new Error(`runtime-capture: extension and media type disagree for ${entry.path}`);
+        }
+        const raster = rasterIdentity(inspected.file);
+        if (!raster || raster.mediaType !== entry.mediaType) {
+          throw new Error(`runtime-capture: raster signature does not match ${entry.mediaType} for ${entry.path}`);
+        }
+        const expectedViewport = `${raster.width}x${raster.height}`;
+        if (entry.viewport !== expectedViewport) {
+          throw new Error(`runtime-capture: declared viewport ${entry.viewport} does not match raster dimensions ${expectedViewport}`);
+        }
+      }
+      entriesByRole.get(entry.role).push(entry);
+      evidence.push(`${entry.role}: ${entry.path} passed`);
+    } catch (error) {
+      passed = false;
+      evidence.push(error.message);
+    }
+  }
+
+  for (const requirement of artifactContract.requirements) {
+    const entries = entriesByRole.get(requirement.role);
+    if (entries.length < requirement.minCount) {
+      passed = false;
+      evidence.push(`${requirement.role} requires ${requirement.minCount} files; found ${entries.length}`);
+    }
+    if (requirement.role === "runtime-capture") {
+      for (const coverage of requirement.requiredCoverage) {
+        const covered = entries.some((entry) => entry.state === coverage.state && entry.viewport === coverage.viewport);
+        if (!covered) {
+          passed = false;
+          evidence.push(`runtime-capture missing ${coverage.state} at ${coverage.viewport}`);
+        }
+      }
+    }
+  }
+  evidence.unshift(`artifact manifest: ${artifactContract.manifestPath} ${passed ? "passed" : "failed"}`);
   return check("required-artifacts", passed, evidence);
 }
 
@@ -744,7 +1099,7 @@ export function verifyFixture({ pluginRoot, runRoot }) {
         `after claim: ${sameRecord(observation.taskStateAfter, taskStateAfter) ? "matches repository" : "mismatch"}`,
       ],
     ),
-    verifyRequiredArtifacts(resolvedRunRoot, fixture.requiredArtifacts),
+    verifyRequiredArtifacts(resolvedRunRoot, fixture.artifactContract),
     check(
       "output-tree-claim",
       observation.outputTreeHash === currentOutputTreeHash,
