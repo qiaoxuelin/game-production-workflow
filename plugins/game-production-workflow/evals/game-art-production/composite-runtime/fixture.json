@@ -3,7 +3,7 @@
   "id": "composite-runtime",
   "policyVersion": "1.7.2",
   "operation": "Replace a flattened inventory concept with editable separated assets and project-native runtime components.",
-  "request": "Implement the frozen inventory direction as editable separated source assets and project-native components. Preserve state.mjs as the single authoritative source for empty, full, error, equip, and controller-focus behavior. Integrate actual keyboard and pointer input, prove multiple runtime states, document source/export/import handling, and provide real raster runtime captures. The supplied inventory-concept.svg is a flattened concept only and must not be claimed as runtime UI or a production asset inventory. Write artifacts/artifact-manifest.json with exactly schemaVersion 1 and an artifacts array. Each entry has run-relative path and role. Use runtime-component, editable-source, and source-export-import entries with only path and role; use runtime-capture entries with path, role, mediaType (image/png or image/jpeg), state, and viewport. Supply at least the role counts and runtime state/viewport pairs declared by artifactContract; filenames are otherwise your choice. Follow fixture-guidance/observation-contract.json: copy fixture-guidance/observation-template.json to observation.json, fill truthful lifecycle, context-category, cycle, and elapsed-time values, then run node fixture-guidance/observation-helper.mjs refresh. Do not read verifier, test, sibling-run, candidate, or review evidence sources.",
+  "request": "Implement the frozen inventory direction as editable separated source assets and project-native components. Preserve state.mjs as the single authoritative source for empty, full, error, equip, and controller-focus behavior. Integrate actual keyboard and pointer input, prove multiple runtime states, document source/export/import handling, and provide real raster runtime captures. The supplied inventory-concept.svg is a flattened concept only and must not be claimed as runtime UI or a production asset inventory. Write artifacts/artifact-manifest.json with exactly schemaVersion 1 and an artifacts array. Each entry has run-relative path and role. Use runtime-component, editable-source, and source-export-import entries with only path and role; use runtime-capture entries with path, role, mediaType image/png, state, and viewport. Runtime-capture evidence is PNG-only. Supply at least the role counts and runtime state/viewport pairs declared by artifactContract; filenames are otherwise your choice. Follow fixture-guidance/observation-contract.json: copy fixture-guidance/observation-template.json to observation.json, fill truthful lifecycle, context-category, cycle, and elapsed-time values, then run node fixture-guidance/observation-helper.mjs refresh. Do not read verifier, test, sibling-run, candidate, or review evidence sources.",
   "observationContract": "fixture-guidance/observation-contract.json",
   "capabilityProfile": {
     "gameProductionSystem": "1.7.2",
@@ -35,7 +35,7 @@
       {
         "role": "runtime-capture",
         "minCount": 5,
-        "extensions": [".png", ".jpg", ".jpeg"],
+        "extensions": [".png"],
         "requiredCoverage": [
           { "state": "empty", "viewport": "1280x720" },
           { "state": "full", "viewport": "1280x720" },

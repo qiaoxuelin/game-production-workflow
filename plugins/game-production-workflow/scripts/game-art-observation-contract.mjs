@@ -22,6 +22,34 @@ const declaredResultKeys = [
 const proofValues = ["Pending", "Passed", "Not applicable"];
 const acceptanceValues = ["Pending", "Accepted", "Not applicable"];
 const taskStateKeys = ["gate", "currentTask", "status", "nextAction"];
+const durableTaskFields = {
+  representativeProof: {
+    taskLabel: "Representative proof",
+    prefixes: { Pending: "Pending", Passed: "Passed", "Not applicable": "Not applicable" },
+  },
+  assemblyPrecheck: {
+    taskLabel: "Assembly precheck",
+    prefixes: { Pending: "Pending", Passed: "Passed", "Not applicable": "Not applicable" },
+  },
+  taskResult: {
+    taskLabel: "Result",
+    prefixes: {
+      "Not started": "Not started",
+      Proposed: "Proposed",
+      Implemented: "Implemented",
+      Returned: "Returned",
+      Blocked: "Blocked",
+    },
+  },
+  designAcceptance: {
+    taskLabel: "Design acceptance",
+    prefixes: { Pending: "Pending", Accepted: "Accepted", "Not applicable": "Not applicable" },
+  },
+  producerAcceptance: {
+    taskLabel: "Producer acceptance",
+    prefixes: { Pending: "Pending", Accepted: "Accepted", "Not applicable": "Not applicable" },
+  },
+};
 const contextBuckets = ["metadata", "body", "reference"];
 const contextCategoryKeys = ["metadataWords", "bodyWords", "referenceWords", "files", "hash"];
 const contextCategories = ["project", "route", "support"];
@@ -133,6 +161,8 @@ export const publicObservationContract = {
         "representativeProof", "assemblyPrecheck", "taskResult",
         "designAcceptance", "producerAcceptance",
       ],
+      durableTaskPrefixRule: "In production/TASK.md, after optional enclosing Markdown backticks are removed, each durable field value must begin with the exact token for its declared semantic value; explanation may follow the token.",
+      durableTaskFields,
       taskStatusMustMatch: true,
       nextActionMustMatch: true,
       defaultAllowedFields: {

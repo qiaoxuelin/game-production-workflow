@@ -139,6 +139,34 @@ const legacyLoadedContext = {
   files: ["production/TASK.md"],
 };
 const expectedResultContract = publicObservationContract.resultContract;
+const expectedDurableTaskFields = {
+  representativeProof: {
+    taskLabel: "Representative proof",
+    prefixes: { Pending: "Pending", Passed: "Passed", "Not applicable": "Not applicable" },
+  },
+  assemblyPrecheck: {
+    taskLabel: "Assembly precheck",
+    prefixes: { Pending: "Pending", Passed: "Passed", "Not applicable": "Not applicable" },
+  },
+  taskResult: {
+    taskLabel: "Result",
+    prefixes: {
+      "Not started": "Not started",
+      Proposed: "Proposed",
+      Implemented: "Implemented",
+      Returned: "Returned",
+      Blocked: "Blocked",
+    },
+  },
+  designAcceptance: {
+    taskLabel: "Design acceptance",
+    prefixes: { Pending: "Pending", Accepted: "Accepted", "Not applicable": "Not applicable" },
+  },
+  producerAcceptance: {
+    taskLabel: "Producer acceptance",
+    prefixes: { Pending: "Pending", Accepted: "Accepted", "Not applicable": "Not applicable" },
+  },
+};
 
 for (const id of ids) {
   const fixturePath = path.join(evalRoot, id, "fixture.json");
@@ -164,7 +192,10 @@ for (const id of ids) {
   assert(Array.isArray(fixture.artifactContract.requirements) && fixture.artifactContract.requirements.length > 0);
   assert(fixture.artifactContract.requirements.some(({ role }) => role === "editable-source"));
   assert(fixture.artifactContract.requirements.some(({ role }) => role === "source-export-import"));
-  assert(fixture.artifactContract.requirements.some(({ role }) => role === "runtime-capture"));
+  const runtimeCaptureRequirement = fixture.artifactContract.requirements.find(({ role }) => role === "runtime-capture");
+  assert(runtimeCaptureRequirement);
+  assert.deepEqual(runtimeCaptureRequirement.extensions, [".png"], `${id}: runtime evidence must use the dependency-free PNG-only contract`);
+  assert.match(fixture.request, /runtime-capture.*mediaType image\/png.*PNG-only/iu, `${id}: worker request must disclose the PNG-only runtime evidence policy`);
 
   const starterRoot = path.join(evalRoot, id, "starter");
   const starterFiles = fs.readdirSync(starterRoot, { recursive: true, withFileTypes: true })
@@ -905,6 +936,16 @@ try {
     const preparedContract = JSON.parse(fs.readFileSync(publicContractPath, "utf8"));
     const preparedTemplate = JSON.parse(fs.readFileSync(publicTemplatePath, "utf8"));
     assert.deepEqual(preparedContract, publicObservationContract, `${id}: prepared observation contract drifted from its canonical source`);
+    assert.deepEqual(
+      preparedContract.resultContract.lifecycle.durableTaskFields,
+      expectedDurableTaskFields,
+      `${id}: prepared contract must expose every exact TASK durable-field prefix accepted by the lifecycle parser`,
+    );
+    assert.match(
+      preparedContract.resultContract.lifecycle.durableTaskPrefixRule,
+      /after optional enclosing Markdown backticks are removed.*must begin with the exact token/iu,
+      `${id}: prepared contract must explain how TASK prefix parsing treats Markdown backticks`,
+    );
     assert.deepEqual(Object.keys(preparedTemplate).sort(), [...publicObservationContract.observation.requiredKeys].sort());
     assert.equal(preparedTemplate.schemaVersion, 2);
     assert.equal(preparedTemplate.sourceTreeHash, lock.sourceTreeHash);
@@ -1173,7 +1214,7 @@ try {
             ? { ...entry, path: unsupportedCapture, mediaType: "image/svg+xml" }
             : entry),
         },
-        /runtime-capture.*(?:extension|media type)/i,
+        /runtime-capture.*PNG-only/i,
       );
 
       const falseEditable = "artifacts/contract/false-editable.png";
@@ -1282,24 +1323,6 @@ try {
         /runtime-capture.*PNG.*(?:IDAT dimensions|scanline)/i,
       );
 
-      const truncatedJpegRuntime = "artifacts/contract/truncated-runtime.jpg";
-      const truncatedJpeg = Buffer.alloc(13);
-      Buffer.from("ffd8ffc00008", "hex").copy(truncatedJpeg, 0);
-      truncatedJpeg.writeUInt16BE(720, 7);
-      truncatedJpeg.writeUInt16BE(1280, 9);
-      fs.writeFileSync(path.join(runRoot, truncatedJpegRuntime), truncatedJpeg);
-      expectArtifactFailure(
-        "truncated JPEG container",
-        {
-          ...artifactManifest,
-          artifacts: artifactManifest.artifacts.map((entry) => entry === captureEntry
-            ? { ...entry, path: truncatedJpegRuntime, mediaType: "image/jpeg" }
-            : entry),
-        },
-        /runtime-capture.*JPEG.*(?:scan|EOI|structure)/i,
-      );
-
-      const emptyScanJpegRuntime = "artifacts/contract/empty-scan-runtime.jpg";
       const frameHeader = Buffer.alloc(11);
       frameHeader.writeUInt16BE(11, 0);
       frameHeader[2] = 8;
@@ -1309,22 +1332,48 @@ try {
       frameHeader[8] = 1;
       frameHeader[9] = 0x11;
       const scanHeader = Buffer.from([0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3f, 0x00]);
-      fs.writeFileSync(path.join(runRoot, emptyScanJpegRuntime), Buffer.concat([
+      const undecodableJpegRuntime = "artifacts/contract/marker-assembled-undecodable.jpg";
+      fs.writeFileSync(path.join(runRoot, undecodableJpegRuntime), Buffer.concat([
         Buffer.from("ffd8ffc0", "hex"),
         frameHeader,
         Buffer.from("ffda", "hex"),
         scanHeader,
+        Buffer.from([0x01]),
         Buffer.from("ffd9", "hex"),
       ]));
       expectArtifactFailure(
-        "empty JPEG scan data",
+        "marker-assembled undecodable JPEG",
         {
           ...artifactManifest,
           artifacts: artifactManifest.artifacts.map((entry) => entry === captureEntry
-            ? { ...entry, path: emptyScanJpegRuntime, mediaType: "image/jpeg" }
+            ? { ...entry, path: undecodableJpegRuntime, mediaType: "image/jpeg" }
             : entry),
         },
-        /runtime-capture.*JPEG.*scan data/i,
+        /runtime-capture.*PNG-only/i,
+      );
+
+      const jpegExtensionRuntime = "artifacts/contract/runtime-capture.jpeg";
+      fs.writeFileSync(path.join(runRoot, jpegExtensionRuntime), pngFixture(1280, 720));
+      expectArtifactFailure(
+        ".jpeg runtime evidence",
+        {
+          ...artifactManifest,
+          artifacts: artifactManifest.artifacts.map((entry) => entry === captureEntry
+            ? { ...entry, path: jpegExtensionRuntime, mediaType: "image/jpeg" }
+            : entry),
+        },
+        /runtime-capture.*PNG-only.*\.jpeg/i,
+      );
+
+      expectArtifactFailure(
+        "image/jpeg runtime claim",
+        {
+          ...artifactManifest,
+          artifacts: artifactManifest.artifacts.map((entry) => entry === captureEntry
+            ? { ...entry, mediaType: "image/jpeg" }
+            : entry),
+        },
+        /runtime-capture.*PNG-only.*image\/png/i,
       );
 
       fs.writeFileSync(artifactManifestPath, `${JSON.stringify(artifactManifest, null, 2)}\n`);
@@ -1559,6 +1608,25 @@ try {
   assert(validImplementedResult.objectiveChecks.some(
     (entry) => entry.id === "lifecycle-handoff" && entry.status === "Pass",
   ));
+
+  replaceTaskField(
+    implementedLifecycle.runRoot,
+    "Representative proof",
+    "`Accepted — legacy alias must not satisfy a schema-2 Passed declaration`",
+  );
+  fs.writeFileSync(
+    path.join(implementedLifecycle.runRoot, "observation.json"),
+    `${JSON.stringify({
+      ...validImplementedObservation,
+      outputTreeHash: outputHash(implementedLifecycle.runRoot),
+    }, null, 2)}\n`,
+  );
+  assert.throws(
+    () => fixtureApi.verifyFixture({ pluginRoot, runRoot: implementedLifecycle.runRoot }),
+    /Representative proof.*exact canonical semantic prefix.*fixture-guidance\/observation-contract\.json/i,
+    "schema-2 TASK durable fields must begin with the public contract's canonical semantic token",
+  );
+  configureImplementedRun(implementedLifecycle.runRoot, implementedLifecycle.lock);
 
   const expectObservationContractRejection = (name, mutate, expectedError) => {
     const mutated = structuredClone(validImplementedObservation);
@@ -1936,6 +2004,16 @@ try {
     implementedLifecycle.runRoot,
     "Implementing",
     auditedLegacyImplementedAction,
+  );
+  replaceTaskField(
+    implementedLifecycle.runRoot,
+    "Representative proof",
+    "`Accepted — audited schema-1 alias for Passed`",
+  );
+  replaceTaskField(
+    implementedLifecycle.runRoot,
+    "Design acceptance",
+    "`Pass — audited schema-1 alias for Accepted`",
   );
   const validLegacyImplemented = {
     ...validImplementedObservation,

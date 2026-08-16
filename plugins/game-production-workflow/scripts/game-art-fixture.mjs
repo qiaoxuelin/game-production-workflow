@@ -342,12 +342,10 @@ function readTaskHandoff(runRoot) {
   const task = fs.readFileSync(taskPath, "utf8");
   const labels = {
     status: "Status",
-    representativeProof: "Representative proof",
-    assemblyPrecheck: "Assembly precheck",
-    taskResult: "Result",
+    ...Object.fromEntries(Object.entries(
+      publicObservationContract.resultContract.lifecycle.durableTaskFields,
+    ).map(([field, contract]) => [field, contract.taskLabel])),
     nextAction: "Next action",
-    designAcceptance: "Design acceptance",
-    producerAcceptance: "Producer acceptance",
   };
   return Object.fromEntries(Object.entries(labels).map(([field, label]) => {
     const prefix = `- ${label}:`;
@@ -359,37 +357,46 @@ function readTaskHandoff(runRoot) {
   }));
 }
 
-function classifyTaskValue(value, rules, name) {
+function classifyTaskValue(value, rules, name, canonicalOnly = false) {
   const normalized = value.trim().toLocaleLowerCase("en-US");
   const match = rules.find(([, pattern]) => pattern.test(normalized));
-  if (!match) throw new Error(`production/TASK.md ${name} has no supported semantic value`);
+  if (!match) {
+    const requirement = canonicalOnly ? "must begin with an exact canonical semantic prefix" : "has no supported semantic value";
+    throw new Error(`production/TASK.md ${name} ${requirement}; see ${resultContractPointer}`);
+  }
   return match[0];
 }
 
-function classifyProof(value, name) {
-  return classifyTaskValue(value, [
-    ["Not applicable", /^not applicable(?:\b|:|\s|$)/u],
-    ["Pending", /^pending(?:\b|:|\s|$)/u],
-    ["Passed", /^(?:passed|accepted)(?:\b|:|\s|$)/u],
-  ], name);
+function canonicalDurableRules(field) {
+  const contract = publicObservationContract.resultContract.lifecycle.durableTaskFields[field];
+  return Object.entries(contract.prefixes).map(([semanticValue, token]) => {
+    const escaped = token.toLocaleLowerCase("en-US").replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+    return [semanticValue, new RegExp(`^${escaped}(?:\\b|:|\\s|$)`, "u")];
+  });
 }
 
-function classifyTaskResult(value) {
+function classifyProof(value, name, field, allowLegacyAliases) {
   return classifyTaskValue(value, [
-    ["Not started", /^not started(?:\b|:|\s|$)/u],
-    ["Proposed", /^proposed(?:\b|:|\s|$)/u],
-    ["Implemented", /^(?:implemented|candidate implemented)(?:\b|:|\s|$)/u],
-    ["Returned", /^(?:returned|candidate returned)(?:\b|:|\s|$)/u],
-    ["Blocked", /^blocked(?:\b|:|\s|$)/u],
-  ], "Result");
+    ...canonicalDurableRules(field),
+    ...(allowLegacyAliases ? [["Passed", /^accepted(?:\b|:|\s|$)/u]] : []),
+  ], name, !allowLegacyAliases);
 }
 
-function classifyAcceptance(value, name) {
+function classifyTaskResult(value, allowLegacyAliases) {
   return classifyTaskValue(value, [
-    ["Not applicable", /^not applicable(?:\b|:|\s|$)/u],
-    ["Pending", /^pending(?:\b|:|\s|$)/u],
-    ["Accepted", /^(?:accepted|pass|passed)(?:\b|:|\s|$)/u],
-  ], name);
+    ...canonicalDurableRules("taskResult"),
+    ...(allowLegacyAliases ? [
+      ["Implemented", /^candidate implemented(?:\b|:|\s|$)/u],
+      ["Returned", /^candidate returned(?:\b|:|\s|$)/u],
+    ] : []),
+  ], "Result", !allowLegacyAliases);
+}
+
+function classifyAcceptance(value, name, field, allowLegacyAliases) {
+  return classifyTaskValue(value, [
+    ...canonicalDurableRules(field),
+    ...(allowLegacyAliases ? [["Accepted", /^(?:pass|passed)(?:\b|:|\s|$)/u]] : []),
+  ], name, !allowLegacyAliases);
 }
 
 function validateLifecycleHandoff(runRoot, observation, taskStateAfter, resultContract) {
@@ -404,12 +411,13 @@ function validateLifecycleHandoff(runRoot, observation, taskStateAfter, resultCo
     throw new Error(`lifecycle handoff TASK Next action must match project state; see ${resultContractPointer}`);
   }
 
+  const allowLegacyAliases = !declaration.complete;
   const durable = {
-    representativeProof: classifyProof(task.representativeProof, "Representative proof"),
-    assemblyPrecheck: classifyProof(task.assemblyPrecheck, "Assembly precheck"),
-    taskResult: classifyTaskResult(task.taskResult),
-    designAcceptance: classifyAcceptance(task.designAcceptance, "Design acceptance"),
-    producerAcceptance: classifyAcceptance(task.producerAcceptance, "Producer acceptance"),
+    representativeProof: classifyProof(task.representativeProof, "Representative proof", "representativeProof", allowLegacyAliases),
+    assemblyPrecheck: classifyProof(task.assemblyPrecheck, "Assembly precheck", "assemblyPrecheck", allowLegacyAliases),
+    taskResult: classifyTaskResult(task.taskResult, allowLegacyAliases),
+    designAcceptance: classifyAcceptance(task.designAcceptance, "Design acceptance", "designAcceptance", allowLegacyAliases),
+    producerAcceptance: classifyAcceptance(task.producerAcceptance, "Producer acceptance", "producerAcceptance", allowLegacyAliases),
   };
 
   if (declaration.complete) {
@@ -682,6 +690,9 @@ function validateArtifactContract(contract) {
       throw new Error(`fixture artifact role ${requirement.role} extensions are invalid`);
     }
     if (runtimeCapture) {
+      if (requirement.extensions.length !== 1 || requirement.extensions[0] !== ".png") {
+        throw new Error("fixture runtime-capture extensions must be exactly .png under the PNG-only evidence policy");
+      }
       if (!Array.isArray(requirement.requiredCoverage) || requirement.requiredCoverage.length !== requirement.minCount) {
         throw new Error("fixture runtime-capture coverage must contain one entry per required capture");
       }
@@ -794,63 +805,6 @@ function pngIdentity(content) {
   return { mediaType: "image/png", width: header.width, height: header.height };
 }
 
-function jpegIdentity(content) {
-  const startOfFrameMarkers = new Set([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf]);
-  let offset = 2;
-  let dimensions = null;
-  let sawScan = false;
-  let sawEnd = false;
-  let scanDataBytes = 0;
-  while (offset < content.length) {
-    if (content[offset] !== 0xff) throw new Error("invalid JPEG marker sequence");
-    while (offset < content.length && content[offset] === 0xff) offset += 1;
-    if (offset >= content.length) break;
-    const marker = content[offset];
-    offset += 1;
-    if (marker === 0xd9) {
-      sawEnd = true;
-      break;
-    }
-    if (marker === 0xd8 || marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) continue;
-    if (offset + 2 > content.length) throw new Error("truncated JPEG segment");
-    const length = content.readUInt16BE(offset);
-    if (length < 2 || offset + length > content.length) throw new Error("invalid JPEG segment length");
-    if (startOfFrameMarkers.has(marker)) {
-      if (length < 8) throw new Error("invalid JPEG frame header");
-      const height = content.readUInt16BE(offset + 3);
-      const width = content.readUInt16BE(offset + 5);
-      if (!width || !height) throw new Error("invalid JPEG dimensions");
-      dimensions = { width, height };
-    }
-    offset += length;
-    if (marker === 0xda) {
-      sawScan = true;
-      while (offset < content.length - 1) {
-        if (content[offset] !== 0xff) {
-          scanDataBytes += 1;
-          offset += 1;
-          continue;
-        }
-        const next = content[offset + 1];
-        if (next === 0x00) {
-          scanDataBytes += 1;
-          offset += 2;
-          continue;
-        }
-        if (next >= 0xd0 && next <= 0xd7) {
-          offset += 2;
-          continue;
-        }
-        break;
-      }
-    }
-  }
-  if (!dimensions || !sawScan || scanDataBytes === 0 || !sawEnd || offset !== content.length) {
-    throw new Error("JPEG structure requires a frame, non-empty scan data, and final EOI marker");
-  }
-  return { mediaType: "image/jpeg", ...dimensions };
-}
-
 function rasterIdentity(file) {
   const content = fs.readFileSync(file);
   const pngSignature = Buffer.from("89504e470d0a1a0a", "hex");
@@ -859,13 +813,6 @@ function rasterIdentity(file) {
       return pngIdentity(content);
     } catch (error) {
       throw new Error(`runtime-capture: PNG structure invalid: ${error.message}`);
-    }
-  }
-  if (content.length >= 3 && content[0] === 0xff && content[1] === 0xd8 && content[2] === 0xff) {
-    try {
-      return jpegIdentity(content);
-    } catch (error) {
-      throw new Error(`runtime-capture: JPEG structure invalid: ${error.message}`);
     }
   }
   return null;
@@ -936,6 +883,9 @@ function verifyRequiredArtifacts(runRoot, artifactContract) {
       if (!inspected.ok) throw new Error(inspected.evidence);
       if (fs.statSync(inspected.file).size === 0) throw new Error(`${entry.role}: ${entry.path} is empty`);
       const extension = path.extname(normalizedPath).toLocaleLowerCase("en-US");
+      if (runtimeCapture && extension !== ".png") {
+        throw new Error(`runtime-capture: PNG-only evidence requires .png; got ${extension || "(none)"}`);
+      }
       if (!requirement.extensions.includes(extension)) {
         throw new Error(`${entry.role}: extension ${extension || "(none)"} is not supported`);
       }
@@ -946,9 +896,8 @@ function verifyRequiredArtifacts(runRoot, artifactContract) {
         requireNonEmptyString(entry.mediaType, `${description}.mediaType`);
         requireNonEmptyString(entry.state, `${description}.state`);
         requireNonEmptyString(entry.viewport, `${description}.viewport`);
-        const expectedMedia = extension === ".png" ? "image/png" : "image/jpeg";
-        if (entry.mediaType !== expectedMedia) {
-          throw new Error(`runtime-capture: extension and media type disagree for ${entry.path}`);
+        if (entry.mediaType !== "image/png") {
+          throw new Error(`runtime-capture: PNG-only evidence requires mediaType image/png; got ${entry.mediaType}`);
         }
         const raster = rasterIdentity(inspected.file);
         if (!raster || raster.mediaType !== entry.mediaType) {

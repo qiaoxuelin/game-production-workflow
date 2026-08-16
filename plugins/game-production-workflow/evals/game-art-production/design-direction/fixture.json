@@ -3,7 +3,7 @@
   "id": "design-direction",
   "policyVersion": "1.7.2",
   "operation": "Produce and integrate an original 2D/UI design direction for the frozen result-screen experience.",
-  "request": "Create a production-ready original visual direction for the result screen without changing the frozen player flow, platform, interaction semantics, or content extremes. Demonstrate all required states and both target viewports in the runtime shell, retain editable separated source assets, document source/export/import handling, and provide real raster runtime captures. The human producer owns selection of the visual direction and final product-quality judgment. Write artifacts/artifact-manifest.json with exactly schemaVersion 1 and an artifacts array. Each entry has run-relative path and role. Use design-document, editable-source, and source-export-import entries with only path and role; use runtime-capture entries with path, role, mediaType (image/png or image/jpeg), state, and viewport. Supply at least the role counts and runtime state/viewport pairs declared by artifactContract; filenames are otherwise your choice. Follow fixture-guidance/observation-contract.json: copy fixture-guidance/observation-template.json to observation.json, fill truthful lifecycle, context-category, cycle, and elapsed-time values, then run node fixture-guidance/observation-helper.mjs refresh. Do not read verifier, test, sibling-run, candidate, or review evidence sources.",
+  "request": "Create a production-ready original visual direction for the result screen without changing the frozen player flow, platform, interaction semantics, or content extremes. Demonstrate all required states and both target viewports in the runtime shell, retain editable separated source assets, document source/export/import handling, and provide real raster runtime captures. The human producer owns selection of the visual direction and final product-quality judgment. Write artifacts/artifact-manifest.json with exactly schemaVersion 1 and an artifacts array. Each entry has run-relative path and role. Use design-document, editable-source, and source-export-import entries with only path and role; use runtime-capture entries with path, role, mediaType image/png, state, and viewport. Runtime-capture evidence is PNG-only. Supply at least the role counts and runtime state/viewport pairs declared by artifactContract; filenames are otherwise your choice. Follow fixture-guidance/observation-contract.json: copy fixture-guidance/observation-template.json to observation.json, fill truthful lifecycle, context-category, cycle, and elapsed-time values, then run node fixture-guidance/observation-helper.mjs refresh. Do not read verifier, test, sibling-run, candidate, or review evidence sources.",
   "observationContract": "fixture-guidance/observation-contract.json",
   "capabilityProfile": {
     "gameProductionSystem": "1.7.2",
@@ -35,7 +35,7 @@
       {
         "role": "runtime-capture",
         "minCount": 4,
-        "extensions": [".png", ".jpg", ".jpeg"],
+        "extensions": [".png"],
         "requiredCoverage": [
           { "state": "success", "viewport": "1280x720" },
           { "state": "failure", "viewport": "1280x720" },
