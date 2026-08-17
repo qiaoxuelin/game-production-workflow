@@ -210,7 +210,12 @@ Assert-True ($checkerText -match 'visual_bulk_unlock_without_prechecks') "Checke
 Assert-True ($checkerText -match 'systemVersionAtLeast160') "Checker must preserve v1.5 project compatibility behind a v1.6 predicate."
 Assert-True ($bootstrapText -match "systemVersion\s*=\s*'1\.8\.0'") "New projects must bootstrap the v1.8.0 contract."
 Assert-True ($readmeText -match 'game-production-system` `1\.8\.0') "README system version must match the v1.8.0 release."
-Assert-True ($readmeText -match '原子安装三个独立 Skill 和审批 MCP') "README must describe the atomic three-Skill bundle and approval MCP."
+Assert-True (
+    ($readmeText -match 'game-production-system') -and
+    ($readmeText -match 'game-art-production') -and
+    ($readmeText -match 'game-approval-ui') -and
+    ($readmeText -match 'MCP')
+) "README must describe the atomic three-Skill bundle and approval MCP."
 Assert-True (@($coreSkillText.TrimEnd() -split "\r?\n").Count -le 500) "Core SKILL.md must remain at or below 500 lines; keep interactive details in its reference."
 
 foreach ($skill in @(
