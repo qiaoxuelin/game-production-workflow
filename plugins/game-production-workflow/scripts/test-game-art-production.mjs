@@ -233,6 +233,41 @@ assert.match(visualDesign, /Professional result:[^\n]*Production-design candidat
 assert.match(visualDesign, /Maturity assessment:[^\n]*core-supplied current maturity[^\n]*normally `Direction`[^\n]*until[^\n]*core[^\n]*freeze/i);
 assert.match(visualDesign, /never report `Production design`[^\n]*before[^\n]*freeze/i);
 assert.match(visualDesign, /do not replace[^\n]*established maturity[^\n]*`Not established`/i);
+assert.match(
+  visualDesign,
+  /player input[^\n]*intent\/action[^\n]*authoritative pre\/post state[^\n]*presentation state\/component[^\n]*feedback[^\n]*(?:completion|interruption)[^\n]*failure\/recovery/i,
+  "selected UI direction must become an explicit interaction-to-visual design chain",
+);
+assert.match(
+  visualDesign,
+  /core-supplied `Interactive visual scope` is `Required`[^\n]*define interaction behavior/i,
+  "non-interactive 2D work must not inherit the interaction-prototype burden",
+);
+assert.match(
+  visualDesign,
+  /applicable input[^\n]*focus\/navigation[^\n]*state transitions[^\n]*feedback\/motion[^\n]*timing\/interruption[^\n]*failure\/recovery/i,
+  "Production-design candidates must cover applicable interaction behavior",
+);
+assert.match(
+  visualDesign,
+  /one consolidated[^\n]*(?:board|behavior matrix|annotated flow|bounded interactive prototype)/i,
+  "interaction design evidence must stay consolidated and tool-agnostic",
+);
+assert.match(
+  visualDesign,
+  /static keyframe or state sheet alone[^\n]*cannot[^\n]*(?:interaction-ready|freeze)/i,
+  "static UI art alone must not establish an interaction-ready design",
+);
+assert.match(
+  visualDesign,
+  /simulat(?:e|ed)[^\n]*disclos[^\n]*never[^\n]*target-project runtime proof/i,
+  "a Design prototype must not impersonate target-project runtime evidence",
+);
+assert.match(
+  visualDesign,
+  /pre-freeze[^\n]*Design-owned[^\n]*(?:prototype|feasibility evidence)[^\n]*core[^\n]*freeze[^\n]*before `Produce`/i,
+  "target-project production must not become a circular precondition for design freeze",
+);
 
 const interactiveUi2d = fs.readFileSync(path.join(skillRoot, "references/interactive-ui-2d.md"), "utf8");
 assert.match(interactiveUi2d, /select one dominant root cause or subsystem/i);
@@ -245,6 +280,33 @@ assert.match(
 );
 assert.match(interactiveUi2d, /applicable real input and authoritative state/i);
 assert.match(interactiveUi2d, /actual target project[\s\S]*actual runtime proof/i);
+assert.match(
+  interactiveUi2d,
+  /consume[^\n]*frozen interaction-to-visual mapping/i,
+  "Produce must consume the frozen interaction design instead of recreating it",
+);
+assert.match(
+  interactiveUi2d,
+  /missing or contradictory[^\n]*return[^\n]*(?:Design|design boundary)/i,
+  "Produce must return missing product interaction decisions",
+);
+assert.match(
+  interactiveUi2d,
+  /expected-versus-observed[^\n]*conformance/i,
+  "runtime observation must compare the implementation with frozen behavior",
+);
+
+const visualReview = fs.readFileSync(path.join(skillRoot, "references/visual-review.md"), "utf8");
+assert.match(
+  visualReview,
+  /focus\/navigation[^\n]*timing\/interruption[^\n]*failure\/recovery/i,
+  "visual review must inspect dynamic interaction conformance",
+);
+assert.match(
+  visualReview,
+  /real input[^\n]*authoritative state[^\n]*visible feedback/i,
+  "visual review must inspect real interaction-to-visual causality",
+);
 
 const candidateRoutes = {
   nonArtProduce: wordCount(coreSkill) + wordCount(execution),

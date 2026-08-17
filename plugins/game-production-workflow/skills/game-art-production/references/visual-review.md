@@ -4,12 +4,12 @@ Review UI/2D evidence without changing project files or implementing repairs. Ap
 
 ## Inputs and observation
 
-Require the exact maturity/product-quality claim, frozen Direction or Production design baseline, actual target-project artifact, applicable states/viewports, hard return conditions, and reviewer-contribution disclosure. Reuse the capability handshake for observation. When the claim needs runtime evidence, inspect the actual target result at intended size/device, representative content density, normal player pace, and applicable states. If it cannot be observed, return the exact blocker and no conformance or quality result.
+Require the exact maturity/product-quality claim, frozen Direction or Production design baseline, actual target-project artifact, applicable states/viewports, hard return conditions, and reviewer-contribution disclosure. Reuse the capability handshake for observation. When the claim needs runtime evidence, inspect the actual target result at intended size/device, representative content density, normal player pace, and applicable states; trace real input through authoritative state to visible feedback. If it cannot be observed, return the exact blocker and no conformance or quality result.
 
 ## Inspect four separate claims
 
 1. **Objective validity:** applicable input, authoritative state, renderer, state/viewport coverage, source/import integrity, accessibility/performance, and provenance evidence are valid.
-2. **Design conformance:** hierarchy, identity, composition, components/states, shared-space contact, continuity, source separation, feedback, content extremes, and tolerances conform to the frozen baseline.
+2. **Design conformance:** hierarchy, identity, composition, components/states, shared-space contact, continuity, source separation, focus/navigation, timing/interruption, failure/recovery, feedback, content extremes, and tolerances conform to the frozen baseline.
 3. **Product quality:** readability, affordance, attention, interaction-to-visual causality, craft, coherence, and feedback meet the declared player/platform/reference bar.
 4. **Integrated acceptance:** the visual result fits the surrounding gameplay and scoped experience. Echo `Integrated acceptance` only when the input names a core-recorded acceptance; otherwise report readiness or a recommendation, never grant that maturity.
 
