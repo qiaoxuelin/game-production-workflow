@@ -110,6 +110,6 @@ Run the plugin-creator validator on `plugins/game-production-workflow` and skill
 
 Confirm `git diff --check`, route budgets, Fast exclusion, no core/schema/installer/marketplace changes, and no installed-plugin changes.
 
-- [ ] **Step 6: Commit the bounded change**
+- [x] **Step 6: Commit the bounded change**
 
-Commit only the approved spec/plan, three art references, focused regression, and cachebuster with a message such as `feat: freeze UI interaction design behavior`.
+Commit the approved contract, behavior scenarios/regressions, plan record, and cachebuster without changing core schema, roles, gates, installer behavior, or marketplace state.

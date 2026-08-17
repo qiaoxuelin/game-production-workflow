@@ -33,6 +33,18 @@ const policySources = {
     ),
     "utf8",
   ),
+  visualDesign: fs.readFileSync(
+    path.join(pluginRoot, "skills/game-art-production/references/visual-design.md"),
+    "utf8",
+  ),
+  interactiveUi2d: fs.readFileSync(
+    path.join(pluginRoot, "skills/game-art-production/references/interactive-ui-2d.md"),
+    "utf8",
+  ),
+  visualReview: fs.readFileSync(
+    path.join(pluginRoot, "skills/game-art-production/references/visual-review.md"),
+    "utf8",
+  ),
 };
 
 const contractMatchers = {
@@ -72,6 +84,22 @@ const contractMatchers = {
     ["execution", /Bulk\s+production unlocks only when the assembly precheck and runtime proof pass/i],
     ["checker", /visual_bulk_unlock_without_prechecks/i],
   ],
+  "ui-design-before-freeze": [
+    ["visualDesign", /player input.*authoritative pre\/post state.*presentation state\/component.*feedback.*failure\/recovery/i],
+    ["visualDesign", /pointer\/touch\/keyboard\/controller.*directional\/default\/restored focus.*pressed\/selected\/disabled\/loading\/success\/error\/cancel\/recovery/is],
+    ["visualDesign", /core records the freeze before `Produce` implements in the target project/i],
+  ],
+  "ui-produce-return-boundary": [
+    ["interactiveUi2d", /If product behavior is missing or contradictory, return the design boundary instead of deciding it/i],
+  ],
+  "ui-review-causality": [
+    ["visualReview", /trace real input through authoritative state to visible feedback/i],
+    ["visualReview", /focus\/navigation.*timing\/interruption.*failure\/recovery/is],
+  ],
+  "noninteractive-composition-exemption": [
+    ["visualDesign", /only when.*`Interactive visual scope`.*`Required`.*player-operated surface/i],
+    ["visualDesign", /required solely for non-interactive (?:composition|render).*does not invoke.*interaction contract/i],
+  ],
 };
 
 assert(
@@ -90,6 +118,10 @@ const requiredIds = new Set([
   "same-root-return",
   "approval-timeout",
   "composite-is-not-runtime-ui",
+  "prefreeze-ui-interaction-design",
+  "missing-ui-behavior-produce-return",
+  "runtime-ui-dynamic-review",
+  "noninteractive-composed-2d",
 ]);
 const seenIds = new Set();
 const seenContractIds = new Set();
