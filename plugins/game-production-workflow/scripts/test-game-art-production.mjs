@@ -233,6 +233,73 @@ assert.match(visualDesign, /Professional result:[^\n]*Production-design candidat
 assert.match(visualDesign, /Maturity assessment:[^\n]*core-supplied current maturity[^\n]*normally `Direction`[^\n]*until[^\n]*core[^\n]*freeze/i);
 assert.match(visualDesign, /never report `Production design`[^\n]*before[^\n]*freeze/i);
 assert.match(visualDesign, /do not replace[^\n]*established maturity[^\n]*`Not established`/i);
+assert.match(
+  visualDesign,
+  /player input[^\n]*intent\/action[^\n]*authoritative pre\/post state[^\n]*presentation state\/component[^\n]*feedback[^\n]*(?:completion|interruption)[^\n]*failure\/recovery/i,
+  "selected UI direction must become an explicit interaction-to-visual design chain",
+);
+const assertUiInteractionPolicy = ({ design, produce, review }) => {
+  assert.match(
+    design,
+    /only when[^\n]*`Interactive visual scope`[^\n]*`Required`[^\n]*player-operated surface/i,
+    "interaction behavior must be conditional on a player-operated surface",
+  );
+  assert.match(
+    design,
+    /required solely for non-interactive (?:composition|render)[^\n]*does not invoke[^\n]*interaction contract/i,
+    "non-interactive composition must retain render/spatial design without interaction burden",
+  );
+  assert.match(
+    design,
+    /pointer\/touch\/keyboard\/controller[^\n]*focus order[^\n]*directional\/default\/restored focus[^\n]*hit regions[^\n]*unavailable controls/i,
+    "Design must expose applicable input and focus mechanics",
+  );
+  assert.match(
+    design,
+    /pressed\/selected\/disabled\/loading\/success\/error\/cancel\/recovery[^\n]*reduced motion[^\n]*platform differences/i,
+    "Design must expose critical states, reduced motion, and platform differences",
+  );
+  assert.match(
+    produce,
+    /If product behavior is missing or contradictory, return the design boundary instead of deciding it/i,
+    "Produce must return missing product behavior rather than deciding it locally",
+  );
+  assert.match(
+    review,
+    /trace real input through authoritative state to visible feedback/i,
+    "Review must trace real interaction causality",
+  );
+  assert.match(
+    review,
+    /focus\/navigation[^\n]*timing\/interruption[^\n]*failure\/recovery/i,
+    "Review must inspect dynamic interaction conformance",
+  );
+  assert.doesNotMatch(
+    review,
+    /focus\/navigation[^\n]*timing\/interruption[^\n]*failure\/recovery[^\n]*not inspected/i,
+    "Review must not negate dynamic interaction inspection",
+  );
+};
+assert.match(
+  visualDesign,
+  /one consolidated[^\n]*(?:board|behavior matrix|annotated flow|bounded interactive prototype)/i,
+  "interaction design evidence must stay consolidated and tool-agnostic",
+);
+assert.match(
+  visualDesign,
+  /static keyframe or state sheet alone[^\n]*cannot[^\n]*(?:interaction-ready|freeze)/i,
+  "static UI art alone must not establish an interaction-ready design",
+);
+assert.match(
+  visualDesign,
+  /simulat(?:e|ed)[^\n]*disclos[^\n]*never[^\n]*target-project runtime proof/i,
+  "a Design prototype must not impersonate target-project runtime evidence",
+);
+assert.match(
+  visualDesign,
+  /pre-freeze[^\n]*Design-owned[^\n]*(?:prototype|feasibility evidence)[^\n]*core[^\n]*freeze[^\n]*before `Produce`/i,
+  "target-project production must not become a circular precondition for design freeze",
+);
 
 const interactiveUi2d = fs.readFileSync(path.join(skillRoot, "references/interactive-ui-2d.md"), "utf8");
 assert.match(interactiveUi2d, /select one dominant root cause or subsystem/i);
@@ -245,6 +312,88 @@ assert.match(
 );
 assert.match(interactiveUi2d, /applicable real input and authoritative state/i);
 assert.match(interactiveUi2d, /actual target project[\s\S]*actual runtime proof/i);
+assert.match(
+  interactiveUi2d,
+  /consume[^\n]*frozen interaction-to-visual mapping/i,
+  "Produce must consume the frozen interaction design instead of recreating it",
+);
+assert.match(
+  interactiveUi2d,
+  /missing or contradictory[^\n]*return[^\n]*(?:Design|design boundary)/i,
+  "Produce must return missing product interaction decisions",
+);
+assert.match(
+  interactiveUi2d,
+  /expected-versus-observed[^\n]*conformance/i,
+  "runtime observation must compare the implementation with frozen behavior",
+);
+
+const visualReview = fs.readFileSync(path.join(skillRoot, "references/visual-review.md"), "utf8");
+assert.match(
+  visualReview,
+  /real input[^\n]*authoritative state[^\n]*visible feedback/i,
+  "visual review must inspect real interaction-to-visual causality",
+);
+
+assertUiInteractionPolicy({
+  design: visualDesign,
+  produce: interactiveUi2d,
+  review: visualReview,
+});
+
+const requiredMutation = (source, pattern, replacement, label) => {
+  const mutated = source.replace(pattern, replacement);
+  assert.notEqual(mutated, source, `${label}: mutation did not apply`);
+  return mutated;
+};
+
+for (const mutation of [
+  {
+    label: "unconditional interaction burden",
+    sources: {
+      design: requiredMutation(
+        visualDesign,
+        /only when[^.]+player-operated surface[^.]*\./i,
+        "regardless of whether `Interactive visual scope` is `Required`, define interaction behavior for every visual surface.",
+        "unconditional interaction burden",
+      ),
+      produce: interactiveUi2d,
+      review: visualReview,
+    },
+  },
+  {
+    label: "Produce invents missing product behavior",
+    sources: {
+      design: visualDesign,
+      produce: requiredMutation(
+        interactiveUi2d,
+        /If product behavior is missing or contradictory, return the design boundary instead of deciding it/i,
+        "If product behavior is missing or contradictory, do not return the design boundary; decide it locally",
+        "Produce invents missing product behavior",
+      ),
+      review: visualReview,
+    },
+  },
+  {
+    label: "Review skips dynamic conformance",
+    sources: {
+      design: visualDesign,
+      produce: interactiveUi2d,
+      review: requiredMutation(
+        visualReview,
+        /focus\/navigation, timing\/interruption, failure\/recovery/i,
+        "focus/navigation, timing/interruption, and failure/recovery are not inspected",
+        "Review skips dynamic conformance",
+      ),
+    },
+  },
+]) {
+  assert.throws(
+    () => assertUiInteractionPolicy(mutation.sources),
+    undefined,
+    `${mutation.label}: semantic inversion must be rejected`,
+  );
+}
 
 const candidateRoutes = {
   nonArtProduce: wordCount(coreSkill) + wordCount(execution),

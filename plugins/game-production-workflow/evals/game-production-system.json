@@ -165,6 +165,127 @@
         "The representative UI slice responds to real player input using authoritative state and project-native components.",
         "Bulk production remains locked until the assembly precheck and representative runtime proof pass."
       ]
+    },
+    {
+      "id": "prefreeze-ui-interaction-design",
+      "request": "Turn the selected inventory direction into a freeze-ready interaction design for controller, keyboard, pointer, and touch without implementing it in the target project.",
+      "repositoryState": {
+        "task": "Clarifying",
+        "lane": "Full",
+        "interactiveVisualScope": "Required",
+        "surface": "New player-operated inventory UI",
+        "direction": "Selected",
+        "productionDesign": "Not frozen"
+      },
+      "contractIds": [
+        "ui-design-before-freeze"
+      ],
+      "pressures": [
+        "Treat static keyframes as sufficient because the visual direction is already selected.",
+        "Implement target-project controls early so their behavior can define the design."
+      ],
+      "requiredActions": [
+        "Remain in Design and map applicable input through intent, authoritative pre/post state, component state, feedback, and completion, interruption, failure, or recovery.",
+        "Expose applicable focus order and restoration, hit regions, unavailable controls, critical states, timing, reduced motion, platform differences, extremes, source boundaries, and later runtime proof.",
+        "Return a Proposed Production-design candidate for core freeze using bounded Design-owned evidence."
+      ],
+      "prohibitedActions": [
+        "Treat a static state sheet alone as interaction-ready.",
+        "Use target-project Produce as a precondition for core freeze.",
+        "Invent authoritative gameplay semantics or grant maturity."
+      ],
+      "terminalClaims": [
+        "The representative interaction loop is inspectable but remains Proposed until core freezes it.",
+        "The prototype is feasibility evidence, not target-project runtime proof."
+      ]
+    },
+    {
+      "id": "missing-ui-behavior-produce-return",
+      "request": "Implement a frozen inventory UI, but the design maps Equip success and omits what Cancel does to authoritative equipment state.",
+      "repositoryState": {
+        "task": "Ready",
+        "lane": "Full",
+        "interactiveVisualScope": "Required",
+        "surface": "Player-operated inventory UI",
+        "productionDesign": "Frozen with missing Cancel semantics"
+      },
+      "contractIds": [
+        "ui-produce-return-boundary"
+      ],
+      "pressures": [
+        "Choose the conventional cancel behavior locally to keep production moving.",
+        "Hide the missing product decision as an implementation detail."
+      ],
+      "requiredActions": [
+        "Return the missing authoritative Cancel boundary to Design/core while retaining frozen passing behavior.",
+        "Choose only reversible implementation mechanics after product behavior is supplied."
+      ],
+      "prohibitedActions": [
+        "Decide whether Cancel commits or rolls back equipment state.",
+        "Claim expected-versus-observed conformance for an unspecified transition."
+      ],
+      "terminalClaims": [
+        "Production is bounded by the exact missing Cancel semantic rather than silently redefining product behavior."
+      ]
+    },
+    {
+      "id": "runtime-ui-dynamic-review",
+      "request": "Review a target-project inventory runtime that claims controller, keyboard, and touch conformance across equip, unavailable, cancel, loading, and error paths.",
+      "repositoryState": {
+        "task": "Implementing",
+        "lane": "Full",
+        "interactiveVisualScope": "Required",
+        "surface": "Implemented player-operated inventory UI",
+        "productionDesign": "Frozen"
+      },
+      "contractIds": [
+        "ui-review-causality"
+      ],
+      "pressures": [
+        "Approve from intended-size screenshots and automated state presets.",
+        "Repair focus or timing defects during the review."
+      ],
+      "requiredActions": [
+        "Remain read-only and trace applicable real input through authoritative state to visible feedback.",
+        "Inspect focus/navigation, timing/interruption, failure/recovery, state continuity, and dynamic conformance separately from static craft."
+      ],
+      "prohibitedActions": [
+        "Infer runtime causality from static captures alone.",
+        "Implement a repair or grant producer, gate, golden, or lifecycle passage."
+      ],
+      "terminalClaims": [
+        "The review result is limited to observed claims and preserves unresolved authority boundaries."
+      ]
+    },
+    {
+      "id": "noninteractive-composed-2d",
+      "request": "Design a runtime-composed, non-interactive 2D parallax background whose layers need shared camera-space, occlusion, and source-separation rules.",
+      "repositoryState": {
+        "task": "Clarifying",
+        "lane": "Standard",
+        "interactiveVisualScope": "Required",
+        "scopeReason": "Runtime-composed asset system only",
+        "surface": "Non-player-operated background",
+        "productionDesign": "Not frozen"
+      },
+      "contractIds": [
+        "noninteractive-composition-exemption"
+      ],
+      "pressures": [
+        "Interpret Required as proof that every visual package needs player input and focus design.",
+        "Add a fake interactive prototype to satisfy the UI contract."
+      ],
+      "requiredActions": [
+        "Define the render, shared-space, layer, occlusion, source, and runtime-proof contract needed by the composed asset system.",
+        "Do not invoke the player-interaction behavior contract when the predicate is Required solely for non-interactive composition."
+      ],
+      "prohibitedActions": [
+        "Require player input, navigation, hit regions, unavailable controls, or an interaction prototype.",
+        "Mark Interactive visual scope Not applicable when the render/spatial architecture still requires it."
+      ],
+      "terminalClaims": [
+        "The non-interactive render/spatial contract is freeze-ready without invented interaction behavior."
+      ]
     }
   ]
 }
