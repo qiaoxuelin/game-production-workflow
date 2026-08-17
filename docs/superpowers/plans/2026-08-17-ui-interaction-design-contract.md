@@ -21,7 +21,9 @@
 ### Task 1: Lock the interaction-design behavior
 
 **Files:**
+- Modify: `plugins/game-production-workflow/evals/game-production-system.json`
 - Modify: `plugins/game-production-workflow/scripts/test-game-art-production.mjs`
+- Modify: `plugins/game-production-workflow/scripts/test-skill-evals.mjs`
 
 **Interfaces:**
 - Consumes: existing Design/Produce/Review reference texts and route word-count formulas.
