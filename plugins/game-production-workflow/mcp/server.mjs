@@ -260,11 +260,17 @@ async function readIndex(store) {
 
 async function writeIndex(store, index) {
   await fs.mkdir(store.directory, { recursive: true });
-  await fs.writeFile(
-    store.indexPath,
-    `${JSON.stringify(index, null, 2)}\n`,
-    "utf8"
-  );
+  const temporaryPath = `${store.indexPath}.${process.pid}.${randomBytes(6).toString("hex")}.tmp`;
+  try {
+    await fs.writeFile(
+      temporaryPath,
+      `${JSON.stringify(index, null, 2)}\n`,
+      "utf8"
+    );
+    await fs.rename(temporaryPath, store.indexPath);
+  } finally {
+    await fs.rm(temporaryPath, { force: true }).catch(() => {});
+  }
 }
 
 async function appendEvent(store, type, approval, extra = {}) {
