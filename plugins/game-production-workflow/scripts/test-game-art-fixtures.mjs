@@ -62,6 +62,9 @@ const publicObservationFiles = [
   "fixture-guidance/observation-helper.mjs",
 ];
 const operationalFiles = ["fixture-lock.json", "observation.json", "result.json", ...publicObservationFiles];
+const manifestRelativePath = (pathApi, from, to) => pathApi.relative(from, to)
+  .split(pathApi.sep)
+  .join("/");
 const outputHash = (runRoot) => fixtureApi.hashTree(runRoot, operationalFiles);
 const canonicalValue = (value) => Array.isArray(value)
   ? value.map(canonicalValue)
@@ -229,6 +232,11 @@ const stateVerification = spawnSync(
 assert.equal(stateVerification.status, 0, stateVerification.stderr || stateVerification.stdout);
 
 const designShell = await import(pathToFileURL(path.join(evalRoot, "design-direction/starter/web/app.mjs")));
+assert.equal(
+  manifestRelativePath(path.win32, "C:\\fixture\\run", "C:\\outside\\outside-artifact.svg"),
+  "../../outside/outside-artifact.svg",
+  "artifact-manifest paths must remain slash-canonical on Windows",
+);
 const designIndex = fs.readFileSync(path.join(evalRoot, "design-direction/starter/web/index.html"), "utf8");
 assert.match(designIndex, /id="case-controls"/);
 assert.match(designIndex, /id="viewport-controls"/);
@@ -1193,7 +1201,7 @@ try {
         {
           ...artifactManifest,
           artifacts: artifactManifest.artifacts.map((entry) => entry === editableEntry
-            ? { ...entry, path: path.relative(runRoot, outsidePath) }
+            ? { ...entry, path: manifestRelativePath(path, runRoot, outsidePath) }
             : entry),
         },
         /outside run root/i,
