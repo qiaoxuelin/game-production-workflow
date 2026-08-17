@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="500" viewBox="0 0 760 500" role="img" aria-labelledby="title description">
+  <title id="title">Flattened expedition inventory concept</title>
+  <desc id="description">An original repository-owned composition used only as a visual direction reference.</desc>
+  <rect width="760" height="500" rx="8" fill="#10171c"/>
+  <path d="M26 18h708l18 18v428l-18 18H26L8 464V36z" fill="#1b2931" stroke="#67808b" stroke-width="4"/>
+  <text x="40" y="58" fill="#f2ead7" font-family="system-ui, sans-serif" font-size="24" font-weight="700">EXPEDITION INVENTORY</text>
+  <text x="618" y="56" fill="#a9bec4" font-family="system-ui, sans-serif" font-size="14">08 SLOTS</text>
+  <g fill="#243842" stroke="#67808b" stroke-width="2">
+    <rect x="42" y="92" width="118" height="118" rx="4"/><rect x="178" y="92" width="118" height="118" rx="4"/>
+    <rect x="42" y="228" width="118" height="118" rx="4"/><rect x="178" y="228" width="118" height="118" rx="4"/>
+    <rect x="314" y="92" width="118" height="118" rx="4"/><rect x="450" y="92" width="118" height="118" rx="4"/>
+    <rect x="314" y="228" width="118" height="118" rx="4"/><rect x="450" y="228" width="118" height="118" rx="4"/>
+  </g>
+  <rect x="38" y="88" width="126" height="126" rx="6" fill="none" stroke="#f2b84b" stroke-width="5"/>
+  <g fill="none" stroke="#69b9c7" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="101" cy="151" r="31"/><path d="m101 126 11 25-11 25-11-25z"/>
+    <path d="M210 171h52M220 157l32-32M252 125l10 10"/>
+    <path d="M343 174h60l-9-49h-42zM365 125v-15h16v15"/>
+    <path d="m482 174 23-48 23 48zM505 126v-15"/>
+  </g>
+  <path d="M592 92h126v254H592z" fill="#172229" stroke="#67808b" stroke-width="2"/>
+  <text x="612" y="126" fill="#a9bec4" font-family="system-ui, sans-serif" font-size="13">SELECTED ITEM</text>
+  <text x="612" y="164" fill="#f2ead7" font-family="system-ui, sans-serif" font-size="22" font-weight="700">COMPASS</text>
+  <circle cx="655" cy="224" r="38" fill="none" stroke="#69b9c7" stroke-width="8"/>
+  <path d="m655 194 12 30-12 30-12-30z" fill="#f2b84b"/>
+  <text x="612" y="298" fill="#a9bec4" font-family="system-ui, sans-serif" font-size="14">Reliable bearing</text>
+  <path d="M42 382h676" stroke="#67808b" stroke-width="2"/>
+  <g fill="#a9bec4" font-family="system-ui, sans-serif" font-size="15">
+    <text x="42" y="424">ARROWS  MOVE</text><text x="244" y="424">ENTER  EQUIP</text><text x="468" y="424">ESC  CLOSE</text>
+  </g>
+  <text x="42" y="466" fill="#e66c5c" font-family="system-ui, sans-serif" font-size="12">FLATTENED CONCEPT — NOT RUNTIME UI</text>
+</svg>

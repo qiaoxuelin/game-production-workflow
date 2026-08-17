@@ -1,0 +1,4 @@
+interface:
+  display_name: "游戏美术制作"
+  short_description: "设计、制作、集成并评审交互式 UI 与 2D 游戏美术"
+  default_prompt: "Use $game-art-production within the core-owned game task to produce or review the next interactive UI/2D visual slice."

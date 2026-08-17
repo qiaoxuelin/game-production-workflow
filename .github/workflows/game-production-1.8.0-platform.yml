@@ -1,0 +1,71 @@
+{
+  "name": "Game Production 1.8.0 platform RC",
+  "on": {
+    "push": {
+      "branches": [
+        "agent/game-art-production-implementation"
+      ]
+    },
+    "workflow_dispatch": {}
+  },
+  "permissions": {
+    "contents": "read"
+  },
+  "concurrency": {
+    "group": "game-production-1.8.0-platform-${{ github.ref }}",
+    "cancel-in-progress": true
+  },
+  "jobs": {
+    "verify": {
+      "name": "Verify ${{ matrix.os }}",
+      "runs-on": "${{ matrix.os }}",
+      "strategy": {
+        "fail-fast": false,
+        "matrix": {
+          "os": [
+            "ubuntu-latest",
+            "windows-latest"
+          ]
+        }
+      },
+      "steps": [
+        {
+          "name": "Check out exact candidate",
+          "uses": "actions/checkout@v4",
+          "with": {
+            "fetch-depth": 0,
+            "ref": "${{ github.sha }}"
+          }
+        },
+        {
+          "name": "Fetch comparison ref",
+          "shell": "pwsh",
+          "run": "git fetch --no-tags origin main:refs/remotes/origin/main"
+        },
+        {
+          "name": "Set up Node.js",
+          "uses": "actions/setup-node@v4",
+          "with": {
+            "node-version": "24"
+          }
+        },
+        {
+          "name": "Verify candidate and installer dry-run",
+          "shell": "pwsh",
+          "run": "$ErrorActionPreference = 'Stop'\n$evidenceRoot = '.tmp/task8-platform'\nNew-Item -ItemType Directory -Force -Path $evidenceRoot | Out-Null\n\n$expectedHead = $env:GITHUB_SHA\n$actualHead = (& git rev-parse HEAD).Trim()\n@(\n  \"runnerOS=$env:RUNNER_OS\"\n  \"runnerArch=$env:RUNNER_ARCH\"\n  \"expectedCandidateCommit=$expectedHead\"\n  \"actualCandidateCommit=$actualHead\"\n  \"nodeVersion=$(& node --version)\"\n  \"powerShellVersion=$($PSVersionTable.PSVersion)\"\n  \"gitVersion=$(& git --version)\"\n  \"osDescription=$([System.Runtime.InteropServices.RuntimeInformation]::OSDescription)\"\n) | Set-Content -Encoding utf8 \"$evidenceRoot/environment.log\"\n\nif ($actualHead -ne $expectedHead) {\n  throw \"Checked-out HEAD does not match GITHUB_SHA: actual=$actualHead expected=$expectedHead\"\n}\n\n$verifyOutput = @(& pwsh -NoProfile -File ./verify.ps1 -CompareRef origin/main 2>&1)\n$verifyExit = $LASTEXITCODE\n$verifyOutput | Tee-Object -FilePath \"$evidenceRoot/verify.log\"\n\n$installOutput = @(\n  & node ./install.mjs --dry-run --json `\n    --repository qiaoxuelin/game-production-workflow `\n    --ref $actualHead 2>&1\n)\n$installExit = $LASTEXITCODE\n$installOutput | Tee-Object -FilePath \"$evidenceRoot/install-dry-run.json\"\n\n@(\n  \"verifyExit=$verifyExit\"\n  \"installDryRunExit=$installExit\"\n) | Set-Content -Encoding utf8 \"$evidenceRoot/exit-status.log\"\n\nGet-ChildItem -LiteralPath $evidenceRoot -File |\n  Sort-Object Name |\n  ForEach-Object {\n    $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash.ToLowerInvariant()\n    \"$hash  $($_.Name)\"\n  } | Set-Content -Encoding utf8 \"$evidenceRoot/SHA256SUMS\"\n\nif ($verifyExit -ne 0 -or $installExit -ne 0) {\n  throw \"Platform verification failed: verify=$verifyExit installDryRun=$installExit\"\n}"
+        },
+        {
+          "name": "Upload platform evidence",
+          "if": "${{ always() }}",
+          "uses": "actions/upload-artifact@v4",
+          "with": {
+            "name": "task8-platform-${{ runner.os }}-${{ github.sha }}",
+            "path": ".tmp/task8-platform/",
+            "if-no-files-found": "error",
+            "retention-days": 14
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Result Screen Direction Greybox</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <aside class="case-panel" aria-label="Fixture cases">
+      <strong>Greybox cases</strong>
+      <div id="case-controls"></div>
+      <div id="viewport-controls"></div>
+    </aside>
+    <main id="viewport" class="viewport desktop" aria-live="polite">
+      <section class="result" aria-labelledby="outcome">
+        <p class="eyebrow">Run complete</p>
+        <h1 id="outcome">Success</h1>
+        <p id="score">Score 12,480</p>
+        <ul id="rewards" aria-label="Rewards"></ul>
+        <div class="actions">
+          <button id="retry">Retry</button>
+          <button id="exit">Exit</button>
+        </div>
+        <p id="feedback" role="status"></p>
+      </section>
+    </main>
+    <script type="module" src="./app.mjs"></script>
+  </body>
+</html>

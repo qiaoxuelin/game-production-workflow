@@ -1,0 +1,562 @@
+{
+  "schemaVersion": 1,
+  "policyCommit": "1d77557",
+  "policyVersion": "1.7.2+codex.20260814064925",
+  "fixtureResults": [
+    {
+      "schemaVersion": 1,
+      "fixtureId": "design-direction",
+      "label": "control-1.7.2",
+      "policyVersion": "1.7.2",
+      "capabilities": {
+        "gameProductionSystem": "1.7.2",
+        "imageGenerationAvailable": true,
+        "imageEditingAvailable": true,
+        "browserRuntimeInspection": true,
+        "externalArtDirectionSelected": false
+      },
+      "sourceTreeHash": "sha256:9263408b47f3df7faa539fa6559b92838309d402a1c89c9424611ea776f7ba7e",
+      "outputTreeHash": "sha256:0f976e279d292491030f51489d021cb49c407ba46920d95376178cb3ce2c0743",
+      "taskStateBefore": {
+        "gate": "G0",
+        "currentTask": "ART-DIRECTION-001",
+        "status": "Clarifying",
+        "nextAction": "Produce bounded original direction candidates in the greybox shell for human selection"
+      },
+      "taskStateAfter": {
+        "gate": "G0",
+        "currentTask": "ART-DIRECTION-001",
+        "status": "Clarifying",
+        "nextAction": "Human art direction reviews the integrated Signal Forge runtime candidate and explicitly selects, returns, or bounds it"
+      },
+      "loadedContext": {
+        "metadataWords": 84,
+        "bodyWords": 5923,
+        "referenceWords": 8691,
+        "files": [
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/SKILL.md#frontmatter",
+          "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md#frontmatter",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/SKILL.md#body",
+          "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md#body",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/execution.md",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/visual-production.md",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/experience-review.md",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/scripts/check.ps1#lines-1-90",
+          "browser-runtime://documentation/core",
+          "browser-runtime://documentation/local-web-development",
+          "browser-runtime://documentation/screenshots",
+          "browser-runtime://capability/viewport"
+        ]
+      },
+      "cycles": 2,
+      "elapsedMinutes": 16,
+      "objectiveChecks": [
+        {
+          "id": "source-lock",
+          "status": "Pass",
+          "evidence": [
+            "starter tree: matches lock",
+            "fixture definition: matches lock"
+          ]
+        },
+        {
+          "id": "task-state-claims",
+          "status": "Pass",
+          "evidence": [
+            "source claim: matches lock",
+            "before claim: matches lock",
+            "after claim: matches repository"
+          ]
+        },
+        {
+          "id": "required-artifacts",
+          "status": "Fail",
+          "evidence": [
+            "artifacts/design-direction.md: missing or empty",
+            "artifacts/source-export-import.md: missing or empty",
+            "artifacts/runtime-captures/1280x720-success.svg: missing or empty",
+            "artifacts/runtime-captures/1280x720-failure.svg: missing or empty",
+            "artifacts/runtime-captures/390x844-reward-overflow.svg: missing or empty",
+            "artifacts/runtime-captures/390x844-controller-focus.svg: missing or empty"
+          ]
+        },
+        {
+          "id": "output-tree-claim",
+          "status": "Pass",
+          "evidence": [
+            "output tree: matches observation"
+          ]
+        },
+        {
+          "id": "prohibited-claims",
+          "status": "Pass",
+          "evidence": [
+            "terminal claim contains no prohibited artistic passage"
+          ]
+        }
+      ],
+      "subjectiveReview": {
+        "status": "Pending",
+        "reviewerIndependence": "Unassessed",
+        "findings": []
+      },
+      "terminalClaim": "A bounded original direction candidate and honest runtime evidence are produced and recoverable. The task remains Clarifying at G0; no human selection, independent quality passage, producer acceptance, gate passage, or full keyboard-runtime proof is claimed."
+    },
+    {
+      "schemaVersion": 1,
+      "fixtureId": "composite-runtime",
+      "label": "control-1.7.2",
+      "policyVersion": "1.7.2",
+      "capabilities": {
+        "gameProductionSystem": "1.7.2",
+        "imageGenerationAvailable": true,
+        "imageEditingAvailable": true,
+        "browserRuntimeInspection": true,
+        "projectNativeComponentsRequired": true
+      },
+      "sourceTreeHash": "sha256:b1dbaca1b28c58df2aceaca54ede285303fd8151e990f5b83c8e2bed5ce8a848",
+      "outputTreeHash": "sha256:5404b20d371b1ab5ca0025cf511a7367d22600865a9539e03a693e2c483f5e09",
+      "taskStateBefore": {
+        "gate": "G1",
+        "currentTask": "ART-RUNTIME-001",
+        "status": "Ready",
+        "nextAction": "Replace the flattened inventory concept with the first project-native representative runtime slice"
+      },
+      "taskStateAfter": {
+        "gate": "G1",
+        "currentTask": "ART-RUNTIME-001",
+        "status": "Implementing",
+        "nextAction": "Observe the native runtime at 1280x720 in an allowed browser, capture all five states, and obtain independent visual and experience review"
+      },
+      "loadedContext": {
+        "metadataWords": 120,
+        "bodyWords": 6465,
+        "referenceWords": 3464,
+        "files": [
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/verification-before-completion/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/verification-before-completion/SKILL.md",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/execution.md",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/visual-production.md",
+          "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/experience-review.md",
+          "local-web-development",
+          "screenshots",
+          "viewport"
+        ]
+      },
+      "cycles": 2,
+      "elapsedMinutes": 26,
+      "objectiveChecks": [
+        {
+          "id": "source-lock",
+          "status": "Pass",
+          "evidence": [
+            "starter tree: matches lock",
+            "fixture definition: matches lock"
+          ]
+        },
+        {
+          "id": "task-state-claims",
+          "status": "Pass",
+          "evidence": [
+            "source claim: matches lock",
+            "before claim: matches lock",
+            "after claim: matches repository"
+          ]
+        },
+        {
+          "id": "required-artifacts",
+          "status": "Fail",
+          "evidence": [
+            "web/components/inventory-panel.mjs: missing or empty",
+            "web/assets/inventory-frame.svg: missing or empty",
+            "web/assets/inventory-icons.svg: missing or empty",
+            "artifacts/source-export-import.md: missing or empty",
+            "artifacts/runtime-captures/empty.svg: missing or empty",
+            "artifacts/runtime-captures/full.svg: missing or empty",
+            "artifacts/runtime-captures/error.svg: missing or empty",
+            "artifacts/runtime-captures/equip.svg: missing or empty",
+            "artifacts/runtime-captures/controller-focus.svg: missing or empty"
+          ]
+        },
+        {
+          "id": "output-tree-claim",
+          "status": "Pass",
+          "evidence": [
+            "output tree: matches observation"
+          ]
+        },
+        {
+          "id": "local-state-verifier",
+          "status": "Pass",
+          "evidence": [
+            "PASS trusted authoritative inventory state contract"
+          ]
+        },
+        {
+          "id": "prohibited-claims",
+          "status": "Pass",
+          "evidence": [
+            "terminal claim contains no prohibited artistic passage"
+          ]
+        }
+      ],
+      "subjectiveReview": {
+        "status": "Pending",
+        "reviewerIndependence": "Unassessed",
+        "findings": []
+      },
+      "terminalClaim": "A source-complete, editable, project-native implementation candidate passes the authoritative state contract and deterministic assembly checks. Runtime proof, artistic passage, independent review, human acceptance, and gate passage are not claimed."
+    }
+  ],
+  "approvalEvidence": [
+    {
+      "fixtureId": "design-direction",
+      "before": {
+        "G0": null,
+        "G1": null,
+        "goldenVisual": null,
+        "G2": null,
+        "G3": null
+      },
+      "after": {
+        "G0": null,
+        "G1": null,
+        "goldenVisual": null,
+        "G2": null,
+        "G3": null
+      },
+      "addedOrChangedCount": 0,
+      "hash": "sha256:94d681b5ddd380b5436b4c6fa21ecf595974dd921b49de2a2638e7cc46160f8c"
+    },
+    {
+      "fixtureId": "composite-runtime",
+      "before": {
+        "G0": {
+          "decision": "approved",
+          "decidedBy": "Fixture author",
+          "decidedAt": "2026-08-14",
+          "source": "production/PROJECT.md",
+          "scope": "Inventory direction and interaction/render contract"
+        },
+        "G1": null,
+        "goldenVisual": null,
+        "G2": null,
+        "G3": null
+      },
+      "after": {
+        "G0": {
+          "decision": "approved",
+          "decidedBy": "Fixture author",
+          "decidedAt": "2026-08-14",
+          "source": "production/PROJECT.md",
+          "scope": "Inventory direction and interaction/render contract"
+        },
+        "G1": null,
+        "goldenVisual": null,
+        "G2": null,
+        "G3": null
+      },
+      "addedOrChangedCount": 0,
+      "hash": "sha256:c147377fc9593dc865069622992e40420545a78db973ad74a1c2ed53855b00cb"
+    }
+  ],
+  "evidenceBundles": [
+    {
+      "fixtureId": "design-direction",
+      "rawBundle": {
+        "location": ".tmp/game-art-evals/control-design-direction",
+        "hash": "sha256:b4a03dd591683f516946eda97a67244bc64a22aa6a78cc8da1ad6efd7975732d",
+        "outputTreeHash": "sha256:0f976e279d292491030f51489d021cb49c407ba46920d95376178cb3ce2c0743"
+      },
+      "result": {
+        "location": ".tmp/game-art-evals/control-design-direction/result.json",
+        "hash": "sha256:a1e7766c5fde25ec2cf7ce0019eebd31ac4360aa13624e0356f6912757392b3f"
+      },
+      "independentReview": {
+        "location": ".tmp/game-art-evals/control-design-direction/artifacts/independent-review.json",
+        "hash": "sha256:29c3d2a541ea5cba70f390e260682428fa86649636b66ad1c76a5c7389786ef4",
+        "record": {
+          "schemaVersion": 1,
+          "status": "Returned",
+          "reviewerIndependence": "Independent",
+          "contributionDisclosure": "No contribution to production artifacts",
+          "failedCriteria": [
+            "Reward-overflow content and action containment are visibly demonstrated at 390x844 in the integrated result screen.",
+            "Controller focus is visually distinct and readable at 390x844.",
+            "Keyboard and controller interaction-to-visual causality is demonstrated by actual runtime evidence."
+          ],
+          "retainedPassingParts": [
+            "The desktop success and failure captures establish an immediate outcome-first hierarchy, readable score and cargo sections, and a clearly dominant Retry action.",
+            "Success and failure remain cohesive variants of one component language, with consistent geometry and a controlled amber-to-coral signal change.",
+            "The serif outcome typography, monospaced metadata, restrained survey ornament, clipped geometry, and deep field palette form a distinctive and internally cohesive Signal Forge identity at desktop size.",
+            "The standard portrait result composition preserves legible outcome, score, reward rows, and touch-sized actions without visible clipping.",
+            "Editable ornament source, runtime export handling, provenance, and state/source separation are documented without claiming human or artistic approval."
+          ],
+          "findings": [
+            {
+              "severity": "Blocking",
+              "criterion": "Reward-overflow state coverage and action-safe readability at 390x844",
+              "evidence": [
+                "artifacts/runtime-captures/mobile-reward-overflow-390x844.png is labeled as the required overflow proof, but the image contains only the runtime-shell state controls; the integrated result panel, eight reward rows, overflow region, and actions are not visible.",
+                "Because the content extreme is absent from the capture, the review cannot confirm scanability, scroll containment, or that rewards do not cover the actions."
+              ]
+            },
+            {
+              "severity": "Blocking",
+              "criterion": "Visible and unambiguous controller focus at the portrait target size",
+              "evidence": [
+                "artifacts/runtime-captures/mobile-controller-focus-390x844.png shows Retry with the same amber primary-action treatment visible in artifacts/runtime-captures/desktop-success-1280x720.png and no visible cyan outline or other additional focus marker.",
+                "The dedicated controller-focus capture therefore does not make the focused state distinguishable from the ordinary primary-action state."
+              ]
+            },
+            {
+              "severity": "Blocking",
+              "criterion": "Actual keyboard/controller interaction-to-visual causality",
+              "evidence": [
+                "artifacts/SOURCE-HANDOFF.md states that Enter, Space, and Tab injection did not deliver events and that keyboard activation remains an independent/manual runtime check.",
+                "artifacts/control-run-record.json records runtime observation as partial-pass and retains direct Enter/Space activation and Tab traversal as unresolved risks.",
+                "Static focus-state captures cannot substitute for observing input, focus movement, activation feedback, and recovery in the running experience."
+              ]
+            },
+            {
+              "severity": "Non-blocking",
+              "criterion": "Portrait spatial rhythm and cohesion",
+              "evidence": [
+                "artifacts/runtime-captures/mobile-controller-focus-390x844.png leaves a pronounced unstructured gap between the two-row cargo group and bottom actions; hierarchy remains legible, but the empty field weakens the otherwise deliberate instrument-panel rhythm."
+              ]
+            }
+          ],
+          "evidencePaths": [
+            "production/TASK.md",
+            "production/ACCEPTANCE.md",
+            "docs/ART_BIBLE.md",
+            "artifacts/control-run-record.json",
+            "artifacts/SOURCE-HANDOFF.md",
+            "artifacts/source/result-screen-ornament.svg",
+            "artifacts/runtime-captures/desktop-success-1280x720.png",
+            "artifacts/runtime-captures/desktop-failure-1280x720.png",
+            "artifacts/runtime-captures/mobile-reward-overflow-390x844.png",
+            "artifacts/runtime-captures/mobile-controller-focus-390x844.png"
+          ],
+          "runtimeCoverage": "Partial",
+          "humanDecisionsPending": [
+            "Human UI/2D art-direction selection of the Signal Forge candidate",
+            "Human producer acceptance"
+          ],
+          "terminalReviewClaim": "Returned. The desktop direction, component language, and standard portrait hierarchy are retained, but independent passage is blocked until target-size runtime evidence visibly demonstrates the reward-overflow result and action containment, an unmistakable controller-focus state, and direct keyboard/controller interaction feedback. Human direction selection and producer acceptance remain pending."
+        }
+      }
+    },
+    {
+      "fixtureId": "composite-runtime",
+      "rawBundle": {
+        "location": ".tmp/game-art-evals/control-composite-runtime",
+        "hash": "sha256:76fe51433efb6e3e164138d6762d23988cf3f847de3b7f2928be04ac48994587",
+        "outputTreeHash": "sha256:5404b20d371b1ab5ca0025cf511a7367d22600865a9539e03a693e2c483f5e09"
+      },
+      "result": {
+        "location": ".tmp/game-art-evals/control-composite-runtime/result.json",
+        "hash": "sha256:28f9f672f4f6eb3c11f262ac442ac70e70dd286aa945423f86d0a074de925197"
+      },
+      "independentReview": {
+        "location": ".tmp/game-art-evals/control-composite-runtime/artifacts/independent-review.json",
+        "hash": "sha256:4601987905f3ecdc4cdb2d29d71a9a58bab8125d640c558521824ac54fe95326",
+        "record": {
+          "schemaVersion": 1,
+          "status": "Returned",
+          "reviewerIndependence": "Independent",
+          "contributionDisclosure": "No contribution to production artifacts",
+          "failedCriteria": [
+            "The project-native inventory renderer is visually reviewed at 1280x720 across empty, full, error, equip, and controller-focus states.",
+            "Actual keyboard and pointer input produce causally clear, readable visual state changes in runtime evidence.",
+            "The integrated panel demonstrates hierarchy, legibility, cohesion, craft, and fidelity to the frozen commercial-quality direction at target size."
+          ],
+          "retainedPassingParts": [
+            "The eight standalone item SVG sources form a coherent family with bold simple geometry, consistent cyan and amber accents, and recognizable expedition-item silhouettes.",
+            "Each item remains independently editable, while focus, error, equipped, labels, and hints are explicitly kept out of the item art.",
+            "The source, export, import, provenance, and recovery boundary is clearly documented.",
+            "The verification and terminal records correctly limit deterministic state and assembly checks and do not claim runtime, artistic, human, or gate passage."
+          ],
+          "findings": [
+            {
+              "severity": "Blocking",
+              "criterion": "Five-state project-native runtime coverage at 1280x720",
+              "evidence": [
+                "artifacts/control-run-record.json records runtimeObservation.status as blocked and contains an empty captures array.",
+                "production/TASK.md requires runtime proof for empty, full, error, equip, and controller-focus states, but no runtime-captures directory or state capture is present.",
+                "Without target-size runtime views, hierarchy, selected-item readability, feedback separation, state consistency, and integrated craft cannot be judged."
+              ]
+            },
+            {
+              "severity": "Blocking",
+              "criterion": "Actual input-to-visual causality and control confidence",
+              "evidence": [
+                "artifacts/verification.txt reports passing state and assembly verifiers but explicitly records that browser runtime observation was blocked and makes no runtime visual or screenshot claim.",
+                "artifacts/ASSET-HANDOFF.md describes intended Arrow, Enter, Escape, and pointer behavior, but no actual runtime evidence shows focus movement, successful equip feedback, empty-slot error feedback, or close/recovery behavior.",
+                "Deterministic transition checks and implementation descriptions do not establish the experienced causal connection between input and rendered response."
+              ]
+            },
+            {
+              "severity": "Blocking",
+              "criterion": "Normal-size visual conformance and commercial-quality judgment of the integrated panel",
+              "evidence": [
+                "web/assets/inventory-concept.svg is explicitly identified by AGENTS.md, docs/ART_BIBLE.md, and artifacts/ASSET-HANDOFF.md as a flattened concept that is not runtime UI and cannot serve as the production visual proof.",
+                "The isolated SVG item sources demonstrate an asset-family direction but cannot establish panel hierarchy, state legibility, focus readability, composition, or craft in the project-native 760x500 assembly at 1280x720."
+              ]
+            }
+          ],
+          "evidencePaths": [
+            "production/TASK.md",
+            "production/ACCEPTANCE.md",
+            "docs/ART_BIBLE.md",
+            "artifacts/control-run-record.json",
+            "artifacts/verification.txt",
+            "artifacts/ASSET-HANDOFF.md",
+            "artifacts/source-asset-manifest.json",
+            "web/assets/inventory-concept.svg",
+            "web/assets/source/item-icons/compass.svg",
+            "web/assets/source/item-icons/torch.svg",
+            "web/assets/source/item-icons/rope.svg",
+            "web/assets/source/item-icons/canteen.svg",
+            "web/assets/source/item-icons/map.svg",
+            "web/assets/source/item-icons/lens.svg",
+            "web/assets/source/item-icons/key.svg",
+            "web/assets/source/item-icons/flare.svg"
+          ],
+          "runtimeCoverage": "Blocked",
+          "humanDecisionsPending": [
+            "Human design acceptance of integrated runtime conformance",
+            "Human producer acceptance",
+            "Human G1 and golden-visual approval"
+          ],
+          "terminalReviewClaim": "Returned. The separated icon family and source handoff are retained, but no project-native runtime experience is available for independent judgment. Passage remains blocked until all five states and actual keyboard/pointer causality are observed at 1280x720; human design, producer, gate, and golden-visual decisions remain pending."
+        }
+      }
+    }
+  ],
+  "evaluationContractMismatches": [
+    {
+      "fixtureId": "design-direction",
+      "criterion": "The machine verifier requires exact output paths and SVG extensions that were not disclosed to the fresh control.",
+      "objectiveCheckId": "required-artifacts",
+      "evidence": [
+        "artifacts/design-direction.md: missing or empty",
+        "artifacts/source-export-import.md: missing or empty",
+        "artifacts/runtime-captures/1280x720-success.svg: missing or empty",
+        "artifacts/runtime-captures/1280x720-failure.svg: missing or empty",
+        "artifacts/runtime-captures/390x844-reward-overflow.svg: missing or empty",
+        "artifacts/runtime-captures/390x844-controller-focus.svg: missing or empty"
+      ],
+      "producedAlternatives": [
+        "artifacts/SOURCE-HANDOFF.md",
+        "artifacts/source/result-screen-ornament.svg",
+        "artifacts/runtime-captures/desktop-success-1280x720.png",
+        "artifacts/runtime-captures/desktop-failure-1280x720.png",
+        "artifacts/runtime-captures/mobile-reward-overflow-390x844.png",
+        "artifacts/runtime-captures/mobile-controller-focus-390x844.png"
+      ],
+      "excludedFromSplitBasis": true
+    },
+    {
+      "fixtureId": "composite-runtime",
+      "criterion": "The machine verifier requires exact output paths and bundled SVG names that were not disclosed to the fresh control.",
+      "objectiveCheckId": "required-artifacts",
+      "evidence": [
+        "web/components/inventory-panel.mjs: missing or empty",
+        "web/assets/inventory-frame.svg: missing or empty",
+        "web/assets/inventory-icons.svg: missing or empty",
+        "artifacts/source-export-import.md: missing or empty",
+        "artifacts/runtime-captures/empty.svg: missing or empty",
+        "artifacts/runtime-captures/full.svg: missing or empty",
+        "artifacts/runtime-captures/error.svg: missing or empty",
+        "artifacts/runtime-captures/equip.svg: missing or empty",
+        "artifacts/runtime-captures/controller-focus.svg: missing or empty"
+      ],
+      "producedAlternatives": [
+        "web/components/inventory-view.mjs",
+        "web/assets/source/item-icons/*.svg",
+        "artifacts/ASSET-HANDOFF.md",
+        "artifacts/source-asset-manifest.json"
+      ],
+      "excludedFromSplitBasis": true
+    }
+  ],
+  "observedFailures": [
+    {
+      "fixtureId": "design-direction",
+      "criterion": "Reward-overflow state coverage and action-safe readability at 390x844",
+      "evidence": [
+        "artifacts/runtime-captures/mobile-reward-overflow-390x844.png is labeled as the required overflow proof, but the image contains only the runtime-shell state controls; the integrated result panel, eight reward rows, overflow region, and actions are not visible.",
+        "Because the content extreme is absent from the capture, the review cannot confirm scanability, scroll containment, or that rewards do not cover the actions."
+      ]
+    },
+    {
+      "fixtureId": "design-direction",
+      "criterion": "Visible and unambiguous controller focus at the portrait target size",
+      "evidence": [
+        "artifacts/runtime-captures/mobile-controller-focus-390x844.png shows Retry with the same amber primary-action treatment visible in artifacts/runtime-captures/desktop-success-1280x720.png and no visible cyan outline or other additional focus marker.",
+        "The dedicated controller-focus capture therefore does not make the focused state distinguishable from the ordinary primary-action state."
+      ]
+    },
+    {
+      "fixtureId": "design-direction",
+      "criterion": "Actual keyboard/controller interaction-to-visual causality",
+      "evidence": [
+        "artifacts/SOURCE-HANDOFF.md states that Enter, Space, and Tab injection did not deliver events and that keyboard activation remains an independent/manual runtime check.",
+        "artifacts/control-run-record.json records runtime observation as partial-pass and retains direct Enter/Space activation and Tab traversal as unresolved risks.",
+        "Static focus-state captures cannot substitute for observing input, focus movement, activation feedback, and recovery in the running experience."
+      ]
+    },
+    {
+      "fixtureId": "composite-runtime",
+      "criterion": "Five-state project-native runtime coverage at 1280x720",
+      "evidence": [
+        "artifacts/control-run-record.json records runtimeObservation.status as blocked and contains an empty captures array.",
+        "production/TASK.md requires runtime proof for empty, full, error, equip, and controller-focus states, but no runtime-captures directory or state capture is present.",
+        "Without target-size runtime views, hierarchy, selected-item readability, feedback separation, state consistency, and integrated craft cannot be judged."
+      ]
+    }
+  ],
+  "burden": {
+    "cycles": 4,
+    "elapsedMinutes": 42,
+    "approvals": 0,
+    "loadedContext": {
+      "metadataWords": 204,
+      "bodyWords": 12388,
+      "referenceWords": 12155,
+      "files": [
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/SKILL.md#frontmatter",
+        "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md#frontmatter",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/SKILL.md#body",
+        "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md#body",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/execution.md",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/visual-production.md",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/experience-review.md",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/scripts/check.ps1#lines-1-90",
+        "browser-runtime://documentation/core",
+        "browser-runtime://documentation/local-web-development",
+        "browser-runtime://documentation/screenshots",
+        "browser-runtime://capability/viewport",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/SKILL.md",
+        "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md",
+        "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/verification-before-completion/SKILL.md",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/SKILL.md",
+        "/Users/qxl/.codex/plugins/cache/openai-bundled/browser/26.810.41047/skills/control-in-app-browser/SKILL.md",
+        "/Users/qxl/.codex/plugins/cache/openai-curated-remote/superpowers/6.2.0/skills/verification-before-completion/SKILL.md",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/execution.md",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/visual-production.md",
+        "/Users/qxl/.codex/plugins/cache/game-production-workflow/game-production-workflow/1.7.2+codex.20260814064925/skills/game-production-system/references/experience-review.md",
+        "local-web-development",
+        "screenshots",
+        "viewport"
+      ]
+    }
+  },
+  "splitDecision": "Proceed",
+  "decisionBasis": "Proceed because independent review and runtime records show substantive primary-fixture failures after fairness discounting: design-direction lacks visible integrated overflow proof, distinguishable controller focus, and observed keyboard/controller causality; composite-runtime has blocked runtime observation, an empty capture set, and no five-state target-size proof. Exact-path evaluation-contract mismatches are excluded from the split basis. The measured burden is four cycles, 42 elapsed minutes, zero new approvals, and 204 metadata, 12,388 body, and 12,155 reference words; no claim of greater burden is made because no comparator was measured. Generated results remain unchanged with subjectiveReview Pending/Unassessed, while the separately embedded independent reviews remain Returned."
+}

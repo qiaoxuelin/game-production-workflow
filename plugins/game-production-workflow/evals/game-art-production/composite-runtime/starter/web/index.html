@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Inventory Composite Runtime Fixture</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main>
+      <p class="boundary">Initial flattened concept — replace with project-native components</p>
+      <div id="inventory" tabindex="0" aria-label="Inventory concept preview"></div>
+      <nav aria-label="Fixture state controls">
+        <button data-action="open">Open</button>
+        <button data-action="close">Close</button>
+        <button data-state="empty">Empty</button>
+        <button data-state="full">Full</button>
+        <button data-state="error">Error</button>
+        <button data-state="equip">Equip</button>
+        <button data-state="controller-focus">Controller focus</button>
+      </nav>
+      <p id="state-description" role="status"></p>
+    </main>
+    <script type="module" src="./app.mjs"></script>
+  </body>
+</html>

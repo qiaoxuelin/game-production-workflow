@@ -1,8 +1,9 @@
 # 游戏生产协同系统
 
-这是现有游戏开发 Skill 流程的可安装版本。一个 GitHub marketplace 插件原子安装两个独立 Skill 和审批 MCP：
+这是现有游戏开发 Skill 流程的可安装版本。一个 GitHub marketplace 插件原子安装三个独立 Skill 和审批 MCP，无需单独安装外部 Skill：
 
-- `game-production-system` `1.7.2`：按请求路由进入设计、独立制作、组装、运行验证、退回候选收敛、执行止损、证据、验收与跨对话交接。
+- `game-production-system` `1.8.0`：按请求路由进入设计、独立制作、组装、运行验证、退回候选收敛、执行止损、证据、验收与跨对话交接。
+- `game-art-production`：在核心任务内设计、制作、集成并专业评审交互式 UI 与 2D 游戏美术。
 - `game-approval-ui` `0.1.3`：可点击审批卡、离线待审批队列、附加意见和项目内持久化。
 
 仓库只包含通用流程、模板、校验脚本和审批工具，不包含具体游戏工程、商业素材、证据文件、账号或密钥。
@@ -120,6 +121,6 @@ node install.mjs
 pwsh -NoProfile -File ./verify.ps1
 ```
 
-`verify.ps1` 检查插件结构、组件版本、PowerShell 语法、Markdown 链接、常见密钥模式、跨平台 doctor/安装器和审批 MCP 协议。维护者的完整验证仍需要 PowerShell 7；普通安装使用 Node 即可。发布前还应让两个 Skill 分别通过 Codex 内置 `skill-creator` 验证器，并让整合插件通过 `plugin-creator` 验证器。
+`verify.ps1` 检查插件结构、组件版本、PowerShell 语法、Markdown 链接、常见密钥模式、跨平台 doctor/安装器和审批 MCP 协议。维护者的完整验证仍需要 PowerShell 7；普通安装使用 Node 即可。发布前还应让三个 Skill 分别通过 Codex 内置 `skill-creator` 验证器，并让整合插件通过 `plugin-creator` 验证器。
 
 每次发布都更新插件清单中的 `+codex.<UTC 时间戳>` 缓存标识；不要仅修改内容后沿用旧版本。生产策略版本和审批服务组件版本分别保留在其实现中。

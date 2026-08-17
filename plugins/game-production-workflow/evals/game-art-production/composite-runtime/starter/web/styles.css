@@ -1,0 +1,12 @@
+:root { color-scheme: dark; font-family: system-ui, sans-serif; background: #10171c; color: #f2ead7; }
+* { box-sizing: border-box; }
+body { min-height: 100vh; margin: 0; display: grid; place-items: center; }
+main { width: min(920px, calc(100vw - 32px)); text-align: center; }
+.boundary { color: #f2b84b; font-weight: 700; }
+#inventory { margin: 16px auto; width: min(760px, 100%); }
+#inventory img { display: block; width: 100%; height: auto; }
+#inventory:focus-visible { outline: 4px solid #f2b84b; outline-offset: 6px; }
+nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+button { min-height: 44px; border: 2px solid #67808b; background: #1b2931; color: #f2ead7; padding: 8px 14px; }
+button:focus-visible { outline: 3px solid #f2b84b; outline-offset: 2px; }
+#state-description { min-height: 1.5em; color: #a9bec4; }

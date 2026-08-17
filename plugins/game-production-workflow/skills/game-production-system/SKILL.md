@@ -27,7 +27,7 @@ Interpret validation precisely:
 | Intent | Load | Permitted result |
 | --- | --- | --- |
 | **Explore/discuss** | Project truth and relevant source | Conversation only; no writes |
-| **Diagnose/review** | Affected source and craft reference | Report only; no repair |
+| **Diagnose/review** | Affected source and craft reference; `game-art-production` `Review` only when professional UI/2D diagnosis is requested | Report only; no repair |
 | **Initialize, adopt, or plan** | `workflow.md` plus selected references | Executable repository contract |
 | **Execute or continue** | `execution.md` plus affected craft | Player-visible or capability delta |
 | **Close** | `workflow.md` completion/evidence sections | Verified recoverable handoff |
@@ -232,8 +232,14 @@ task-owned processes, and switch to the next authorized fallback package.
 7. Never initialize a formal game inside a dated/projectless conversation
    folder when an intended repository exists elsewhere.
 
-After repository truth, load only the references selected by the Operation
-router. Treat `execution.md` as standalone for Ready/Implementing production.
+After repository truth, load only the references selected by the Operation router.
+An intact 1.8 plugin requires bundled `game-art-production` for positive UI/2D
+predicate. An installed 1.8 plugin missing `game-art-production` is a
+bundle-integrity failure: preserve work,
+report it, repair/reinstall, and grant no art-path completion. Repository-only with no plugin
+uses project `AGENTS.md`'s interaction-to-visual loop without claiming the
+dedicated protocol or unavailable subjective authority ran. `execution.md` remains
+standalone for production.
 
 ## Select an operation
 
@@ -269,55 +275,47 @@ router. Treat `execution.md` as standalone for Ready/Implementing production.
    for legacy active tasks without forcing migration. Apply the lane to the
    current work package; retain Full on a Full parent task for milestone
    integration and acceptance.
-3. In `reference_replication`, complete the reference deconstruction before
-   implementation planning. Record the exact reference baseline, requested
-   replication scope, critical replication points, observable state matrix,
-   comparison method/tolerances, and allowed deviations in `TASK.md` or one
-   referenced baseline.
-4. For Standard or Full, assign only the domain-design owners required by the
-   work. They decide gameplay,
-   level, balance, economy, content, art, UX, animation, VFX, and audio rules
-   before technical implementation; technical roles review feasibility but do
-   not invent missing product or experience decisions.
-5. For Full work, invoke production planning and technical architecture
-   ownership. Choose `Single-task` only for one bounded outcome without
-   cross-module sequencing; otherwise maintain `production/PLAN.md`.
-6. Identify applicable design domains and reuse adopted modules before
-   inventing new rules. Read [design-modules.md](references/design-modules.md).
-7. Have each design owner inspect references and produce only the relevant rules,
-   state flows, specifications, baselines, quality bar, maturity claim, rejection
-   conditions, and acceptance criteria. A role name or internally consistent
-   baseline does not establish professional quality.
-   When the design has enumerable entities, states, routes, branches or
-   dependencies, also define the applicable completeness representation and
-   pass its cheapest static check before marking the design `Frozen`.
-8. For gameplay, level, balance, economy, progression, content, or narrative
-   work, read [game-content-design.md](references/game-content-design.md).
-   For UI, art, animation, VFX, or technical-art work, read
-   [visual-production.md](references/visual-production.md).
-   When material asset production has shared masters, variants, multiple
-   production paths or owners, or meaningful import/provenance/performance
-   risk, apply its asset-family split in the existing task or plan. Never use a
-   fixed asset count, per-file work package, or per-asset human approval.
-   Derive the required asset inventory from frozen screens, states, flows, and
-   feedback beats before opening those packages, and statically check that
-   every scoped need is covered.
+3. In `reference_replication`, deconstruct before planning and record exact
+   baseline, scope, critical points, state matrix, comparison/tolerances, and
+   allowed deviations in `TASK.md` or one referenced baseline.
+4. Before technical implementation, assign only needed Standard/Full domain-design
+   owners. They decide gameplay, level, balance, economy, content, art, UX,
+   animation, VFX, and audio rules; technical roles check feasibility without inventing decisions.
+5. Full invokes production planning/technical-architecture ownership. Use
+   `Single-task` for one bounded outcome without cross-module sequencing;
+   otherwise maintain `production/PLAN.md`.
+6. Identify applicable design domains and reuse adopted modules before inventing
+   rules; read
+   [design-modules.md](references/design-modules.md).
+7. Each design owner inspects applicable references and provides relevant rules,
+   flows, specifications, baselines, quality bar, maturity, rejection conditions,
+   and acceptance criteria. Names/consistency do not establish professional
+   quality. For enumerable entities, states, routes, branches, or dependencies,
+   define the applicable completeness representation and run and pass its cheapest
+   static validator before `Frozen`.
+8. Read [game-content-design.md](references/game-content-design.md) for gameplay,
+   level, balance, economy, progression, content, or narrative. Unresolved or
+   selected-without-frozen-implementable-production-design interactive UI/2D direction requires
+   `game-art-production` `Design`; must not load for accepted-baseline Fast repairs or non-art/non-visual work.
+   Character, environment, 3D, animation, VFX, technical-art, and broad visual
+   work remain on [visual-production.md](references/visual-production.md). Apply
+   its asset-family split for material shared-master, variant, ownership, import,
+   provenance, or performance risk; never split by fixed count, per-file package,
+   or per-asset approval. Derive inventory from frozen screens, states, flows, and feedback,
+   and statically check every scoped need before opening packages.
    For player-facing audio work, read
    [audio-production.md](references/audio-production.md). Freeze cue intent
    before sourcing, prefer rights-cleared stock SFX, use rights-cleared
    generated BGM candidates where appropriate, and require runtime listening.
    For subjective player-experience or commercial-quality review, read
    [experience-review.md](references/experience-review.md).
-9. Reconcile domain conflicts through the coordinator and ask the human only
-   for unresolved high-impact authority decisions.
-10. Before Full implementation, combine domain design with a technical handoff
-   that freezes architecture boundaries, interfaces, data/asset pipeline,
-   representative feasibility, verification, and rollback. This technical
-   decision is not a separate human approval unless it changes product scope,
-   cost, platform, or another human-owned boundary.
-11. Freeze the minimum executable decisions in `TASK.md` or one referenced
-   baseline. Do not create separate planner, designer, or architect reports
-   solely for process evidence.
+9. Reconcile domain conflicts through coordinator; ask humans only about
+   unresolved high-impact authority decisions.
+10. Before Full implementation, technical handoff freezes architecture
+   boundaries, interfaces, data/asset pipeline, feasibility, verification, and
+   rollback; no human approval unless a human boundary changes.
+11. Freeze minimum executable decisions in `TASK.md` or one referenced baseline; never create
+   role reports solely as process evidence.
 12. Mark GUI restoration `Required` only for reconstruction, a material
    layout/component-system change, or a new visual rule; freeze its baseline,
    target states, viewports, comparison method, and reviewer. A routine Fast UI
@@ -339,14 +337,15 @@ router. Treat `execution.md` as standalone for Ready/Implementing production.
 
 1. Read [execution.md](references/execution.md).
 2. Enter when the user requests implementation and the task is `Ready` or
-   `Implementing`; do not reopen frozen design or repeat planning merely because
-   another workflow is installed.
+   `Implementing`. For matching interactive UI/2D work, require
+   `game-art-production` `Produce` inside the core-owned task. Do not reopen
+   frozen design or repeat planning merely because another workflow is installed.
 3. Run the capability handshake, select the next player-visible slice, edit the
    actual product source, run the project adapter, inspect the result, repair one
    root cause, and leave a recoverable checkpoint.
-4. For interactive visual work, execute the player-action-to-runtime chain and
-   keep bulk production locked until assembly and representative runtime proof
-   pass.
+4. For interactive visuals, reject flattened-composite finality, keep
+   maturity/fidelity claims truthful, require actual target-project evidence and
+   representative assembly/runtime proof before bulk unlock.
 5. A governance-only edit is not a production cycle. Return to `Clarifying`
    only for a genuinely missing human-owned boundary; use an isolated product
    precheck for reversible implementation uncertainty.
@@ -411,8 +410,9 @@ router. Treat `execution.md` as standalone for Ready/Implementing production.
 
 1. Read [roles-and-gates.md](references/roles-and-gates.md).
 2. Review read-only. Do not fix implementation in the same review.
-3. Check functional, technical, visual/UX, player, performance, provenance, and
-   release evidence applicable to the gate.
+3. Require `game-art-production` `Review` only when professional UI/2D gate
+   evidence is required; check all applicable functional, technical, visual/UX,
+   player, performance, provenance, and release evidence.
 4. Run `scripts/check.ps1 -Mode Gate`; treat `gateReady`, not
    `contractValid`, as the machine gate result.
 5. Return exactly one verdict: `Passed`, `Conditionally Passed`, or `Returned`.

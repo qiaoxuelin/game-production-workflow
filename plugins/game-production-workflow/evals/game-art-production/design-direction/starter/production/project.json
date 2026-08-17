@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "systemVersion": "1.7.2",
+  "projectId": "result-screen-direction-eval",
+  "developmentMode": "original_design",
+  "projectTrack": "desktop_game",
+  "businessModel": "premium",
+  "validationMode": "product_first",
+  "qualityFocus": ["gui", "art"],
+  "platform": ["desktop", "mobile_web"],
+  "engine": "browser-native HTML/CSS/JavaScript",
+  "canonicalClient": "web",
+  "gitPolicy": "single_repo",
+  "components": [
+    {
+      "name": "result-screen-direction-eval",
+      "path": ".",
+      "role": "canonical",
+      "gitRequired": true
+    }
+  ],
+  "referenceClients": [],
+  "sharedContracts": [],
+  "gate": "G0",
+  "currentTask": "ART-DIRECTION-001",
+  "status": "Clarifying",
+  "blockers": ["Human-owned UI/2D direction selection remains pending."],
+  "nextAction": "Produce bounded original direction candidates in the greybox shell for human selection",
+  "humanApprovals": {
+    "G0": null,
+    "G1": null,
+    "goldenVisual": null,
+    "G2": null,
+    "G3": null
+  },
+  "updatedAt": "2026-08-14"
+}

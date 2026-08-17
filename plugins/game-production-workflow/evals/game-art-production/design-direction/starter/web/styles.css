@@ -1,0 +1,28 @@
+:root {
+  color-scheme: light;
+  font-family: system-ui, sans-serif;
+  background: #d7d7d7;
+  color: #202020;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; display: flex; min-height: 100vh; gap: 16px; padding: 16px; }
+button { min-height: 44px; border: 2px solid #555; background: #eee; color: inherit; padding: 8px 12px; }
+button:focus-visible { outline: 4px solid #111; outline-offset: 3px; }
+.case-panel { width: 190px; display: grid; align-content: start; gap: 8px; }
+.case-panel > div { display: contents; }
+.viewport { border: 2px dashed #777; background: #f5f5f5; display: grid; place-items: center; overflow: auto; }
+.viewport.desktop { width: min(1280px, calc(100vw - 240px)); aspect-ratio: 16 / 9; }
+.viewport.mobile { width: 390px; height: 844px; max-height: calc(100vh - 32px); }
+.result { width: min(520px, calc(100% - 32px)); border: 2px solid #555; padding: 24px; background: #fff; }
+.eyebrow { text-transform: uppercase; letter-spacing: .12em; }
+#rewards { max-height: 220px; overflow: auto; padding-inline-start: 24px; }
+.actions { display: flex; gap: 12px; }
+#feedback { min-height: 1.5em; }
+
+@media (max-width: 700px) {
+  body { display: block; }
+  .case-panel { width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 16px; }
+  .case-panel strong { grid-column: 1 / -1; }
+  .viewport.desktop, .viewport.mobile { width: 100%; height: min(844px, 70vh); aspect-ratio: auto; }
+}
