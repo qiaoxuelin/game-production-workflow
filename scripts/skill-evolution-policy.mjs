@@ -6,7 +6,9 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const SKILL_SOURCE =
-  /^plugins\/game-production-workflow\/skills\/[^/]+\/(?:SKILL\.md|references\/[^/]+\.md)$/;
+  /^plugins\/game-production-workflow\/skills\/[^/]+\/.+$/;
+const STRUCTURAL_SKILL_SOURCE =
+  /^plugins\/game-production-workflow\/skills\/[^/]+\/(?:SKILL\.md|references\/.+)$/;
 const BEHAVIOR_EVAL =
   /^plugins\/game-production-workflow\/evals\/(?:[^/]+\.json|[^/]+\/[^/]+\/fixture\.json)$/;
 const SKILL_DESIGN = /^docs\/superpowers\/specs\/[^/]+\.md$/;
@@ -47,6 +49,21 @@ function matchesAnyPath(change, matcher) {
   return pathsFor(change).some((candidate) => matcher.test(candidate));
 }
 
+function skillNameFor(relativePath) {
+  return normalizeChangedPath(relativePath).match(
+    /^plugins\/game-production-workflow\/skills\/([^/]+)\//,
+  )?.[1];
+}
+
+function sameStringSet(left, right) {
+  const leftSet = new Set(left);
+  const rightSet = new Set(right);
+  return (
+    leftSet.size === rightSet.size &&
+    [...leftSet].every((value) => rightSet.has(value))
+  );
+}
+
 export function validateSkillEvolutionChanges(rawChanges, options = {}) {
   const changes = rawChanges.map(normalizedChange);
   const skillChanges = changes.filter((change) =>
@@ -73,10 +90,18 @@ export function validateSkillEvolutionChanges(rawChanges, options = {}) {
     });
   }
 
-  const structural = skillChanges.some((change) =>
-    STRUCTURAL_STATUSES.has(statusKind(change)),
+  const structuralChanges = skillChanges.filter(
+    (change) =>
+      matchesAnyPath(change, STRUCTURAL_SKILL_SOURCE) &&
+      STRUCTURAL_STATUSES.has(statusKind(change)),
   );
-  if (structural) {
+  if (structuralChanges.length > 0) {
+    const affectedSkills = new Set(
+      structuralChanges
+        .flatMap(pathsFor)
+        .map(skillNameFor)
+        .filter(Boolean),
+    );
     const changedPaths = new Set(
       changes
         .filter((change) => statusKind(change) !== "D")
@@ -112,13 +137,14 @@ export function validateSkillEvolutionChanges(rawChanges, options = {}) {
     const hasMatchingPair = evidencePairs.some(
       (pair) =>
         changedPaths.has(normalizeChangedPath(pair.designPath)) &&
-        changedPaths.has(normalizeChangedPath(pair.planPath)),
+        changedPaths.has(normalizeChangedPath(pair.planPath)) &&
+        sameStringSet(pair.skills ?? [], affectedSkills),
     );
     if (hasDesign && hasPlan && !hasMatchingPair) {
       violations.push({
         code: "structural-skill-change-without-matching-design-plan",
         message:
-          "Structural Skill design and plan must declare the same Skill evolution id.",
+          "Structural Skill design and plan must declare the same Skill evolution id and affected Skills.",
       });
     }
   }
@@ -294,10 +320,17 @@ function readStructuralDeclaration(repository, change, kind) {
   const classification = contents.match(
     /^Skill evolution class:\s*(Patch|Extension|Restructure)\s*$/m,
   );
-  if (!id || !classification || classification[1] !== "Restructure") {
+  const skills = contents.match(
+    /^Skill evolution skills:\s*([a-z0-9][a-z0-9-]*(?:\s*,\s*[a-z0-9][a-z0-9-]*)*)\s*$/m,
+  );
+  if (!id || !classification || classification[1] !== "Restructure" || !skills) {
     return undefined;
   }
-  return { id: id[1], path: change.path };
+  return {
+    id: id[1],
+    skills: skills[1].split(",").map((item) => item.trim()),
+    path: change.path,
+  };
 }
 
 function discoverStructuralEvidence(repository, changes) {
@@ -311,8 +344,10 @@ function discoverStructuralEvidence(repository, changes) {
   for (const design of designs) {
     for (const plan of plans) {
       if (design.id !== plan.id) continue;
+      if (!sameStringSet(design.skills, plan.skills)) continue;
       pairs.push({
         id: design.id,
+        skills: design.skills,
         designPath: design.path,
         planPath: plan.path,
       });

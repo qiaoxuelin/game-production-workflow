@@ -2,8 +2,9 @@
 
 ## Skill evolution stability
 
-These rules apply when changing files under
-`plugins/game-production-workflow/skills/`. They govern maintenance of the
+These rules apply when changing any source under
+`plugins/game-production-workflow/skills/`, including `SKILL.md`, references,
+agent metadata, scripts, and assets/templates. They govern maintenance of the
 Skills; they are not runtime game-production instructions.
 
 Keep the released behavior stable by default. Start from an observed failure
@@ -43,7 +44,13 @@ and classification in both documents:
 ```text
 Skill evolution id: example-change
 Skill evolution class: Restructure
+Skill evolution skills: game-production-system
 ```
+
+List every structurally affected Skill name on `Skill evolution skills`,
+comma-separated when one ownership/routing change crosses Skills. The design
+and plan must declare the same exact set; an unrelated Skill's documents do not
+satisfy the gate.
 
 After a structural release, observe at least two real production packages
 before another restructure. During that window, accept only fixes for Critical,

@@ -352,7 +352,7 @@ if ($CompareRef) {
 }
 
 $node = Get-Command node -ErrorAction SilentlyContinue
-Assert-True ($null -ne $node) "Node.js is required for approval MCP validation."
+Assert-True ($null -ne $node) "Node.js is required for repository policy, plugin, and approval MCP validation."
 foreach ($required in @(
     $skillEvolutionInstructionsPath,
     $skillEvolutionPolicyPath,

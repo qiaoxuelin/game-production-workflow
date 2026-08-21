@@ -33,6 +33,16 @@ const executionReference =
   "plugins/game-production-workflow/skills/game-production-system/references/execution.md";
 const addedReference =
   "plugins/game-production-workflow/skills/game-production-system/references/new-loop.md";
+const nestedReference =
+  "plugins/game-production-workflow/skills/game-production-system/references/nested/new-loop.md";
+const movedArtReference =
+  "plugins/game-production-workflow/skills/game-art-production/references/moved-loop.md";
+const skillAgent =
+  "plugins/game-production-workflow/skills/game-production-system/agents/openai.yaml";
+const skillScript =
+  "plugins/game-production-workflow/skills/game-production-system/scripts/check.ps1";
+const skillAsset =
+  "plugins/game-production-workflow/skills/game-production-system/assets/project-template/production/TASK.md";
 const behaviorTest =
   "plugins/game-production-workflow/scripts/test-skill-evals.mjs";
 const behaviorEval =
@@ -59,9 +69,15 @@ function codes(
   changes,
   evidence = [behaviorTest, behaviorEval],
   structuralPairs = [
-    { id: "skill-loop", designPath: design, planPath: plan },
+    {
+      id: "skill-loop",
+      skills: ["game-production-system"],
+      designPath: design,
+      planPath: plan,
+    },
     {
       id: "game-art-production",
+      skills: ["game-art-production"],
       designPath: conventionalDesign,
       planPath: conventionalPlan,
     },
@@ -83,6 +99,30 @@ assert.deepEqual(codes([]), []);
 assert.deepEqual(codes([change("M", "README.md")]), []);
 assert.deepEqual(codes([change("M", "install.mjs")]), []);
 assert.deepEqual(
+  codes([change("M", skillAgent)]),
+  ["skill-change-without-behavior-evidence"],
+);
+assert.deepEqual(
+  codes([change("M", skillScript)]),
+  ["skill-change-without-behavior-evidence"],
+);
+assert.deepEqual(
+  codes([change("M", skillAsset)]),
+  ["skill-change-without-behavior-evidence"],
+);
+assert.deepEqual(
+  codes([change("M", skillScript), change("M", behaviorTest)]),
+  [],
+);
+assert.deepEqual(
+  codes([change("A", skillScript), change("M", behaviorTest)]),
+  [],
+);
+assert.deepEqual(
+  codes([change("A", skillAsset), change("M", behaviorTest)]),
+  [],
+);
+assert.deepEqual(
   codes([change("M", coreSkill)]),
   ["skill-change-without-behavior-evidence"],
 );
@@ -96,6 +136,11 @@ assert.deepEqual(
 );
 assert.deepEqual(codes([change("M", coreSkill), change("M", behaviorTest)]), []);
 assert.deepEqual(codes([change("M", executionReference), change("M", behaviorEval)]), []);
+
+assert.deepEqual(
+  codes([change("A", nestedReference), change("M", behaviorTest)]),
+  ["structural-skill-change-without-design", "structural-skill-change-without-plan"],
+);
 
 assert.deepEqual(
   codes([change("A", addedReference), change("M", behaviorTest)]),
@@ -119,13 +164,53 @@ assert.deepEqual(
   [],
 );
 assert.deepEqual(
+  codes(
+    [
+      change("R100", movedArtReference, executionReference),
+      change("M", behaviorTest),
+      change("A", design),
+      change("A", plan),
+    ],
+    [behaviorTest],
+    [
+      {
+        id: "cross-skill-move",
+        skills: ["game-art-production"],
+        designPath: design,
+        planPath: plan,
+      },
+    ],
+  ),
+  ["structural-skill-change-without-matching-design-plan"],
+);
+assert.deepEqual(
+  codes(
+    [
+      change("R100", movedArtReference, executionReference),
+      change("M", behaviorTest),
+      change("A", design),
+      change("A", plan),
+    ],
+    [behaviorTest],
+    [
+      {
+        id: "cross-skill-move",
+        skills: ["game-art-production", "game-production-system"],
+        designPath: design,
+        planPath: plan,
+      },
+    ],
+  ),
+  [],
+);
+assert.deepEqual(
   codes([
     change("A", addedReference),
     change("M", behaviorTest),
     change("A", conventionalDesign),
     change("A", conventionalPlan),
   ]),
-  [],
+  ["structural-skill-change-without-matching-design-plan"],
 );
 assert.deepEqual(
   codes([
@@ -264,14 +349,16 @@ try {
     conventionalDesign,
     "# Game art production design\n\n" +
       "Skill evolution id: game-art-production\n" +
-      "Skill evolution class: Restructure\n",
+      "Skill evolution class: Restructure\n" +
+      "Skill evolution skills: game-production-system\n",
   );
   write(
     temporaryRoot,
     conventionalPlan,
     "# Game art production plan\n\n" +
       "Skill evolution id: mismatched-plan\n" +
-      "Skill evolution class: Restructure\n",
+      "Skill evolution class: Restructure\n" +
+      "Skill evolution skills: game-production-system\n",
   );
   result = run(
     process.execPath,
@@ -286,14 +373,16 @@ try {
     conventionalDesign,
     "# Game art production design\n\n" +
       "Skill evolution id: Game-Art-Production\n" +
-      "Skill evolution class: Restructure\n",
+      "Skill evolution class: Restructure\n" +
+      "Skill evolution skills: game-production-system\n",
   );
   write(
     temporaryRoot,
     conventionalPlan,
     "# Game art production plan\n\n" +
       "Skill evolution id: game-art-production\n" +
-      "Skill evolution class: Restructure\n",
+      "Skill evolution class: Restructure\n" +
+      "Skill evolution skills: game-production-system\n",
   );
   result = run(
     process.execPath,
@@ -307,7 +396,8 @@ try {
     conventionalDesign,
     "# Game art production design\n\n" +
       "Skill evolution id: game-art-production\n" +
-      "Skill evolution class: Restructure\n",
+      "Skill evolution class: Restructure\n" +
+      "Skill evolution skills: game-production-system\n",
   );
   result = run(
     process.execPath,
