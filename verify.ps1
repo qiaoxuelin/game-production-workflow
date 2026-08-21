@@ -5,6 +5,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $repo = $PSScriptRoot
+$skillEvolutionInstructionsPath = Join-Path $repo "AGENTS.md"
 $pluginRelative = "plugins/game-production-workflow"
 $manifestRelative = "$pluginRelative/.codex-plugin/plugin.json"
 $plugin = Join-Path $repo $pluginRelative
@@ -39,6 +40,8 @@ $skillEvalCorpusPath = Join-Path $plugin "evals/game-production-system.json"
 $doctorTestPath = Join-Path $plugin "scripts/test-doctor.mjs"
 $installTestPath = Join-Path $plugin "scripts/test-install.mjs"
 $platformWorkflowTestPath = Join-Path $repo "scripts/test-platform-rc-workflow.mjs"
+$skillEvolutionPolicyPath = Join-Path $repo "scripts/skill-evolution-policy.mjs"
+$skillEvolutionTestPath = Join-Path $repo "scripts/test-skill-evolution-policy.mjs"
 
 function Assert-True {
     param([bool]$Condition, [string]$Message)
@@ -349,7 +352,20 @@ if ($CompareRef) {
 }
 
 $node = Get-Command node -ErrorAction SilentlyContinue
-Assert-True ($null -ne $node) "Node.js is required for approval MCP validation."
+Assert-True ($null -ne $node) "Node.js is required for repository policy, plugin, and approval MCP validation."
+foreach ($required in @(
+    $skillEvolutionInstructionsPath,
+    $skillEvolutionPolicyPath,
+    $skillEvolutionTestPath
+)) {
+    Assert-True (Test-Path -LiteralPath $required -PathType Leaf) "Missing required file: $required"
+}
+if ($CompareRef) {
+    & $node.Source $skillEvolutionPolicyPath --repo $repo --compare-ref $CompareRef
+    Assert-True ($LASTEXITCODE -eq 0) "Skill evolution policy gate failed."
+}
+& $node.Source $skillEvolutionTestPath
+Assert-True ($LASTEXITCODE -eq 0) "Skill evolution policy test failed."
 & $node.Source $approvalTestPath
 Assert-True ($LASTEXITCODE -eq 0) "Approval MCP protocol test failed."
 & $node.Source $policyTestPath
