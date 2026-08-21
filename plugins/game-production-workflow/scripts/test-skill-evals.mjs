@@ -45,6 +45,20 @@ const policySources = {
     path.join(pluginRoot, "skills/game-art-production/references/visual-review.md"),
     "utf8",
   ),
+  visualProduction: fs.readFileSync(
+    path.join(
+      pluginRoot,
+      "skills/game-production-system/references/visual-production.md",
+    ),
+    "utf8",
+  ),
+  experienceReview: fs.readFileSync(
+    path.join(
+      pluginRoot,
+      "skills/game-production-system/references/experience-review.md",
+    ),
+    "utf8",
+  ),
 };
 
 const contractMatchers = {
@@ -100,6 +114,12 @@ const contractMatchers = {
     ["visualDesign", /only when.*`Interactive visual scope`.*`Required`.*player-operated surface/i],
     ["visualDesign", /required solely for non-interactive (?:composition|render).*does not invoke.*interaction contract/i],
   ],
+  "original-design-comparison-basis": [
+    ["visualReview", /`reference_replication`[\s\S]*named external reference[\s\S]*`original_design`[\s\S]*frozen internal Production design/i],
+    ["visualReview", /before a trustworthy internal baseline[\s\S]*Direction candidates[\s\S]*recommendation only[\s\S]*no design-conformance or product-quality passage/i],
+    ["visualProduction", /original design[\s\S]*frozen internal Production design[\s\S]*category benchmarks[\s\S]*non-authoritative/i],
+    ["experienceReview", /Product quality:[\s\S]*comparison basis[\s\S]*frozen internal baseline[\s\S]*category quality bar/i],
+  ],
 };
 
 assert(
@@ -122,6 +142,7 @@ const requiredIds = new Set([
   "missing-ui-behavior-produce-return",
   "runtime-ui-dynamic-review",
   "noninteractive-composed-2d",
+  "original-design-without-external-reference",
 ]);
 const seenIds = new Set();
 const seenContractIds = new Set();

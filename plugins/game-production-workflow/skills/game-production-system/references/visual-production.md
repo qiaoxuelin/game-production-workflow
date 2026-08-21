@@ -165,8 +165,12 @@ Produce the smallest golden that exposes the dominant visual risks. Review it
 at actual size in the engine, with representative content and at least the
 critical default, success/failure, unavailable/loading, and short/long viewport
 states that apply. For replication, compare side by side with the frozen source
-and declared tolerances. For original design, compare with the explicit product
-quality bar and selected category benchmarks.
+and declared tolerances. For original design, compare conformance with the
+frozen internal Production design and product quality with the declared
+player/platform/category bar. Category benchmarks remain non-authoritative
+inspiration unless explicitly adopted into that baseline; without it, claim
+only Direction or greybox evidence, not design-conformance or product-quality
+passage.
 
 Return the slice before bulk work when it has broken hierarchy, floating
 controls, mixed component or material languages, debug-like copy, unresolved

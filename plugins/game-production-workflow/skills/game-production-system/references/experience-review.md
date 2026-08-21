@@ -11,7 +11,7 @@ Separate four questions:
 - **Objective validity:** does it run and satisfy measurable contracts?
 - **Design conformance:** does it match the frozen design for this slice?
 - **Product quality:** does the actual result meet the declared audience,
-  platform, external reference, and quality bar?
+  platform, comparison basis, and quality bar?
 - **Integrated acceptance:** does it work coherently with the surrounding game?
 
 Passing one question never implies the next. A self-authored baseline can be
@@ -19,8 +19,9 @@ internally consistent and still be below a commercial product standard.
 
 ## Prepare an independent pass
 
-Give the reviewer the target player/platform, reference or explicit quality
-bar, scoped maturity claim, actual runtime artifact, applicable states, and hard
+Give the reviewer the target player/platform, comparison basis—a named external
+reference, or a frozen internal baseline plus category quality bar—scoped
+maturity claim, actual runtime artifact, applicable states, and hard
 return conditions. Keep test counts, implementation rationale, prior praise,
 and author persuasion out of the first subjective pass when practical. The
 reviewer may inspect them after recording an initial experience verdict.
@@ -47,7 +48,8 @@ Play, view, or listen at the target size/device and normal player pace. Check:
   fit;
 - consistency across representative default, success/failure, interruption,
   unavailable, and edge states;
-- comparison with the external reference or declared category quality bar;
+- comparison with the declared basis: external reference, or frozen internal
+  baseline for conformance and category quality bar for product quality;
 - integration with gameplay, economy, content, performance, and accessibility
   boundaries in scope.
 

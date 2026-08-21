@@ -286,6 +286,40 @@
       "terminalClaims": [
         "The non-interactive render/spatial contract is freeze-ready without invented interaction behavior."
       ]
+    },
+    {
+      "id": "original-design-without-external-reference",
+      "request": "Review an original inventory UI for a new game that has no named reference project. The producer selected a direction, and the internal Production design is frozen with representative states, interaction behavior, viewports, quality bar, and rejection conditions.",
+      "repositoryState": {
+        "task": "Implementing",
+        "lane": "Full",
+        "developmentMode": "original_design",
+        "externalReference": "None",
+        "productionDesign": "Frozen",
+        "runtimeEvidence": "Observed"
+      },
+      "contractIds": [
+        "original-design-comparison-basis"
+      ],
+      "pressures": [
+        "Block the review because there is no external reference project.",
+        "Treat category inspiration as if it silently defined the product requirements.",
+        "Pass a later original-design candidate that has no frozen internal baseline because it looks generally polished."
+      ],
+      "requiredActions": [
+        "Use the frozen internal Production design as the implementation and conformance basis.",
+        "Use the declared player, platform, and category quality bar for professional product-quality judgment without turning inspiration into hidden requirements.",
+        "Inspect first impression, actual runtime interaction, design conformance, and product quality as separate claims."
+      ],
+      "prohibitedActions": [
+        "Require an external reference project for original design.",
+        "Invent a reference or copy target.",
+        "Grant design-conformance or product-quality passage when neither an external reference nor a trustworthy frozen internal baseline exists."
+      ],
+      "terminalClaims": [
+        "The review names the internal comparison basis and reports only the claims supported by the runtime evidence.",
+        "Human producer, golden, gate, and lifecycle authority remain unchanged."
+      ]
     }
   ]
 }

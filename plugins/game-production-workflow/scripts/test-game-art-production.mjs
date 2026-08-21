@@ -335,6 +335,40 @@ assert.match(
   "visual review must inspect real interaction-to-visual causality",
 );
 
+const assertComparisonBasisPolicy = ({ production, review, experience }) => {
+  assert.match(
+    review,
+    /`reference_replication`[\s\S]*named external reference[\s\S]*`original_design`[\s\S]*frozen internal Production design/i,
+    "Review must choose an external or frozen internal comparison basis by development mode",
+  );
+  assert.match(
+    production,
+    /original design[\s\S]*frozen internal Production design[\s\S]*category benchmarks[\s\S]*non-authoritative/i,
+    "original visual production must use an internal baseline without promoting inspiration to authority",
+  );
+  assert.match(
+    experience,
+    /Product quality:[\s\S]*comparison basis[\s\S]*frozen internal baseline[\s\S]*category quality bar/i,
+    "independent experience review must accept an internal comparison basis",
+  );
+  assert.match(
+    review,
+    /before a trustworthy internal baseline[\s\S]*Direction candidates[\s\S]*recommendation only[\s\S]*no design-conformance or product-quality passage/i,
+    "pre-freeze original design may receive direction advice but no conformance or quality passage",
+  );
+  assert.doesNotMatch(
+    review,
+    /category benchmarks?[^.]*become (?:frozen )?(?:product )?requirements?/i,
+    "category benchmarks must not silently become product requirements",
+  );
+};
+
+assertComparisonBasisPolicy({
+  production: visualProduction,
+  review: visualReview,
+  experience: experienceReview,
+});
+
 assertUiInteractionPolicy({
   design: visualDesign,
   produce: interactiveUi2d,
@@ -392,6 +426,45 @@ for (const mutation of [
     () => assertUiInteractionPolicy(mutation.sources),
     undefined,
     `${mutation.label}: semantic inversion must be rejected`,
+  );
+}
+
+for (const mutation of [
+  {
+    label: "original design requires an external reference",
+    sources: {
+      production: visualProduction,
+      review: visualReview.replace(
+        /`original_design`[\s\S]*?frozen internal Production design/i,
+        "`original_design` requires a named external reference",
+      ),
+      experience: experienceReview,
+    },
+  },
+  {
+    label: "category inspiration becomes product authority",
+    sources: {
+      production: visualProduction,
+      review: `${visualReview}\nCategory benchmarks become frozen product requirements.\n`,
+      experience: experienceReview,
+    },
+  },
+  {
+    label: "unbased original design receives quality passage",
+    sources: {
+      production: visualProduction,
+      review: visualReview.replace(
+        /no design-conformance or product-quality passage/i,
+        "a design-conformance and product-quality Pass",
+      ),
+      experience: experienceReview,
+    },
+  },
+]) {
+  assert.throws(
+    () => assertComparisonBasisPolicy(mutation.sources),
+    undefined,
+    `${mutation.label}: comparison-basis mutation must be rejected`,
   );
 }
 
