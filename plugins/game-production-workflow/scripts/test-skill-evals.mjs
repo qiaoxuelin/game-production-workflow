@@ -100,6 +100,11 @@ const contractMatchers = {
     ["visualDesign", /only when.*`Interactive visual scope`.*`Required`.*player-operated surface/i],
     ["visualDesign", /required solely for non-interactive (?:composition|render).*does not invoke.*interaction contract/i],
   ],
+  "reference-source-authority": [
+    ["core", /do not copy third-party assets, footage, branding, or expression/i],
+    ["visualDesign", /Record origin, rights\/provenance limits/i],
+    ["interactiveUi2d", /one canonical editable source.*provenance/is],
+  ],
 };
 
 assert(
@@ -122,6 +127,8 @@ const requiredIds = new Set([
   "missing-ui-behavior-produce-return",
   "runtime-ui-dynamic-review",
   "noninteractive-composed-2d",
+  "unlicensed-reference-ui-decomposition",
+  "owned-reference-ui-restoration",
 ]);
 const seenIds = new Set();
 const seenContractIds = new Set();
@@ -182,6 +189,44 @@ for (const scenario of corpus.scenarios) {
       `${scenario.id}: ${field} must be a non-empty string array`,
     );
   }
+}
+
+const scenarioById = new Map(
+  corpus.scenarios.map((scenario) => [scenario.id, scenario]),
+);
+const unlicensedReference = scenarioById.get(
+  "unlicensed-reference-ui-decomposition",
+);
+const ownedReference = scenarioById.get("owned-reference-ui-restoration");
+
+assert.deepEqual(unlicensedReference?.expectedDecision, {
+  sourceAssetDisposition: "Prohibited from product assets and builds",
+  productionSourceRoute: "Independent rights-cleared editable sources",
+  bulkUnlockBasis: "Assembly precheck and representative runtime proof",
+  humanDecisionBoundary: "Existing golden, gate, and release contracts only",
+  staticEvidence: "Not passage",
+});
+assert.deepEqual(ownedReference?.expectedDecision, {
+  sourceAssetDisposition: "Eligible after provenance and production validation",
+  productionSourceRoute: "Recovered elements in canonical editable source",
+  bulkUnlockBasis: "Assembly precheck and representative runtime proof",
+  humanDecisionBoundary: "Existing golden, gate, and release contracts only",
+  staticEvidence: "Not passage",
+});
+assert.equal(unlicensedReference?.repositoryState.task, "Clarifying");
+assert.equal(
+  unlicensedReference?.repositoryState.sourceAuthority,
+  "External reference without reuse rights",
+);
+assert.equal(ownedReference?.repositoryState.task, "Ready");
+assert.equal(
+  ownedReference?.repositoryState.sourceAuthority,
+  "Owned with documented reuse rights",
+);
+for (const scenario of [unlicensedReference, ownedReference]) {
+  assert.equal(scenario?.repositoryState.assemblyPrecheck, "Pending");
+  assert.equal(scenario?.repositoryState.representativeRuntimeProof, "Pending");
+  assert.equal(scenario?.repositoryState.bulkOrParallelUnlock, "Locked");
 }
 
 assert.deepEqual(

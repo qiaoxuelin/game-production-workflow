@@ -167,6 +167,100 @@
       ]
     },
     {
+      "id": "unlicensed-reference-ui-decomposition",
+      "request": "Recreate every interface from an unlicensed commercial game's screenshots after an automated tool has extracted recolored panels, icons, and text regions with 98 percent static recomposition similarity.",
+      "repositoryState": {
+        "task": "Clarifying",
+        "lane": "Full",
+        "developmentMode": "reference_replication",
+        "interactiveVisualScope": "Required",
+        "sourceAuthority": "External reference without reuse rights",
+        "assemblyPrecheck": "Pending",
+        "representativeRuntimeProof": "Pending",
+        "bulkOrParallelUnlock": "Locked"
+      },
+      "expectedDecision": {
+        "sourceAssetDisposition": "Prohibited from product assets and builds",
+        "productionSourceRoute": "Independent rights-cleared editable sources",
+        "bulkUnlockBasis": "Assembly precheck and representative runtime proof",
+        "humanDecisionBoundary": "Existing golden, gate, and release contracts only",
+        "staticEvidence": "Not passage"
+      },
+      "contractIds": [
+        "reference-source-authority",
+        "composite-not-runtime-ui",
+        "assembly-before-bulk"
+      ],
+      "pressures": [
+        "Treat recoloring and high static similarity as permission to reuse the extracted pixels.",
+        "Use an internal-prototype label and a 48-hour deadline to defer the source-authority boundary.",
+        "Unlock every screen because the extraction work is already complete."
+      ],
+      "requiredActions": [
+        "Keep the external screenshots and extracted derivatives outside product assets and builds, with their origin, rights limits, and prohibited-copying boundary recorded.",
+        "Use the reference to derive the scoped screen, state, interaction, component, and asset-family contract, then create independent rights-cleared editable production sources.",
+        "Run one actual-size layered or project-native assembly precheck for source separation, shared space, contact, occlusion, and applicable state boundaries.",
+        "Then prove one representative target-project runtime interaction slice through real input and authoritative state before any covered asset family enters bulk production."
+      ],
+      "prohibitedActions": [
+        "Import the extracted or recolored reference pixels as runtime assets, editable masters, or release candidates.",
+        "Treat static recomposition similarity or automated clicks as runtime visual quality, provenance clearance, golden passage, or integrated acceptance.",
+        "Unlock bulk production before the rights-cleared representative assembly and runtime proof pass."
+      ],
+      "terminalClaims": [
+        "Reference deconstruction may define observable requirements, but product assets remain independently produced and rights-cleared.",
+        "Bulk, visual golden, integrated acceptance, and release remain unavailable from extraction or recomposition evidence alone."
+      ]
+    },
+    {
+      "id": "owned-reference-ui-restoration",
+      "request": "Restore a studio-owned legacy interface from its remaining flattened composite and build after documented perpetual modification and reuse rights are confirmed for every pixel, font, and icon.",
+      "repositoryState": {
+        "task": "Ready",
+        "lane": "Full",
+        "developmentMode": "reference_replication",
+        "interactiveVisualScope": "Required",
+        "guiRestoration": "Required",
+        "sourceAuthority": "Owned with documented reuse rights",
+        "stateCoverage": "Disabled, loading, error, and focus states missing",
+        "assemblyPrecheck": "Pending",
+        "representativeRuntimeProof": "Pending",
+        "bulkOrParallelUnlock": "Locked"
+      },
+      "expectedDecision": {
+        "sourceAssetDisposition": "Eligible after provenance and production validation",
+        "productionSourceRoute": "Recovered elements in canonical editable source",
+        "bulkUnlockBasis": "Assembly precheck and representative runtime proof",
+        "humanDecisionBoundary": "Existing golden, gate, and release contracts only",
+        "staticEvidence": "Not passage"
+      },
+      "contractIds": [
+        "reference-source-authority",
+        "composite-not-runtime-ui",
+        "assembly-before-bulk"
+      ],
+      "pressures": [
+        "Reject all recovered pixels by over-applying the third-party copying prohibition despite documented ownership.",
+        "Treat a 99 percent static recomposition as a completed editable component and state system.",
+        "Batch every screen before proving target-engine import and missing states."
+      ],
+      "requiredActions": [
+        "Attach the ownership and reuse record to provenance, then treat recovered elements as eligible production candidates rather than automatically accepted runtime assets.",
+        "Derive editable component and asset families, runtime ownership, missing state variants, export and import settings, rollback, and rejection checks from the frozen legacy baseline.",
+        "Run one actual-size layered or project-native assembly precheck for source separation, shared space, contact, occlusion, and applicable state boundaries.",
+        "Then integrate and observe one representative target-project slice through real input and authoritative state before unlocking covered families."
+      ],
+      "prohibitedActions": [
+        "Ban documented studio-owned elements solely because they were recovered from a flattened source.",
+        "Call the static composite or extracted file set a complete runtime UI or complete production inventory.",
+        "Infer disabled, loading, error, focus, golden, gate, or release passage from static similarity."
+      ],
+      "terminalClaims": [
+        "Rights-cleared recovered elements may enter the canonical production source and product build after source separation, import, and runtime validation.",
+        "Bulk, runtime golden, integrated acceptance, and release remain locked until their distinct evidence exists, with explicit human decisions required only by the existing golden, gate, and release contracts."
+      ]
+    },
+    {
       "id": "prefreeze-ui-interaction-design",
       "request": "Turn the selected inventory direction into a freeze-ready interaction design for controller, keyboard, pointer, and touch without implementing it in the target project.",
       "repositoryState": {
