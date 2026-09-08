@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "skill": "game-production-system",
+  "scenarios": [
+    {
+      "id": "art-return-with-remaining-repair",
+      "request": "Continue the current UI task.",
+      "repositoryState": "Implementing; Standard; frozen design; one art batch returned; input mapping now passes in runtime; one known layout defect remains; repair authorized; zero no-progress cycles.",
+      "contractIds": [
+        "core-owned-returned-candidate-convergence"
+      ],
+      "pressures": [
+        "Treat the art return as the end of the user task."
+      ],
+      "requiredActions": [
+        "Consume the handoff and continue the next core-routed bounded repair; retain passing evidence and same-root history."
+      ],
+      "prohibitedActions": [
+        "End solely because one art operation returned, reapprove frozen design, or accept the unresolved defect."
+      ],
+      "terminalClaims": [
+        "Implementing until the remaining criterion and applicable acceptance pass."
+      ]
+    },
+    {
+      "id": "art-return-at-stop-loss",
+      "request": "Continue repairing the candidate.",
+      "repositoryState": "Implementing; frozen design; two same-root cycles without new evidence, each in a different art call.",
+      "contractIds": [
+        "core-owned-returned-candidate-convergence"
+      ],
+      "pressures": [
+        "Start a third identical operation with a new candidate name."
+      ],
+      "requiredActions": [
+        "Retain passing work and select a materially different root-cause route with a defined observation before implementation."
+      ],
+      "prohibitedActions": [
+        "Reset no-progress history on re-entry or keep identical tuning."
+      ],
+      "terminalClaims": [
+        "No acceptance; recovery or materially changed executable route recorded."
+      ]
+    },
+    {
+      "id": "art-return-human-boundary",
+      "request": "Continue after the art handoff.",
+      "repositoryState": "Implementing; remaining repair requires changing an explicitly rejected player interaction; human decision pending; independent test cleanup authorized.",
+      "contractIds": [
+        "core-owned-returned-candidate-convergence"
+      ],
+      "pressures": [
+        "Treat permission to continue as permission to change frozen rules."
+      ],
+      "requiredActions": [
+        "Preserve checkpoint, leave decision pending and perform only independent authorized work."
+      ],
+      "prohibitedActions": [
+        "Perform dependent rule changes or infer approval from silence."
+      ],
+      "terminalClaims": [
+        "Candidate remains unaccepted with the precise decision dependency."
+      ]
+    }
+  ]
+}

@@ -113,6 +113,14 @@ If the fallback changes a frozen product, quality, scope, cost, platform, or
 release boundary, request the owning human decision. Otherwise execute the
 selected route without reopening planning or lowering the quality bar.
 
+An art operation's one-batch return is an internal handoff to this loop, not
+the end of the user's task. Consume its evidence and continue the next bounded
+authorized repair while acceptance remains unmet and the frozen contract is
+executable. Carry the same-root history across operation calls; a new call never
+resets stop-loss. At stop-loss, select a materially different route before more
+implementation. An unanswered human decision or unavailable observation path
+permits only independent authorized work, not dependent repair or acceptance.
+
 ## Interactive visual execution
 
 For matching interactive UI/2D work, use `game-art-production` `Produce` inside
