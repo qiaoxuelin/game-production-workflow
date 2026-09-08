@@ -83,9 +83,13 @@ Use `Single-task` only when the requested outcome is bounded, has no meaningful
 cross-module sequencing, has one implementation owner, and can close against
 one acceptance contract.
 
-Use `production/PLAN.md` when work spans multiple player outcomes, modules,
-design domains, owners, dependencies, shared files, integration stages, or
-acceptance milestones. Record:
+Use `production/PLAN.md` when multiple work packages need explicit dependency,
+owner-handoff, integration, or acceptance order. Touching several modules,
+design domains, or shared files alone does not require a plan or escalate the
+execution lane. One bounded outcome under one implementation owner and one
+acceptance contract remains `Single-task` without meaningful package sequencing.
+Full-lane design, architecture, and gate duties still apply when their risk
+predicates are met, even with `Single-task`. Record a necessary plan's:
 
 - work packages and player-facing outcomes;
 - dependency and integration order;

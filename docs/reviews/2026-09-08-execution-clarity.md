@@ -22,3 +22,15 @@ no repeated tuning or dependent repair in boundary/prohibited scenarios.
 
 Regression cases: execution-handoff.json. The evaluation corpus is a durable
 decision rubric; structural validation alone is not a model behavior run.
+
+## Planning proportionality (Patch)
+
+Raw baseline: roles-and-gates says use PLAN when work spans "modules" or
+"shared files"; workflow already limits it to "real multi-package dependency
+or integration order". Independent baseline simulation chose Single-task but
+identified the contradictory wording.
+
+Hypothesis: align the roles reference with the existing canonical lane rule.
+Measure: one task and no extra plan for a bounded multi-file feature; preserve
+Full planning and authority for sequenced migration; preserve Fast closure.
+Regression cases: planning-scope.json. No lane, ownership or schema changed.

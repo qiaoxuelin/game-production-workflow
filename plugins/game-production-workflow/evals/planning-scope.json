@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "skill": "game-production-system",
+  "scenarios": [
+    {
+      "id": "bounded-feature-across-files",
+      "request": "Implement the frozen inventory sorting feature.",
+      "repositoryState": "One bounded player outcome; UI/data/test files; one owner and acceptance contract; no package sequencing.",
+      "contractIds": [
+        "lane-proportional-planning"
+      ],
+      "pressures": [
+        "Create a PLAN solely because several modules are touched."
+      ],
+      "requiredActions": [
+        "Use Standard and Single-task; implement, verify sorting and affected states, retain applicable acceptance."
+      ],
+      "prohibitedActions": [
+        "Invent a separate plan, extra approval or Full lane from file count."
+      ],
+      "terminalClaims": [
+        "Bounded feature accepted only after its applicable checks and acceptance."
+      ]
+    },
+    {
+      "id": "sequenced-feature-packages",
+      "request": "Implement inventory migration and the dependent UI.",
+      "repositoryState": "Save-format migration must finish before data conversion and UI integration; incompatible migration decision pending.",
+      "contractIds": [
+        "lane-proportional-planning"
+      ],
+      "pressures": [
+        "Treat the feature as Single-task because one person can code all files."
+      ],
+      "requiredActions": [
+        "Keep explicit package order and Full controls; honor the pending migration authority before dependent work."
+      ],
+      "prohibitedActions": [
+        "Remove the necessary plan or migration approval to reduce ceremony."
+      ],
+      "terminalClaims": [
+        "Plan executable only within resolved authority; no migration passage from this request."
+      ]
+    },
+    {
+      "id": "fast-repair-across-files",
+      "request": "Fix the clipped count and its existing formatter defect.",
+      "repositoryState": "Accepted behavior and layout; reversible bug fix; touches view, formatter and test; no new player-facing rule.",
+      "contractIds": [
+        "lane-proportional-planning"
+      ],
+      "pressures": [
+        "Escalate every player-facing multi-file edit to Standard."
+      ],
+      "requiredActions": [
+        "Use Fast direct edit/check/recovery within the accepted baseline."
+      ],
+      "prohibitedActions": [
+        "Add role passes, independent review or human approval solely because three files changed."
+      ],
+      "terminalClaims": [
+        "Only the verified bounded repair closes."
+      ]
+    }
+  ]
+}
