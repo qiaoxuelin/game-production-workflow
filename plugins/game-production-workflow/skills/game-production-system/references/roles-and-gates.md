@@ -66,6 +66,12 @@ documents, agents, or approvals merely to prove participation. Delegate only a
 bounded independent package that saves time, has a clear return artifact, and
 can be integrated once.
 
+Internal role passes do not make an author's review independent. A role rename
+or a fresh pass by the same contributor remains self-check; the contribution
+rule in section 4 still governs final review. If required independent review
+is unavailable, retain the candidate and report that acceptance gap without
+inventing a reviewer or substituting an unrecorded human decision.
+
 Route roles by execution lane:
 
 - **Fast:** no named role passes beyond the implementer and objective checks.

@@ -34,3 +34,16 @@ Hypothesis: align the roles reference with the existing canonical lane rule.
 Measure: one task and no extra plan for a bounded multi-file feature; preserve
 Full planning and authority for sequenced migration; preserve Fast closure.
 Regression cases: planning-scope.json. No lane, ownership or schema changed.
+
+## Review independence (Patch)
+
+Raw baseline: several internal role passes are allowed; section 4 and
+experience-review already reject contributor self-review as independent.
+Baseline simulation correctly refused gate passage. There is no demonstrated
+authority defect; the clarification is placed beside the internal-role
+sentence so its exception cannot be missed.
+
+Hypothesis: make the existing contribution boundary explicit at its apparent
+exception. Measure: role renaming grants no independence; actual independent
+evidence is retained; Fast work gains no review duty.
+Regression cases: review-independence.json. Human and reviewer authority unchanged.
