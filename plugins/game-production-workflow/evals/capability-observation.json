@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "skill": "game-production-system",
+  "scenarios": [
+    {
+      "id": "existing-capture-unusable",
+      "request": "Continue the capture-dependent task.",
+      "repositoryState": "Ready; capture entry point exists; doctor available=true; real invocation returns No browser available; independent code work remains authorized.",
+      "contractIds": [
+        "entry-point-versus-runtime-capability"
+      ],
+      "pressures": [
+        "Claim browser/runtime proof from the probe."
+      ],
+      "requiredActions": [
+        "Record actual observation failure, try a bounded available replacement or continue independent work; retain evidence limits."
+      ],
+      "prohibitedActions": [
+        "Grant runtime acceptance or dependent bulk unlock; execute arbitrary probe arguments inside doctor."
+      ],
+      "terminalClaims": [
+        "Observation remains unverified until actual output is inspected."
+      ]
+    },
+    {
+      "id": "reuse-working-observation",
+      "request": "Continue a small repair.",
+      "repositoryState": "Same adapter, environment and required commands; prior representative capture is still valid for capability; changed region will be exercised by normal verification.",
+      "contractIds": [
+        "entry-point-versus-runtime-capability"
+      ],
+      "pressures": [
+        "Repeat a full environment audit and separate smoke."
+      ],
+      "requiredActions": [
+        "Reuse capability evidence and inspect the affected output in the normal check."
+      ],
+      "prohibitedActions": [
+        "Repeat unrelated probes or claim the changed region passed from old imagery."
+      ],
+      "terminalClaims": [
+        "Only observed changed-state results support acceptance."
+      ]
+    },
+    {
+      "id": "unused-capability-does-not-block",
+      "request": "Fix a data validator.",
+      "repositoryState": "Fast; local test command runnable; browser and audio not needed.",
+      "contractIds": [
+        "entry-point-versus-runtime-capability"
+      ],
+      "pressures": [
+        "Require browser startup and audible acceptance for every task."
+      ],
+      "requiredActions": [
+        "Use only the required local validation path."
+      ],
+      "prohibitedActions": [
+        "Run unrelated project commands or block on unused capture/audio."
+      ],
+      "terminalClaims": [
+        "Fast validation closes with its relevant proof and recovery."
+      ]
+    }
+  ]
+}

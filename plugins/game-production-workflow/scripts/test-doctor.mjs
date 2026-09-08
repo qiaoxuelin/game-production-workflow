@@ -83,6 +83,27 @@ try {
   assert.equal(report.capabilities.upload.available, null);
   assert.match(report.capabilities.upload.detail, /not probed/);
 
+  // An existing entry point may still fail in the actual observation environment.
+  // Doctor must remain non-executing even when its optimistic availability is tested.
+  fs.writeFileSync(
+    path.join(fixture, "tools/capture.mjs"),
+    'console.error("No browser available"); process.exitCode = 7;\n',
+    "utf8",
+  );
+  const existingButUnusable = runDoctor("--require", "capture");
+  assert.equal(existingButUnusable.status, 0, existingButUnusable.stderr);
+  assert.equal(
+    JSON.parse(existingButUnusable.stdout).capabilities.capture.available,
+    true,
+  );
+  const actualCapture = spawnSync(
+    process.execPath,
+    [path.join(fixture, "tools/capture.mjs")],
+    { encoding: "utf8", timeout: 5000 },
+  );
+  assert.equal(actualCapture.status, 7);
+  assert.match(actualCapture.stderr, /No browser available/);
+
   const blocked = runDoctor("--require", "upload");
   assert.equal(blocked.status, 2, blocked.stderr || blocked.stdout);
   const blockedReport = JSON.parse(blocked.stdout);

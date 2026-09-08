@@ -47,3 +47,17 @@ Hypothesis: make the existing contribution boundary explicit at its apparent
 exception. Measure: role renaming grants no independence; actual independent
 evidence is retained; Fast work gains no review duty.
 Regression cases: review-independence.json. Human and reviewer authority unchanged.
+
+## Capability observation (Patch)
+
+Raw baseline: execution describes the existence probe as "configured from
+runnable", although doctor explicitly never executes adapter probe arguments.
+Independent simulation recognized this optimistic terminology.
+
+Hypothesis: distinguish entry-point availability from observed operation in
+the existing execution handshake, using its normal bounded verification path.
+No doctor schema, command-execution capability or new universal smoke is added.
+Measure: actual capture failure overrides existence for planning; passing
+observation is reused; irrelevant tools never block Fast work.
+Regression: capability-observation.json and an executable test-doctor case
+where an existing capture entry point exits 7 with "No browser available".

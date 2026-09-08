@@ -45,7 +45,7 @@ the adapter command needed to reproduce acceptance.
 
 An adapter capability may remain a command string while it is only descriptive.
 Before using `--require`, give it a verification object so the doctor distinguishes
-configured from runnable instead of executing the production command itself:
+configured from an existing entry point instead of executing the production command itself:
 
 ```json
 {
@@ -59,6 +59,18 @@ an absolute path or bare PATH command in `value`. The doctor only resolves its
 existence and executable bit; it never runs project-provided probe commands or
 arguments. Only explicitly required capabilities are probed; all other
 configured capabilities remain `available: null`.
+
+For project adapter capabilities, a passing probe establishes entry-point
+availability only; it does not prove that the engine starts, the browser
+connects, a capture is produced, or audio can be heard. Before substantial
+work depends on an unobserved capability, use the cheapest task-authorized
+end-to-end check through the adapter or an available replacement. Bound it
+with a deadline, observable output, and task-owned cleanup. Reuse a still-valid
+observed result; do not add a separate smoke when the first normal verification
+already exercises that path. Keep project command execution outside doctor.
+An actual invocation failure overrides the file probe for execution planning;
+record the exact observation gap and continue only work independent of it.
+
 
 ## Production loop
 
