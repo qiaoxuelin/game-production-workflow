@@ -61,3 +61,25 @@ Measure: actual capture failure overrides existence for planning; passing
 observation is reused; irrelevant tools never block Fast work.
 Regression: capability-observation.json and an executable test-doctor case
 where an existing capture entry point exits 7 with "No browser available".
+
+## Playable experience review (Patch)
+
+Raw baseline: experience review names clarity, feedback and recovery, but does
+not express a short expected/observed action sequence. Baseline simulation
+also distinguished expert judgment from external-player comprehension.
+
+Hypothesis: make the existing observation duty executable with scoped player
+steps, reusing current records and preserving read-only review. Measure: an
+actual scoped observation route for greybox claims; no full matrix for a
+single-state edit; no invented findings when observation is blocked.
+Regression cases: experience-observation.json. No final-quality bar is lowered.
+
+## Rule duplication and regression scope
+
+Deduplication is limited to the edited art return referencing core convergence;
+planning wording is aligned with the existing workflow rule. Broader movement
+of approvals, states or entrypoint policy is a Restructure, unnecessary for
+these reproduced textual ambiguities, and is not part of this patch series.
+Each patch adds intended, boundary and prohibited decision scenarios. These
+are independent policy simulations, not real production packages or player
+acceptance; no production performance improvement is claimed.

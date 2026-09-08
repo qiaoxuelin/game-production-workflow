@@ -38,6 +38,20 @@ it and add one genuinely independent pass rather than relabeling self-review.
 
 ## Inspect the actual experience
 
+Turn the claim into a short playable sequence using only applicable actions
+and states: enter, identify the goal, act, interpret feedback, encounter failure,
+and recover. For each selected step, use the frozen expected behavior, observe
+the actual result and state the failure condition. Reuse the existing task or
+review record; do not create a second test plan or require every step for a
+single-state repair. Read-only review does not authorize creating or editing
+project artifacts.
+
+At greybox maturity, inspect comprehension, meaningful choices, causal feedback
+and recovery against the scoped promise; final art is not a prerequisite for
+those observations. Retain the declared fidelity and any higher quality duties.
+An expert playthrough supports an expert assessment, not external-player
+validation or a claim that the target audience has demonstrated comprehension.
+
 Play, view, or listen at the target size/device and normal player pace. Check:
 
 - first-impression clarity and product identity;
