@@ -98,3 +98,25 @@ observation after the patches, preserved Fast closure and pending authority,
 and withheld player-quality claims from build-only evidence. Existing
 gate/experience verdict vocabulary differences remain a recorded limitation;
 no state vocabulary or gate policy change is included here.
+
+## Final validation and local installation
+
+- Baseline 5b6b408 and candidate source a19aac9 both passed full
+  verify.ps1 -CompareRef 5b6b408 in clean owned clones. The original checkout
+  belongs to a sandbox account; owned clones avoided Git's clone ownership
+  rejection. Global trust settings were not changed.
+- Existing loading-budget assertions passed without raising limits.
+- Official plugin validator, all three skill validators and git diff --check
+  passed. The final manifest was also revalidated.
+- Fifteen raw-state decision scenarios received independent simulation.
+  Six handoff/capability cases were rechecked after compression: no action
+  or permitted-claim changes. These are simulations, not real game acceptance.
+- Executable doctor regression passed: an existing entry point remained
+  available to doctor while actual capture exited 7.
+- Installed through the existing local marketplace using codex plugin add.
+- Version: 1.8.0+codex.20260908065033; source/cache inventories: 80 files each,
+  zero SHA-256 differences.
+- Full verification log SHA-256: 68f6622ec59712a688afb87f4da2cc139e62a1d59566584ac7a6ffa1bf1545f5.
+- Local branch: agent/production-execution-clarity; no push or main merge.
+  Start a new Codex thread to load the installed skills.
+- Real game-package outcomes and player acceptance remain unmeasured.
