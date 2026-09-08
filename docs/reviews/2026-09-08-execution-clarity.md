@@ -83,3 +83,18 @@ these reproduced textual ambiguities, and is not part of this patch series.
 Each patch adds intended, boundary and prohibited decision scenarios. These
 are independent policy simulations, not real production packages or player
 acceptance; no production performance improvement is claimed.
+
+## Loaded-context regression correction (Patch)
+
+The first candidate failed the existing non-art Produce loading budget:
+5715 words > 5586. Compressed only the new execution clarification and its
+overlapping probe introduction; kept the existing budget unchanged. The normal
+verification reuse boundary remains in capability-observation.json. This is
+a correction to the preceding handoff/capability wording, not a new policy.
+
+Independent candidate simulation read only raw request/state fields for all
+15 cases. It found no material ambiguity in handoff, plan sizing or capability
+observation after the patches, preserved Fast closure and pending authority,
+and withheld player-quality claims from build-only evidence. Existing
+gate/experience verdict vocabulary differences remain a recorded limitation;
+no state vocabulary or gate policy change is included here.

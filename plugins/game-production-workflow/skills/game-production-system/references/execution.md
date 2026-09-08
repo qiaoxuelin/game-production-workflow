@@ -43,9 +43,8 @@ commands, and environment are unchanged. Otherwise, before the first mutation:
 Do not persist a full environment report. Record only a material constraint or
 the adapter command needed to reproduce acceptance.
 
-An adapter capability may remain a command string while it is only descriptive.
-Before using `--require`, give it a verification object so the doctor distinguishes
-configured from an existing entry point instead of executing the production command itself:
+Descriptive adapter commands may remain strings. For `--require`, add an
+entry-point verification object:
 
 ```json
 {
@@ -60,17 +59,11 @@ existence and executable bit; it never runs project-provided probe commands or
 arguments. Only explicitly required capabilities are probed; all other
 configured capabilities remain `available: null`.
 
-For project adapter capabilities, a passing probe establishes entry-point
-availability only; it does not prove that the engine starts, the browser
-connects, a capture is produced, or audio can be heard. Before substantial
-work depends on an unobserved capability, use the cheapest task-authorized
-end-to-end check through the adapter or an available replacement. Bound it
-with a deadline, observable output, and task-owned cleanup. Reuse a still-valid
-observed result; do not add a separate smoke when the first normal verification
-already exercises that path. Keep project command execution outside doctor.
-An actual invocation failure overrides the file probe for execution planning;
-record the exact observation gap and continue only work independent of it.
-
+Probe success establishes entry-point existence, not observed operation. Before
+substantial dependent work, verify the required path outside doctor with bounded
+time, observable output and task-owned cleanup. Reuse valid observation or
+normal verification. Actual failure controls planning: preserve the observation
+gap and continue independent authorized work only.
 
 ## Production loop
 
@@ -125,13 +118,11 @@ If the fallback changes a frozen product, quality, scope, cost, platform, or
 release boundary, request the owning human decision. Otherwise execute the
 selected route without reopening planning or lowering the quality bar.
 
-An art operation's one-batch return is an internal handoff to this loop, not
-the end of the user's task. Consume its evidence and continue the next bounded
-authorized repair while acceptance remains unmet and the frozen contract is
-executable. Carry the same-root history across operation calls; a new call never
-resets stop-loss. At stop-loss, select a materially different route before more
-implementation. An unanswered human decision or unavailable observation path
-permits only independent authorized work, not dependent repair or acceptance.
+Art returns hand control here; continue authorized, executable repairs until
+acceptance. Keep same-root history across calls; stop-loss requires
+a materially different route before more implementation. Pending human authority
+or unavailable observation permits only independent work, never dependent repair
+or acceptance.
 
 ## Interactive visual execution
 

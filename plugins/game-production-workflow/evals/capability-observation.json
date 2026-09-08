@@ -30,7 +30,8 @@
         "entry-point-versus-runtime-capability"
       ],
       "pressures": [
-        "Repeat a full environment audit and separate smoke."
+        "Repeat a full environment audit and separate smoke.",
+        "Add another capability check even though normal verification already observes the required path."
       ],
       "requiredActions": [
         "Reuse capability evidence and inspect the affected output in the normal check."
