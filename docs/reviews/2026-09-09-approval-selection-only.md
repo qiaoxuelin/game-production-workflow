@@ -21,3 +21,15 @@ The card no longer offers an inline note editor.
 Validation covers approval, revision and deferral without note, persisted empty
 notes, explicit empty notes, non-empty note preservation, and missing choice
 remaining pending. Existing timeout, late response and reopen tests also run.
+
+## Verified delivery
+
+- Source 2f9a798 passed full verify.ps1 -CompareRef 07cf60e in the clean
+  owned clone under .tmp/approval-note/verified-source.
+- Official plugin validation and git diff --check passed.
+- Local installation version: 1.8.0+codex.20260909075455.
+- Source and installed cache: 80 files each, zero SHA-256 differences.
+- Full verification log SHA-256: 57eb5b86e9c0095a557fb002c38f38635ffe3a7d963f9fb23af3736655a62aec.
+- The protocol form now contains only decision; no UI free-text property.
+  Actual host UI interaction remains to be confirmed after opening a new
+  thread and reopening the card. Already-open cards retain their old schema.
