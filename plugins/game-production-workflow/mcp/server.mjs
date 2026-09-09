@@ -589,6 +589,8 @@ async function elicitApproval(store, index, approval) {
     response = await sendServerRequest("elicitation/create", {
       mode: "form",
       message: buildElicitationMessage(approval),
+      // Expose only the choice: some clients require input for every visible field.
+      // Keep optional notes supported by response persistence and the fallback tool.
       requestedSchema: {
         type: "object",
         properties: {
@@ -600,12 +602,6 @@ async function elicitApproval(store, index, approval) {
             default: visibleOptions.find(
               (row) => row.option.id === approval.recommendedOptionId
             )?.display,
-          },
-          note: {
-            type: "string",
-            title: "备注或修改意见",
-            description: "可选：补充条件，或指出需要修改的地方。",
-            maxLength: 2000,
           },
         },
         required: ["decision"],

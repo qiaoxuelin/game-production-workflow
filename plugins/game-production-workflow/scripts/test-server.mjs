@@ -64,6 +64,28 @@ output.on("line", (line) => {
   const message = JSON.parse(line);
   if (message.method === "elicitation/create") {
     assert.equal(message.params.mode, "form");
+    const form = message.params.requestedSchema;
+    // Clients may render every exposed property as a mandatory answer.
+    // A selection-only card must therefore expose no separate text field.
+    assert.deepEqual(form.required, ["decision"]);
+    assert.deepEqual(Object.keys(form.properties), ["decision"]);
+    if (message.params.message.startsWith("Selection only")) {
+      const choice = message.params.message.includes("revise")
+        ? 1
+        : message.params.message.includes("defer")
+          ? 2
+          : 0;
+      const content = message.params.message.includes("missing")
+        ? {}
+        : { decision: form.properties.decision.enum[choice] };
+      send({
+        jsonrpc: "2.0",
+        id: message.id,
+        result: { action: "accept", content },
+      });
+      return;
+    }
+
     if (message.params.message.startsWith("超时后是否仍应记录迟到审批")) {
       lateRequestId = message.id;
       lateDecisionLabel =
@@ -309,6 +331,7 @@ try {
   });
   assert.equal(p1.structuredContent.interaction, "accepted");
   assert.equal(p1.structuredContent.approval.decision.optionId, "framework");
+  assert.equal(p1.structuredContent.approval.decision.note, "");
 
   const lateArgs = {
     ...commonApproval,
@@ -377,6 +400,47 @@ try {
   assert.equal(reopened.structuredContent.interaction, "accepted");
   assert.equal(reopened.structuredContent.approval.status, "approved");
   assert.equal(reopened.structuredContent.approval.interaction.attempt, 2);
+
+  for (const [suffix, status, optionId, grantsPassage] of [
+    ["adopt", "approved", "approve", true],
+    ["revise", "revision_requested", "revise", false],
+    ["defer", "deferred", "defer", false],
+  ]) {
+    const result = await request("tools/call", {
+      name: "request_approval",
+      arguments: {
+        ...commonApproval,
+        approval_id: "TEST-NO-NOTE-" + optionId,
+        question: "Selection only: " + suffix + "?",
+        interactive: true,
+      },
+    });
+    assert.equal(result.structuredContent.interaction, "accepted");
+    const approval = result.structuredContent.approval;
+    assert.equal(approval.status, status);
+    assert.equal(approval.decision.optionId, optionId);
+    assert.equal(approval.decision.note, "");
+    assert.equal(approval.decision.grantsPassage, grantsPassage);
+    const disk = JSON.parse(await fs.readFile(
+      path.join(projectRoot, "production", "approvals", "index.json"), "utf8",
+    ));
+    assert.deepEqual(
+      disk.approvals.find((item) => item.id === approval.id).decision,
+      approval.decision,
+    );
+  }
+  const missingChoice = await request("tools/call", {
+    name: "request_approval",
+    arguments: {
+      ...commonApproval,
+      approval_id: "TEST-MISSING-CHOICE",
+      question: "Selection only: missing choice?",
+      interactive: true,
+    },
+  });
+  assert.equal(missingChoice.structuredContent.interaction, "invalid_response");
+  assert.equal(missingChoice.structuredContent.approval.status, "pending");
+  assert.ok(!missingChoice.structuredContent.approval.decision);
 
   process.stdout.write(
     `PASS game-approval-ui protocol and persistence (${projectRoot})\n`
