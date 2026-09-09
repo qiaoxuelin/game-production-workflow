@@ -1,6 +1,6 @@
 ---
 name: game-art-production
-description: Use when interactive UI/2D game work needs a new or materially changed visual direction, screen, HUD, component/state system, flattened-composite decomposition, editable source production, project-native integration, runtime visual proof, or professional visual review.
+description: Design, produce, integrate, or professionally review game art across UI, 2D, 3D characters and environments, animation, VFX, and technical art. Use for visual direction, editable assets, or runtime visual quality within a game task.
 ---
 
 # Game Art Production
@@ -13,13 +13,23 @@ The art Skill must not create or own `TASK`, `PLAN`, status, gate, approval, clo
 
 ## Select one operation
 
-Load only the selected reference by default. Do not preload or chain another; return when the operation changes.
+Load the selected operation and applicable domains only. Return when the operation changes.
 
 | Operation | Load |
 | --- | --- |
 | `Design` | `references/visual-design.md` |
-| `Produce` | `references/interactive-ui-2d.md` |
+| `Produce` | UI/2D surfaces: `references/interactive-ui-2d.md`; other art: `references/visual-production.md` |
 | `Review` | `references/visual-review.md` |
+
+For character/environment, 3D, animation, VFX, technical art, or broad visual work,
+use [visual-production.md](references/visual-production.md) for common craft.
+Add [spatial-3d.md](references/spatial-3d.md) for 3D assets/scenes and
+[animation-vfx.md](references/animation-vfx.md) for motion/effects, reading only
+the selected operation. UI/2D-only work loads neither domain by default.
+Non-UI 2D animation/VFX uses common production plus animation-vfx, not the
+interactive-ui-2d protocol.
+Accepted-baseline Fast repairs stay in core execution unless professional review
+is requested. Non-art work does not load this skill.
 
 ## Confirm input readiness and path safety
 

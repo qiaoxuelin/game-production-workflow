@@ -126,12 +126,12 @@ or acceptance.
 
 ## Interactive visual execution
 
-For matching interactive UI/2D work, use `game-art-production` `Produce` inside
+For matching art work beyond accepted-baseline Fast repairs, use `game-art-production` `Produce` inside
 the core-owned task; it creates no parallel task, plan, status, gate, approval,
 or close authority, while external generation, design, and browser tools remain
 optional capability techniques, never lifecycle prerequisites.
 
-Treat the referenced interactive UI/2D protocol as required.
+Use the art domain router; retain the interactive UI/2D checks below when applicable.
 Do not treat a composed design image as an asset inventory or runtime UI; a
 flattened composite is never final. Keep maturity and fidelity truthful. Apply
 the compact sentinel `player action → interface state → asset family → assembly

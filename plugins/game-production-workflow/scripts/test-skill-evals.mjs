@@ -48,7 +48,7 @@ const policySources = {
   visualProduction: fs.readFileSync(
     path.join(
       pluginRoot,
-      "skills/game-production-system/references/visual-production.md",
+      "skills/game-art-production/references/visual-production.md",
     ),
     "utf8",
   ),
@@ -61,7 +61,32 @@ const policySources = {
   ),
 };
 
+policySources.art = fs.readFileSync(path.join(pluginRoot, "skills/game-art-production/SKILL.md"), "utf8");
+policySources.spatial3d = fs.readFileSync(path.join(pluginRoot, "skills/game-art-production/references/spatial-3d.md"), "utf8");
+policySources.animationVfx = fs.readFileSync(path.join(pluginRoot, "skills/game-art-production/references/animation-vfx.md"), "utf8");
+
 const contractMatchers = {
+  "art-domain-ownership": [
+    ["core", /Art owns UI\/2D, character\/environment, 3D, animation, VFX, and technical-art/i],
+    ["art", /UI\/2D-only work loads neither domain by default/i],
+    ["art", /Accepted-baseline Fast repairs stay in core execution/i],
+    ["art", /Non-art work does not load this skill/i],
+    ["art", /Non-UI 2D animation\/VFX uses common production plus animation-vfx, not the\s+interactive-ui-2d protocol/i],
+    ["visualProduction", /noninteractive composition\s+needs only its render\/spatial contract, not an invented interaction matrix/i],
+  ],
+  "spatial-3d-proof": [
+    ["spatial3d", /Static props need no rig/i],
+    ["spatial3d", /UV distortion\/seams[\s\S]*target renderer/i],
+    ["spatial3d", /Editor preview alone cannot prove[\s\S]*target-device performance/i],
+    ["spatial3d", /core records the freeze before target-project Produce/i],
+    ["visualProduction", /one bounded repair batch total[\s\S]*return[\s\S]*handoff to core/i],
+  ],
+  "motion-playback-proof": [
+    ["animationVfx", /Still images cannot establish[\s\S]*interruption behavior/i],
+    ["animationVfx", /A 2D-only effect stays off the spatial-3D route/i],
+    ["animationVfx", /pooling\/reset\/cleanup/i],
+    ["animationVfx", /read-only verdict[\s\S]*never implement repairs or grant acceptance/i],
+  ],
   "fast-direct-close": [
     ["core", /Fast work closes on objective verification/i],
     ["project", /Fast[\s\S]*no independent review or human approval/i],

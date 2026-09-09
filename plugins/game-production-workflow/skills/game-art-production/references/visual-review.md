@@ -1,6 +1,6 @@
 # Visual Review (`Review`)
 
-Review UI/2D evidence without changing project files or implementing repairs. Apply the core's existing independent-review, human-authority, experience-quality, gate, and return rules; do not duplicate, weaken, or grant them here.
+Review game-art evidence without changing project files or implementing repairs. Apply the core's existing independent-review, human-authority, experience-quality, gate, and return rules; do not duplicate, weaken, or grant them here.
 
 ## Inputs and observation
 

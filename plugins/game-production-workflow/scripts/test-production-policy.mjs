@@ -563,7 +563,7 @@ const coreSkill = read(
   "plugins/game-production-workflow/skills/game-production-system/SKILL.md",
 );
 const visualProduction = read(
-  "plugins/game-production-workflow/skills/game-production-system/references/visual-production.md",
+  "plugins/game-production-workflow/skills/game-art-production/references/visual-production.md",
 );
 const experienceReview = read(
   "plugins/game-production-workflow/skills/game-production-system/references/experience-review.md",
@@ -621,14 +621,14 @@ for (const [agentPath, label] of [
   assert(fs.existsSync(agentPath), `atomic plugin is missing ${label} agents/openai.yaml`);
 }
 assert.match(openaiYaml, /execute the next player-visible game slice/i);
-assert.match(artOpenaiYaml, /produce or review the next interactive UI\/2D visual slice/i);
+assert.match(artOpenaiYaml, /produce or review the next game-art slice/i);
 
 const artDescription = artSkill.match(/^description:\s*(.+)$/mu)?.[1] ?? "";
 assert(artDescription.length > 0 && artDescription.length <= 500, "art Skill route description must be present and at most 500 characters");
 assert.match(
   artDescription,
-  /interactive UI\/2D[\s\S]*flattened-composite decomposition[\s\S]*project-native integration[\s\S]*runtime visual proof[\s\S]*professional visual review/i,
-  "art Skill route description must remain bound to its interactive UI/2D scope",
+  /UI, 2D, 3D characters and environments, animation, VFX, and technical art[\s\S]*within a game task/i,
+  "art discovery must cover visual domains within game work",
 );
 
 assert.match(readme, /原子安装三个独立 Skill 和审批 MCP/);
@@ -732,8 +732,8 @@ assert.match(
 );
 assert.match(
   substantialFeatureRoute,
-  /character[\s\S]*environment[\s\S]*3D[\s\S]*animation[\s\S]*VFX[\s\S]*technical-art[\s\S]*broad visual[\s\S]*visual-production\.md/i,
-  "broader visual crafts must remain on visual-production.md",
+  /Art owns UI\/2D, character\/environment, 3D, animation, VFX, and technical-art[\s\S]*domain router/i,
+  "broader visual crafts must have the same art owner",
 );
 const ownerAssignmentPosition = substantialFeatureRoute.search(
   /assign only (?:the )?needed (?:Standard\/Full )?domain-design\s+owners/i,

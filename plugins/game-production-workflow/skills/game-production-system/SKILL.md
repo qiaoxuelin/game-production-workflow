@@ -27,7 +27,7 @@ Interpret validation precisely:
 | Intent | Load | Permitted result |
 | --- | --- | --- |
 | **Explore/discuss** | Project truth and relevant source | Conversation only; no writes |
-| **Diagnose/review** | Affected source and craft reference; `game-art-production` `Review` only when professional UI/2D diagnosis is requested | Report only; no repair |
+| **Diagnose/review** | Affected source and craft reference; `game-art-production` `Review` only when professional visual diagnosis is requested | Report only; no repair |
 | **Initialize, adopt, or plan** | `workflow.md` plus selected references | Executable repository contract |
 | **Execute or continue** | `execution.md` plus affected craft | Player-visible or capability delta |
 | **Close** | `workflow.md` completion/evidence sections | Verified recoverable handoff |
@@ -233,8 +233,8 @@ task-owned processes, and switch to the next authorized fallback package.
    folder when an intended repository exists elsewhere.
 
 After repository truth, load only the references selected by the Operation router.
-An intact 1.8 plugin requires bundled `game-art-production` for positive UI/2D
-predicate. An installed 1.8 plugin missing `game-art-production` is a
+An intact 1.8 plugin requires bundled `game-art-production` for matching art
+work. An installed 1.8 plugin missing `game-art-production` is a
 bundle-integrity failure: preserve work,
 report it, repair/reinstall, and grant no art-path completion. Repository-only with no plugin
 uses project `AGENTS.md`'s interaction-to-visual loop without claiming the
@@ -295,14 +295,12 @@ standalone for production.
    static validator before `Frozen`.
 8. Read [game-content-design.md](references/game-content-design.md) for gameplay,
    level, balance, economy, progression, content, or narrative. Unresolved or
-   selected-without-frozen-implementable-production-design interactive UI/2D direction requires
+   selected-without-frozen-implementable-production-design visual direction requires
    `game-art-production` `Design`; must not load for accepted-baseline Fast repairs or non-art/non-visual work.
-   Character, environment, 3D, animation, VFX, technical-art, and broad visual
-   work remain on [visual-production.md](references/visual-production.md). Apply
-   its asset-family split for material shared-master, variant, ownership, import,
-   provenance, or performance risk; never split by fixed count, per-file package,
-   or per-asset approval. Derive inventory from frozen screens, states, flows, and feedback,
-   and statically check every scoped need before opening packages.
+   Art owns UI/2D, character/environment, 3D, animation, VFX, and technical-art
+   craft. Use its domain router; keep task state, freeze, dependencies, and
+   acceptance in core. Derive asset inventory and bounded families from frozen
+   needs before packages; never split by fixed count or per-asset approval.
    For player-facing audio work, read
    [audio-production.md](references/audio-production.md). Freeze cue intent
    before sourcing, prefer rights-cleared stock SFX, use rights-cleared
@@ -337,7 +335,7 @@ standalone for production.
 
 1. Read [execution.md](references/execution.md).
 2. Enter when the user requests implementation and the task is `Ready` or
-   `Implementing`. For matching interactive UI/2D work, require
+   `Implementing`. For matching art work beyond accepted-baseline Fast repairs, require
    `game-art-production` `Produce` inside the core-owned task. Do not reopen
    frozen design or repeat planning merely because another workflow is installed.
 3. Run the capability handshake, select the next player-visible slice, edit the
@@ -410,7 +408,7 @@ standalone for production.
 
 1. Read [roles-and-gates.md](references/roles-and-gates.md).
 2. Review read-only. Do not fix implementation in the same review.
-3. Require `game-art-production` `Review` only when professional UI/2D gate
+3. Require `game-art-production` `Review` only when professional visual gate
    evidence is required; check all applicable functional, technical, visual/UX,
    player, performance, provenance, and release evidence.
 4. Run `scripts/check.ps1 -Mode Gate`; treat `gateReady`, not

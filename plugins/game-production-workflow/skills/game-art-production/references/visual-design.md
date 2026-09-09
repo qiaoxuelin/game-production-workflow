@@ -1,6 +1,6 @@
 # Visual Design (`Design`)
 
-Create the smallest decision-ready UI/2D visual system for the core-owned task. Return a candidate and evidence; never freeze, approve, or advance the task.
+Create the smallest decision-ready visual system for the core-owned task. Return a candidate and evidence; never freeze, approve, or advance the task.
 
 ## Inputs
 

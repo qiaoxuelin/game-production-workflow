@@ -18,6 +18,9 @@ const requiredFiles = [
   "references/visual-design.md",
   "references/interactive-ui-2d.md",
   "references/visual-review.md",
+  "references/visual-production.md",
+  "references/spatial-3d.md",
+  "references/animation-vfx.md",
 ];
 
 for (const relativePath of requiredFiles) {
@@ -29,7 +32,7 @@ const coreSkill = fs.readFileSync(path.join(coreRoot, "SKILL.md"), "utf8");
 const execution = fs.readFileSync(path.join(coreRoot, "references/execution.md"), "utf8");
 const workflow = fs.readFileSync(path.join(coreRoot, "references/workflow.md"), "utf8");
 const visualProduction = fs.readFileSync(
-  path.join(coreRoot, "references/visual-production.md"),
+  path.join(skillRoot, "references/visual-production.md"),
   "utf8",
 );
 const experienceReview = fs.readFileSync(
@@ -40,7 +43,7 @@ const projectInstructions = fs.readFileSync(
   path.join(coreRoot, "assets/project-template/AGENTS.md"),
   "utf8",
 );
-const expectedDescription = "Use when interactive UI/2D game work needs a new or materially changed visual direction, screen, HUD, component/state system, flattened-composite decomposition, editable source production, project-native integration, runtime visual proof, or professional visual review.";
+const expectedDescription = "Design, produce, integrate, or professionally review game art across UI, 2D, 3D characters and environments, animation, VFX, and technical art. Use for visual direction, editable assets, or runtime visual quality within a game task.";
 const expectedFrontmatter = `---
 name: game-art-production
 description: ${expectedDescription}
@@ -59,13 +62,13 @@ const operationManifest = skill.match(
   /\| Operation \| Load \|\n\| --- \| --- \|\n((?:\|.*\n){3})/u,
 )?.[1];
 assert(operationManifest, "art Skill must declare a three-operation static manifest");
-const manifestRows = [...operationManifest.matchAll(/^\| `([^`]+)` \| `([^`]+)` \|$/gmu)]
+const manifestRows = [...operationManifest.matchAll(/^\| `([^`]+)` \| (.+) \|$/gmu)]
   .map(([, operation, reference]) => [operation, reference]);
 assert.deepEqual(manifestRows, [
-  ["Design", "references/visual-design.md"],
-  ["Produce", "references/interactive-ui-2d.md"],
-  ["Review", "references/visual-review.md"],
-], "each art operation must permit only its named reference");
+  ["Design", "`references/visual-design.md`"],
+  ["Produce", "UI/2D surfaces: `references/interactive-ui-2d.md`; other art: `references/visual-production.md`"],
+  ["Review", "`references/visual-review.md`"],
+], "art operations must retain conditional UI/2D versus other-art production loading");
 
 const startRoute = coreSkill.match(
   /### Start a substantial feature([\s\S]*?)### Execute a ready task/,
@@ -73,7 +76,7 @@ const startRoute = coreSkill.match(
 assert(startRoute, "core is missing the substantial-feature route");
 assert.match(
   startRoute,
-  /unresolved\s+or\s+selected-without-frozen-implementable-production-design\s+interactive UI\/2D direction[\s\S]*game-art-production[\s\S]*`Design`/i,
+  /unresolved\s+or\s+selected-without-frozen-implementable-production-design\s+visual direction[\s\S]*game-art-production[\s\S]*`Design`/i,
   "unresolved interactive UI/2D direction must route to Design",
 );
 assert.match(
@@ -93,7 +96,7 @@ const executeRoute = coreSkill.match(
 assert(executeRoute, "core is missing the ready-task route");
 assert.match(
   executeRoute,
-  /`Ready`\s+or\s+`Implementing`[\s\S]*interactive UI\/2D[\s\S]*game-art-production[\s\S]*`Produce`/i,
+  /`Ready`\s+or\s+`Implementing`[\s\S]*art work beyond accepted-baseline Fast repairs[\s\S]*game-art-production[\s\S]*`Produce`/i,
   "matching Ready/Implementing interactive UI/2D work must route to Produce",
 );
 assert.match(executeRoute, /flattened-composite finality/i);
@@ -106,7 +109,7 @@ const diagnoseRoute = coreSkill
   .find((line) => line.startsWith("|") && line.includes("**Diagnose/review**"));
 assert.match(
   diagnoseRoute ?? "",
-  /game-art-production[\s\S]*`Review`[\s\S]*professional UI\/2D diagnosis[\s\S]*requested/i,
+  /game-art-production[\s\S]*`Review`[\s\S]*professional visual diagnosis[\s\S]*requested/i,
   "requested professional UI/2D diagnosis must route to Review",
 );
 
@@ -114,7 +117,7 @@ const gateRoute = coreSkill.match(/### Review a gate([\s\S]*?)## Non-negotiable 
 assert(gateRoute, "core is missing the gate-review route");
 assert.match(
   gateRoute,
-  /game-art-production[\s\S]*`Review`[\s\S]*professional UI\/2D gate\s+evidence[\s\S]*required/i,
+  /game-art-production[\s\S]*`Review`[\s\S]*professional visual gate\s+evidence[\s\S]*required/i,
   "required professional UI/2D gate evidence must route to Review",
 );
 
@@ -123,7 +126,7 @@ const interactiveExecution = execution.match(
 )?.[1];
 assert.match(
   interactiveExecution ?? "",
-  /^For matching interactive UI\/2D work, use `game-art-production` `Produce`/i,
+  /^For matching art work beyond accepted-baseline Fast repairs, use `game-art-production` `Produce`/i,
   "interactive visual execution must begin with the additive Produce route",
 );
 assert.match(interactiveExecution ?? "", /flattened composite[\s\S]*never[\s\S]*final/i);
@@ -139,7 +142,7 @@ assert.match(
 
 assert.match(
   coreSkill,
-  /intact 1\.8 plugin\s+requires bundled `game-art-production` for (?:the )?positive UI\/2D\s+predicate/i,
+  /intact 1\.8 plugin\s+requires bundled `game-art-production` for matching art\s+work/i,
   "an intact 1.8 plugin must require its bundled art Skill",
 );
 const normalizedCore = coreSkill.replace(/\s+/g, " ");
@@ -488,8 +491,8 @@ assert(
 
 assert.match(
   coreSkill,
-  /Character, environment, 3D, animation, VFX, technical-art, and broad visual[\s\S]*visual-production\.md/i,
-  "non-UI/2D visual domains must remain routed to visual-production.md",
+  /Art owns UI\/2D, character\/environment, 3D, animation, VFX, and technical-art\s+craft[\s\S]*domain router/i,
+  "all visual craft must route to the art owner",
 );
 assert.match(visualProduction, /asset-family split[\s\S]*shared masters/i);
 assert.match(visualProduction, /editor scene for 3D/i);
@@ -513,8 +516,8 @@ assert.match(
 const agentMetadata = fs.readFileSync(path.join(skillRoot, "agents/openai.yaml"), "utf8");
 assert.equal(agentMetadata, `interface:
   display_name: "游戏美术制作"
-  short_description: "设计、制作、集成并评审交互式 UI 与 2D 游戏美术"
-  default_prompt: "Use $game-art-production within the core-owned game task to produce or review the next interactive UI/2D visual slice."
+  short_description: "设计、制作、集成并评审游戏 UI、2D、3D 美术、动画与特效"
+  default_prompt: "Use $game-art-production within the core-owned game task to produce or review the next game-art slice."
 `);
 
 console.log("game art production skill structure and authority contracts passed");
